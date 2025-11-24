@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard | Science Learning Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        teacher: { light: '#bbf7d0', DEFAULT: '#22c55e', dark: '#15803d' },
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="bg-slate-50 h-screen flex flex-col font-sans text-slate-800 overflow-hidden">
+
+    <!-- 頂部導航列 -->
+    <nav class="bg-white shadow-sm border-b border-slate-200 p-4 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <div class="bg-green-100 p-2 rounded-lg text-green-600"><i class="fa-solid fa-chalkboard-user text-xl"></i></div>
+                <span class="text-lg font-bold tracking-tight text-slate-800">Teacher Hub</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <select id="language-selector" onchange="changeLanguage()" class="border-slate-300 rounded-lg py-1.5 px-3 text-sm bg-slate-50 outline-none focus:ring-2 focus:ring-green-500 transition cursor-pointer hover:bg-white">
+                    <option value="zh-TW">繁體中文</option>
+                    <option value="en">English</option>
+                    <option value="ja">日本語</option>
+                    <option value="zh-CN">简体中文</option>
+                </select>
+                <div class="flex items-center gap-3 pl-4 border-l border-slate-200">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-sm font-bold border border-green-200" id="user-avatar">T</div>
+                        <span class="text-sm font-medium text-slate-600 hidden md:block" id="user-name-display">Teacher</span>
+                    </div>
+                    <button onclick="logout()" class="text-slate-400 hover:text-rose-500 transition p-2" title="登出"><i class="fa-solid fa-right-from-bracket"></i></button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主內容區 -->
+    <main class="flex-1 overflow-y-auto p-6 md:p-10">
+        <div class="max-w-7xl mx-auto">
+            
+            <!-- 儀表板視圖 (方塊選單) -->
+            <div id="dashboard-view" class="fade-in">
+                <div class="text-center mb-12">
+                    <h1 class="text-3xl md:text-4xl font-bold text-slate-800 mb-3" data-i18n="welcome_teacher">歡迎來到教師備課中心</h1>
+                    <p class="text-slate-500 text-lg" data-i18n="select_tool">請選擇教學輔助工具</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- 卡片 1 -->
+                    <div onclick="openTool('term-check')" class="bg-white p-8 rounded-3xl shadow-lg shadow-green-100/50 hover:shadow-xl hover:shadow-green-200 border border-slate-100 cursor-pointer transition transform hover:-translate-y-1 group">
+                        <div class="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-green-100 transition">
+                            <i class="fa-solid fa-check-double text-3xl text-green-600"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-2 group-hover:text-green-600 transition" data-i18n="feat_t_1">命題用語檢核</h3>
+                        <p class="text-slate-500 text-sm leading-relaxed">分析試題詞彙難易度與適用年級</p>
+                    </div>
+
+                    <!-- 卡片 2 -->
+                    <div onclick="openTool('lesson-plan')" class="bg-white p-8 rounded-3xl shadow-lg shadow-green-100/50 hover:shadow-xl hover:shadow-green-200 border border-slate-100 cursor-pointer transition transform hover:-translate-y-1 group">
+                        <div class="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-green-100 transition">
+                            <i class="fa-solid fa-book-open text-3xl text-green-600"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-2 group-hover:text-green-600 transition" data-i18n="feat_t_2">單元備課重點</h3>
+                        <p class="text-slate-500 text-sm leading-relaxed">自動生成單元核心概念與教學建議</p>
+                    </div>
+
+                    <!-- 卡片 3 -->
+                    <div onclick="openTool('diagnosis')" class="bg-white p-8 rounded-3xl shadow-lg shadow-green-100/50 hover:shadow-xl hover:shadow-green-200 border border-slate-100 cursor-pointer transition transform hover:-translate-y-1 group">
+                        <div class="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-green-100 transition">
+                            <i class="fa-solid fa-stethoscope text-3xl text-green-600"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-2 group-hover:text-green-600 transition" data-i18n="feat_t_3">學習狀況診斷</h3>
+                        <p class="text-slate-500 text-sm leading-relaxed">分析班級學習成效與迷思概念分佈</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 功能視窗容器 (預設隱藏) -->
+            <div id="tool-container" class="hidden fade-in">
+                <button onclick="backToDashboard()" class="mb-6 flex items-center gap-2 text-slate-500 hover:text-green-600 transition font-medium">
+                    <i class="fa-solid fa-arrow-left"></i> <span data-i18n="back_dashboard">返回儀表板</span>
+                </button>
+
+                <!-- 1. 命題用語檢核 -->
+                <div id="tool-term-check" class="tool-view hidden bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
+                    <h2 class="text-2xl font-bold text-green-800 mb-6 flex items-center gap-3">
+                        <i class="fa-solid fa-check-double"></i> <span data-i18n="feat_t_1">命題用語檢核</span>
+                    </h2>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div class="lg:col-span-2">
+                            <label class="block font-bold mb-3 text-slate-700">輸入考題內容：</label>
+                            <textarea class="w-full h-64 p-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:outline-none transition resize-none" placeholder="請貼上您設計的自然科試題..."></textarea>
+                        </div>
+                        <div class="bg-green-50 p-6 rounded-2xl border border-green-100 h-fit">
+                            <h3 class="font-bold text-green-800 mb-4">設定與執行</h3>
+                            <select class="w-full border-slate-300 p-3 rounded-lg mb-4 focus:ring-2 focus:ring-green-500 outline-none bg-white">
+                                <option>選擇適用年級...</option>
+                                <option>國小三年級</option>
+                                <option>國小四年級</option>
+                                <option>國中七年級</option>
+                            </select>
+                            <button class="w-full bg-green-600 text-white py-3 rounded-xl hover:bg-green-700 transition font-bold shadow-md">開始檢核</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. 單元備課重點 -->
+                <div id="tool-lesson-plan" class="tool-view hidden bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
+                    <h2 class="text-2xl font-bold text-green-800 mb-6 flex items-center gap-3">
+                        <i class="fa-solid fa-book-open"></i> <span data-i18n="feat_t_2">單元備課重點</span>
+                    </h2>
+                    <div class="max-w-2xl mx-auto space-y-6">
+                        <div class="grid grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-bold mb-2 text-slate-600">科目</label>
+                                <input type="text" class="w-full border border-slate-300 p-3 rounded-xl bg-slate-50 text-slate-500 cursor-not-allowed" value="自然科學" readonly>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold mb-2 text-slate-600">單元名稱</label>
+                                <input type="text" class="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-green-500 outline-none" placeholder="例如：電路與電流">
+                            </div>
+                        </div>
+                        <button class="w-full bg-green-600 text-white py-3.5 rounded-xl hover:bg-green-700 shadow-lg transition transform active:scale-95 font-bold">生成教學重點與建議</button>
+                    </div>
+                </div>
+
+                <!-- 3. 學習狀況診斷 -->
+                <div id="tool-diagnosis" class="tool-view hidden bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
+                    <h2 class="text-2xl font-bold text-green-800 mb-6 flex items-center gap-3">
+                        <i class="fa-solid fa-stethoscope"></i> <span data-i18n="feat_t_3">學習狀況診斷</span>
+                    </h2>
+                    <div class="border-2 border-dashed border-slate-300 rounded-2xl h-64 flex flex-col items-center justify-center bg-slate-50 hover:bg-green-50 hover:border-green-400 transition cursor-pointer group">
+                        <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-4 group-hover:scale-110 transition">
+                            <i class="fa-solid fa-cloud-arrow-up text-3xl text-green-500"></i>
+                        </div>
+                        <p class="text-slate-600 font-medium">點擊上傳班級答題數據 (CSV)</p>
+                        <p class="text-slate-400 text-sm mt-2">系統將自動分析迷思概念</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbzcDKkz8Tilzb3qbx0_fDR7QoG4-c2JCtsa4p9V8_1gBjZaEMlvQHd72OD0kZq_jW8H/exec";
+
+        const translations = {
+            "zh-TW": {
+                "welcome_teacher": "歡迎來到教師備課中心", "select_tool": "請選擇教學輔助工具", "back_dashboard": "返回儀表板",
+                "feat_t_1": "命題用語檢核", "feat_t_2": "單元備課重點", "feat_t_3": "學習狀況診斷",
+                "logout": "登出"
+            },
+            "en": {
+                "welcome_teacher": "Welcome to Teacher Hub", "select_tool": "Select a teaching tool", "back_dashboard": "Back to Dashboard",
+                "feat_t_1": "Term Checker", "feat_t_2": "Lesson Plan Helper", "feat_t_3": "Student Diagnosis",
+                "logout": "Logout"
+            },
+            "ja": {
+                "welcome_teacher": "教師準備センターへようこそ", "select_tool": "教育ツールを選択してください", "back_dashboard": "ダッシュボードに戻る",
+                "feat_t_1": "用語チェッカー", "feat_t_2": "授業の要点", "feat_t_3": "学習状況診断",
+                "logout": "ログアウト"
+            },
+            "zh-CN": {
+                "welcome_teacher": "欢迎来到教师备课中心", "select_tool": "请选择教学辅助工具", "back_dashboard": "返回仪表板",
+                "feat_t_1": "命题用语检核", "feat_t_2": "单元备课重点", "feat_t_3": "学习状况诊断",
+                "logout": "登出"
+            }
+        };
+
+        // --- 1. 權限與使用者讀取 ---
+        const userJson = sessionStorage.getItem("currentUser");
+        if (!userJson) {
+            // 如果沒有登入資料，導回首頁
+            alert("請先登入！");
+            window.location.href = "index.html";
+        }
+        const currentUser = JSON.parse(userJson);
+        
+        document.getElementById("user-name-display").innerText = currentUser.name;
+        document.getElementById("user-avatar").innerText = currentUser.name.charAt(0).toUpperCase();
+
+        // --- 2. 語言記憶 (核心邏輯) ---
+        function initLanguage() {
+            const savedLang = localStorage.getItem("slh_lang");
+            if (savedLang) {
+                document.getElementById("language-selector").value = savedLang;
+                changeLanguage();
+            }
+        }
+
+        function changeLanguage() {
+            const lang = document.getElementById("language-selector").value;
+            localStorage.setItem("slh_lang", lang); // 儲存設定
+            const elements = document.querySelectorAll("[data-i18n]");
+            elements.forEach(el => {
+                const key = el.getAttribute("data-i18n");
+                if (translations[lang] && translations[lang][key]) {
+                    el.innerText = translations[lang][key];
+                }
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', initLanguage);
+
+        // --- 3. 頁面切換 ---
+        function openTool(toolId) {
+            document.getElementById("dashboard-view").classList.add("hidden");
+            document.getElementById("tool-container").classList.remove("hidden");
+            
+            document.querySelectorAll(".tool-view").forEach(el => el.classList.add("hidden"));
+            document.getElementById("tool-" + toolId).classList.remove("hidden");
+            
+            logAction(toolId);
+        }
+
+        function backToDashboard() {
+            document.getElementById("tool-container").classList.add("hidden");
+            document.getElementById("dashboard-view").classList.remove("hidden");
+        }
+
+        function logAction(actionName) {
+            const payload = {
+                type: "log",
+                name: currentUser.name,
+                role: currentUser.role,
+                action: "use_tool",
+                page: actionName
+            };
+            fetch(GAS_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+        }
+
+        function logout() {
+            if(confirm("確定要登出嗎？")) {
+                sessionStorage.removeItem("currentUser");
+                window.location.href = "index.html";
+            }
+        }
+    </script>
+</body>
+</html>
