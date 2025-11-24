@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Science Learning Hub | 科學學習中心</title>
-    <!-- 引入 Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 引入 Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script>
@@ -29,8 +27,6 @@
         .fade-in { animation: fadeIn 0.5s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .hidden-section { display: none; }
-        
-        /* 自定義按鈕樣式 */
         .btn-student { @apply bg-student hover:bg-student-dark text-white; }
         .btn-teacher { @apply bg-teacher hover:bg-teacher-dark text-white; }
         .btn-researcher { @apply bg-researcher hover:bg-researcher-dark text-white; }
@@ -46,31 +42,25 @@
                 <span class="text-xl font-bold text-gray-800 tracking-tight" data-i18n="site_title_nav">Science Learning Hub</span>
             </div>
             <div class="flex items-center space-x-4">
-                <!-- 語言選擇 -->
                 <select id="language-selector" onchange="changeLanguage()" class="border rounded p-1 text-sm bg-gray-100 outline-none focus:ring-2 focus:ring-blue-300">
                     <option value="zh-TW">繁體中文</option>
                     <option value="en">English</option>
                     <option value="ja">日本語</option>
                     <option value="zh-CN">简体中文</option>
                 </select>
-                
-                <!-- 使用者資訊顯示區 -->
                 <div id="user-info-display" class="hidden text-sm font-medium text-gray-600 bg-gray-100 px-3 py-1 rounded-full"></div>
-                
-                <!-- 按鈕區 -->
                 <button id="logout-btn" onclick="logout()" class="hidden text-sm text-red-500 hover:text-red-700 font-medium" data-i18n="logout">登出</button>
                 <button id="nav-login-btn" onclick="showLoginModal()" class="bg-blue-600 text-white px-5 py-1.5 rounded-full hover:bg-blue-700 text-sm font-bold shadow-sm transition" data-i18n="btn_login">登入</button>
             </div>
         </div>
     </nav>
 
-    <!-- 主內容區域 -->
+    <!-- 主內容 -->
     <main class="max-w-7xl mx-auto p-6 flex-grow w-full">
         
-        <!-- 1. 首頁 (Home) -->
+        <!-- 1. 首頁 -->
         <div id="section-home" class="fade-in py-12">
             <div class="text-center mb-16">
-                <!-- 標題排版優化 -->
                 <h2 class="text-2xl md:text-3xl font-medium text-gray-500 mb-3 tracking-wide" data-i18n="welcome_prefix">歡迎來到</h2>
                 <h1 class="text-5xl md:text-6xl font-black text-blue-800 tracking-tight mb-6 drop-shadow-sm font-serif" data-i18n="site_title_hero">Science Learning Hub</h1>
                 <p class="text-lg text-gray-600 max-w-2xl mx-auto" data-i18n="select_role">請選擇您的身份以進入專屬學習空間</p>
@@ -79,44 +69,26 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto px-4">
                 <!-- 學生入口 -->
                 <div onclick="preSelectRole('student')" class="bg-white rounded-2xl shadow-xl overflow-hidden cursor-pointer transform transition duration-300 hover:-translate-y-2 hover:shadow-2xl border-b-4 border-student group">
-                    <div class="h-40 bg-student-light flex items-center justify-center group-hover:bg-blue-200 transition">
-                        <i class="fa-solid fa-graduation-cap text-6xl text-student-dark"></i>
-                    </div>
-                    <div class="p-6 text-center">
-                        <h2 class="text-2xl font-bold text-gray-800 mb-2" data-i18n="role_student">我是學生</h2>
-                        <p class="text-gray-500 text-sm" data-i18n="desc_student">探索科學文本、重點整理與測驗回饋</p>
-                    </div>
+                    <div class="h-40 bg-student-light flex items-center justify-center group-hover:bg-blue-200 transition"><i class="fa-solid fa-graduation-cap text-6xl text-student-dark"></i></div>
+                    <div class="p-6 text-center"><h2 class="text-2xl font-bold text-gray-800 mb-2" data-i18n="role_student">我是學生</h2><p class="text-gray-500 text-sm" data-i18n="desc_student">探索科學文本、重點整理與測驗回饋</p></div>
                 </div>
                 <!-- 教師入口 -->
                 <div onclick="preSelectRole('teacher')" class="bg-white rounded-xl shadow-xl overflow-hidden cursor-pointer transform transition duration-300 hover:-translate-y-2 hover:shadow-2xl border-b-4 border-teacher group">
-                    <div class="h-40 bg-teacher-light flex items-center justify-center group-hover:bg-green-200 transition">
-                        <i class="fa-solid fa-chalkboard-user text-6xl text-teacher-dark"></i>
-                    </div>
-                    <div class="p-6 text-center">
-                        <h2 class="text-2xl font-bold text-gray-800 mb-2" data-i18n="role_teacher">我是教師</h2>
-                        <p class="text-gray-500 text-sm" data-i18n="desc_teacher">備課資源、命題檢核與學習診斷</p>
-                    </div>
+                    <div class="h-40 bg-teacher-light flex items-center justify-center group-hover:bg-green-200 transition"><i class="fa-solid fa-chalkboard-user text-6xl text-teacher-dark"></i></div>
+                    <div class="p-6 text-center"><h2 class="text-2xl font-bold text-gray-800 mb-2" data-i18n="role_teacher">我是教師</h2><p class="text-gray-500 text-sm" data-i18n="desc_teacher">備課資源、命題檢核與學習診斷</p></div>
                 </div>
                 <!-- 研究員入口 -->
                 <div onclick="preSelectRole('researcher')" class="bg-white rounded-lg shadow-xl overflow-hidden cursor-pointer transform transition duration-300 hover:-translate-y-2 hover:shadow-2xl border-b-4 border-researcher group">
-                    <div class="h-40 bg-researcher-light flex items-center justify-center group-hover:bg-purple-200 transition">
-                        <i class="fa-solid fa-microscope text-6xl text-researcher-dark"></i>
-                    </div>
-                    <div class="p-6 text-center">
-                        <h2 class="text-2xl font-bold text-gray-800 mb-2" data-i18n="role_researcher">我是研究員</h2>
-                        <p class="text-gray-500 text-sm" data-i18n="desc_researcher">高階文本分析與系統語言研究</p>
-                    </div>
+                    <div class="h-40 bg-researcher-light flex items-center justify-center group-hover:bg-purple-200 transition"><i class="fa-solid fa-microscope text-6xl text-researcher-dark"></i></div>
+                    <div class="p-6 text-center"><h2 class="text-2xl font-bold text-gray-800 mb-2" data-i18n="role_researcher">我是研究員</h2><p class="text-gray-500 text-sm" data-i18n="desc_researcher">高階文本分析與系統語言研究</p></div>
                 </div>
             </div>
         </div>
 
-        <!-- 2. 認證中心 (登入/註冊) -->
+        <!-- 2. 認證中心 -->
         <div id="section-auth" class="hidden-section fade-in max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-xl mt-8">
-            <button onclick="goHome()" class="text-gray-400 hover:text-gray-600 mb-6 flex items-center gap-2 transition">
-                <i class="fa-solid fa-arrow-left"></i> <span data-i18n="back">返回</span>
-            </button>
+            <button onclick="goHome()" class="text-gray-400 hover:text-gray-600 mb-6 flex items-center gap-2 transition"><i class="fa-solid fa-arrow-left"></i> <span data-i18n="back">返回</span></button>
             
-            <!-- Tab 切換 -->
             <div class="flex mb-8 border-b border-gray-200">
                 <button id="tab-login" onclick="switchAuthMode('login')" class="w-1/2 py-3 text-lg font-bold text-blue-600 border-b-4 border-blue-600 focus:outline-none transition-colors" data-i18n="tab_login">登入</button>
                 <button id="tab-register" onclick="switchAuthMode('register')" class="w-1/2 py-3 text-lg font-bold text-gray-400 hover:text-gray-600 focus:outline-none transition-colors" data-i18n="tab_register">註冊新帳號</button>
@@ -124,231 +96,74 @@
 
             <!-- A. 登入表單 -->
             <form id="form-login" onsubmit="handleLogin(event)" class="space-y-6">
-                <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_email">Email</label>
-                    <input type="email" id="login-email" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition" placeholder="name@example.com">
-                </div>
-                <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_password">密碼</label>
-                    <input type="password" id="login-password" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition" placeholder="••••••••">
-                </div>
-                <button type="submit" id="btn-do-login" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-md transition transform active:scale-95" data-i18n="btn_login_action">
-                    登入系統
-                </button>
+                <div><label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_email">Email</label><input type="email" id="login-email" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition" placeholder="name@example.com"></div>
+                <div><label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_password">密碼</label><input type="password" id="login-password" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition" placeholder="••••••••"></div>
+                <button type="submit" id="btn-do-login" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-md transition transform active:scale-95" data-i18n="btn_login_action">登入系統</button>
             </form>
 
             <!-- B. 註冊表單 -->
             <form id="form-register" class="hidden-section space-y-4" onsubmit="handleRegister(event)">
-                
-                <!-- 隱藏的角色輸入欄位 (雖然看不到，但會默默紀錄角色) -->
-                <input type="hidden" id="input-role" value="">
+                <!-- 隱藏的角色輸入，用於後台 -->
+                <input type="hidden" id="input-role" value="student">
 
-                <!-- 顯示當前註冊角色的標題 -->
-                <div class="mb-6 text-center">
-                    <span class="bg-gray-100 text-gray-600 px-4 py-1 rounded-full text-sm font-medium" id="register-role-badge">
-                        <!-- JS會自動填入：正在註冊：學生 -->
-                    </span>
+                <!-- 1. 當從首頁卡片點進來：只顯示這個標題 -->
+                <div id="role-display-block" class="mb-6 text-center hidden">
+                    <h3 class="text-2xl font-bold text-gray-700"><span id="reg-role-display-text">註冊學生帳號</span></h3>
                 </div>
 
-                <!-- 帳號密碼區 -->
+                <!-- 2. 當從右上角登入進來：顯示這個選擇選單 -->
+                <div id="role-select-block" class="p-4 bg-blue-50 rounded-lg border border-blue-100 mb-4 hidden">
+                    <label class="block text-blue-800 text-sm font-bold mb-2" data-i18n="label_select_role">註冊身分</label>
+                    <select id="input-role-select" onchange="syncRoleFromSelector()" class="w-full px-3 py-2 rounded border border-blue-200 text-gray-700 bg-white focus:outline-none focus:border-blue-500">
+                        <option value="student" data-i18n="role_student">我是學生</option>
+                        <option value="teacher" data-i18n="role_teacher">我是教師</option>
+                        <option value="researcher" data-i18n="role_researcher">我是研究員</option>
+                    </select>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_email_account">Email (帳號)</label>
-                        <input type="email" id="reg-email" required class="w-full px-3 py-2 rounded border border-gray-300 focus:border-blue-500 outline-none" placeholder="name@example.com">
-                    </div>
-                    <div>
-                        <label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_password">設定密碼</label>
-                        <input type="password" id="reg-password" required class="w-full px-3 py-2 rounded border border-gray-300 focus:border-blue-500 outline-none" placeholder="******">
-                    </div>
+                    <div><label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_email_account">Email (帳號)</label><input type="email" id="reg-email" required class="w-full px-3 py-2 rounded border border-gray-300 focus:border-blue-500 outline-none" placeholder="name@example.com"></div>
+                    <div><label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_password">設定密碼</label><input type="password" id="reg-password" required class="w-full px-3 py-2 rounded border border-gray-300 focus:border-blue-500 outline-none" placeholder="******"></div>
                 </div>
-
-                <!-- 基本資料 -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_name">姓名</label>
-                        <input type="text" id="input-name" required class="w-full px-3 py-2 rounded border border-gray-300 focus:border-blue-500 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_gender">性別</label>
-                        <select id="input-gender" class="w-full px-3 py-2 rounded border border-gray-300 focus:border-blue-500 outline-none bg-white">
-                            <option value="male" data-i18n="gender_male">男</option>
-                            <option value="female" data-i18n="gender_female">女</option>
-                            <option value="other" data-i18n="gender_other">其他</option>
-                        </select>
-                    </div>
+                    <div><label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_name">姓名</label><input type="text" id="input-name" required class="w-full px-3 py-2 rounded border border-gray-300 focus:border-blue-500 outline-none"></div>
+                    <div><label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_gender">性別</label><select id="input-gender" class="w-full px-3 py-2 rounded border border-gray-300 focus:border-blue-500 outline-none bg-white"><option value="male" data-i18n="gender_male">男</option><option value="female" data-i18n="gender_female">女</option><option value="other" data-i18n="gender_other">其他</option></select></div>
                 </div>
 
-                <!-- 動態欄位：學生 -->
+                <!-- 學生欄位 -->
                 <div id="fields-student" class="role-fields space-y-4 p-4 bg-gray-50 rounded-lg">
-                    <div>
-                        <label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_school_student">就讀學校 (縣市+校名)</label>
-                        <input type="text" id="input-school-student" class="w-full px-3 py-2 rounded border border-gray-300 focus:border-blue-500 outline-none" placeholder="例如：花蓮縣東華附小">
-                    </div>
-                    <div>
-                        <label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_grade_student">就讀年級</label>
-                        <select id="input-grade-student" class="w-full px-3 py-2 rounded border border-gray-300 focus:border-blue-500 outline-none bg-white">
-                            <option value="E1">國小一年級</option><option value="E2">國小二年級</option><option value="E3">國小三年級</option>
-                            <option value="E4">國小四年級</option><option value="E5">國小五年級</option><option value="E6">國小六年級</option>
-                            <option value="J1">國中七年級</option><option value="J2">國中八年級</option><option value="J3">國中九年級</option>
-                            <option value="S1">高中一年級</option><option value="S2">高中二年級</option><option value="S3">高中三年級</option>
-                        </select>
-                    </div>
+                    <div><label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_school_student">就讀學校 (縣市+校名)</label><input type="text" id="input-school-student" class="w-full px-3 py-2 rounded border border-gray-300 focus:border-blue-500 outline-none" placeholder="例如：花蓮縣東華附小"></div>
+                    <div><label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_grade_student">就讀年級</label><select id="input-grade-student" class="w-full px-3 py-2 rounded border border-gray-300 focus:border-blue-500 outline-none bg-white"><option value="E1">國小一年級</option><option value="E2">國小二年級</option><option value="E3">國小三年級</option><option value="E4">國小四年級</option><option value="E5">國小五年級</option><option value="E6">國小六年級</option><option value="J1">國中七年級</option><option value="J2">國中八年級</option><option value="J3">國中九年級</option><option value="S1">高中一年級</option><option value="S2">高中二年級</option><option value="S3">高中三年級</option></select></div>
                 </div>
 
-                <!-- 動態欄位：教師 -->
+                <!-- 教師欄位 -->
                 <div id="fields-teacher" class="role-fields hidden-section space-y-4 p-4 bg-gray-50 rounded-lg">
-                    <div>
-                        <label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_school_teacher">服務學校 (縣市+校名)</label>
-                        <input type="text" id="input-school-teacher" class="w-full px-3 py-2 rounded border border-gray-300 focus:border-blue-500 outline-none" placeholder="例如：花蓮縣花崗國中">
+                    <div><label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_school_teacher">服務學校 (縣市+校名)</label><input type="text" id="input-school-teacher" class="w-full px-3 py-2 rounded border border-gray-300 focus:border-blue-500 outline-none" placeholder="例如：花蓮縣花崗國中"></div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_position">職稱</label><select id="input-position" class="w-full px-3 py-2 rounded border border-gray-300 focus:border-blue-500 outline-none bg-white"><option value="Principal">校長</option><option value="Director">主任</option><option value="SectionChief">組長</option><option value="HomeroomTeacher">導師</option><option value="SubjectTeacher">科任</option></select></div>
+                        <div><label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_teaching_grade">教學年級</label><select id="input-teaching-grade" class="w-full px-3 py-2 rounded border border-gray-300 focus:border-blue-500 outline-none bg-white"><option value="Elementary">國小 (G1-G6)</option><option value="Junior">國中 (G7-G9)</option><option value="Senior">高中 (G10-G12)</option></select></div>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_position">職稱</label>
-                            <select id="input-position" class="w-full px-3 py-2 rounded border border-gray-300 focus:border-blue-500 outline-none bg-white">
-                                <option value="Principal">校長</option>
-                                <option value="Director">主任</option>
-                                <option value="SectionChief">組長</option>
-                                <option value="HomeroomTeacher">導師</option>
-                                <option value="SubjectTeacher">科任</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_teaching_grade">教學年級</label>
-                            <select id="input-teaching-grade" class="w-full px-3 py-2 rounded border border-gray-300 focus:border-blue-500 outline-none bg-white">
-                                <option value="Elementary">國小 (G1-G6)</option>
-                                <option value="Junior">國中 (G7-G9)</option>
-                                <option value="Senior">高中 (G10-G12)</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_subject">教學科目</label>
-                            <input type="text" id="input-subject" class="w-full px-3 py-2 rounded border border-gray-300 focus:border-blue-500 outline-none" placeholder="例如: 自然">
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_seniority">教學年資</label>
-                            <select id="input-seniority" class="w-full px-3 py-2 rounded border border-gray-300 focus:border-blue-500 outline-none bg-white">
-                                <option value="0-5">5年以下</option>
-                                <option value="6-10">6-10 年</option>
-                                <option value="11-15">11-15 年</option>
-                                <option value="16-20">16-20 年</option>
-                                <option value="21-25">21-25 年</option>
-                                <option value="25+">25 年以上</option>
-                            </select>
-                        </div>
+                        <div><label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_subject">教學科目</label><input type="text" id="input-subject" class="w-full px-3 py-2 rounded border border-gray-300 focus:border-blue-500 outline-none" placeholder="例如: 自然"></div>
+                        <div><label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_seniority">教學年資</label><select id="input-seniority" class="w-full px-3 py-2 rounded border border-gray-300 focus:border-blue-500 outline-none bg-white"><option value="0-5">5年以下</option><option value="6-10">6-10 年</option><option value="11-15">11-15 年</option><option value="16-20">16-20 年</option><option value="21-25">21-25 年</option><option value="25+">25 年以上</option></select></div>
                     </div>
                 </div>
 
-                <!-- 動態欄位：研究員 -->
+                <!-- 研究員欄位 -->
                 <div id="fields-researcher" class="role-fields hidden-section space-y-4 p-4 bg-gray-50 rounded-lg">
-                    <div>
-                        <label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_unit">服務單位</label>
-                        <input type="text" id="input-unit" class="w-full px-3 py-2 rounded border border-gray-300 focus:border-blue-500 outline-none" placeholder="例如：國立東華大學">
-                    </div>
+                    <div><label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_unit">服務單位</label><input type="text" id="input-unit" class="w-full px-3 py-2 rounded border border-gray-300 focus:border-blue-500 outline-none" placeholder="例如：國立東華大學"></div>
                     <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_research_title">職稱</label>
-                            <input type="text" id="input-research-title" class="w-full px-3 py-2 rounded border border-gray-300 focus:border-blue-500 outline-none" placeholder="例如: 教授">
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_field">研究領域</label>
-                            <input type="text" id="input-field" class="w-full px-3 py-2 rounded border border-gray-300 focus:border-blue-500 outline-none" placeholder="例如：科學教育">
-                        </div>
+                        <div><label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_research_title">職稱</label><input type="text" id="input-research-title" class="w-full px-3 py-2 rounded border border-gray-300 focus:border-blue-500 outline-none" placeholder="例如: 教授"></div>
+                        <div><label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_field">研究領域</label><input type="text" id="input-field" class="w-full px-3 py-2 rounded border border-gray-300 focus:border-blue-500 outline-none" placeholder="例如：科學教育"></div>
                     </div>
                 </div>
 
-                <button id="btn-do-register" type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg shadow-md transition transform active:scale-95 mt-6" data-i18n="btn_register_action">
-                    註冊並登入
-                </button>
+                <button id="btn-do-register" type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg shadow-md transition transform active:scale-95 mt-6" data-i18n="btn_register_action">註冊並登入</button>
             </form>
-            
             <p id="loading-msg" class="text-center text-gray-500 mt-4 hidden animate-pulse" data-i18n="msg_loading"><i class="fa-solid fa-circle-notch fa-spin"></i> 正在連接資料庫...</p>
         </div>
-
-        <!-- 3. 學生儀表板 -->
-        <div id="dashboard-student" class="hidden-section fade-in py-8">
-            <h2 class="text-3xl font-bold text-student mb-8 border-b-2 border-student pb-2 inline-block" data-i18n="dash_student">學生學習專區</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div onclick="logAction('Science Bilingual Text')" class="bg-white p-8 rounded-3xl shadow-lg hover:shadow-2xl transition transform hover:-translate-y-1 cursor-pointer border border-gray-100 flex flex-col items-center text-center group">
-                    <div class="bg-blue-50 p-5 rounded-full mb-5 group-hover:bg-blue-100 transition"><i class="fa-solid fa-language text-5xl text-student"></i></div>
-                    <h3 class="text-xl font-bold mb-2 text-gray-800" data-i18n="feat_s_1">科學雙語文本</h3>
-                    <p class="text-gray-500 text-sm">Exploring Science Text</p>
-                </div>
-                <div onclick="logAction('Unit Summary')" class="bg-white p-8 rounded-3xl shadow-lg hover:shadow-2xl transition transform hover:-translate-y-1 cursor-pointer border border-gray-100 flex flex-col items-center text-center group">
-                    <div class="bg-blue-50 p-5 rounded-full mb-5 group-hover:bg-blue-100 transition"><i class="fa-solid fa-list-check text-5xl text-student"></i></div>
-                    <h3 class="text-xl font-bold mb-2 text-gray-800" data-i18n="feat_s_2">單元重點整理</h3>
-                    <p class="text-gray-500 text-sm">Key Concepts Summary</p>
-                </div>
-                <div onclick="logAction('AI Grading')" class="bg-white p-8 rounded-3xl shadow-lg hover:shadow-2xl transition transform hover:-translate-y-1 cursor-pointer border border-gray-100 flex flex-col items-center text-center group">
-                    <div class="bg-blue-50 p-5 rounded-full mb-5 group-hover:bg-blue-100 transition"><i class="fa-solid fa-robot text-5xl text-student"></i></div>
-                    <h3 class="text-xl font-bold mb-2 text-gray-800" data-i18n="feat_s_3">AI自動命題與評分</h3>
-                    <p class="text-gray-500 text-sm">AI Grading & Feedback</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- 4. 教師儀表板 -->
-        <div id="dashboard-teacher" class="hidden-section fade-in py-8">
-            <h2 class="text-3xl font-bold text-teacher mb-8 border-b-2 border-teacher pb-2 inline-block" data-i18n="dash_teacher">教師備課中心</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div onclick="logAction('Term Check')" class="bg-white p-6 rounded-xl shadow hover:shadow-xl transition transform hover:-translate-y-1 cursor-pointer border-t-4 border-teacher">
-                    <h3 class="text-lg font-bold mb-2 text-gray-800" data-i18n="feat_t_1">中小學自然命題用語檢核</h3>
-                    <p class="text-sm text-gray-500 mt-2">檢核命題詞彙難易度是否符合年級程度</p>
-                </div>
-                <div onclick="logAction('Lesson Plan')" class="bg-white p-6 rounded-xl shadow hover:shadow-xl transition transform hover:-translate-y-1 cursor-pointer border-t-4 border-teacher">
-                    <h3 class="text-lg font-bold mb-2 text-gray-800" data-i18n="feat_t_2">單元備課教學重點</h3>
-                    <p class="text-sm text-gray-500 mt-2">自動生成單元核心概念與教學建議</p>
-                </div>
-                <div onclick="logAction('Diagnosis')" class="bg-white p-6 rounded-xl shadow hover:shadow-xl transition transform hover:-translate-y-1 cursor-pointer border-t-4 border-teacher">
-                    <h3 class="text-lg font-bold mb-2 text-gray-800" data-i18n="feat_t_3">學生學習狀況診斷</h3>
-                    <p class="text-sm text-gray-500 mt-2">分析班級學習成效與迷思概念分佈</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- 5. 研究員儀表板 -->
-        <div id="dashboard-researcher" class="hidden-section fade-in py-8">
-            <h2 class="text-3xl font-bold text-researcher mb-8 border-b-2 border-researcher pb-2 inline-block" data-i18n="dash_researcher">研究分析工作台</h2>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div onclick="logAction('Segmentation')" class="bg-white p-5 rounded-lg shadow-sm border border-gray-200 hover:border-purple-400 hover:shadow-md hover:bg-purple-50 cursor-pointer transition text-center h-32 flex flex-col justify-center">
-                    <i class="fa-solid fa-scissors text-2xl text-purple-500 mb-2"></i>
-                    <h4 class="font-bold text-gray-700" data-i18n="feat_r_1">科學文本斷詞</h4>
-                </div>
-                <div onclick="logAction('Query')" class="bg-white p-5 rounded-lg shadow-sm border border-gray-200 hover:border-purple-400 hover:shadow-md hover:bg-purple-50 cursor-pointer transition text-center h-32 flex flex-col justify-center">
-                    <i class="fa-solid fa-magnifying-glass text-2xl text-purple-500 mb-2"></i>
-                    <h4 class="font-bold text-gray-700" data-i18n="feat_r_2">科學文本查詢</h4>
-                </div>
-                <div onclick="logAction('Comparison')" class="bg-white p-5 rounded-lg shadow-sm border border-gray-200 hover:border-purple-400 hover:shadow-md hover:bg-purple-50 cursor-pointer transition text-center h-32 flex flex-col justify-center">
-                    <i class="fa-solid fa-scale-balanced text-2xl text-purple-500 mb-2"></i>
-                    <h4 class="font-bold text-gray-700" data-i18n="feat_r_3">文本詞彙比較</h4>
-                </div>
-                <div onclick="logAction('Readability')" class="bg-white p-5 rounded-lg shadow-sm border border-gray-200 hover:border-purple-400 hover:shadow-md hover:bg-purple-50 cursor-pointer transition text-center h-32 flex flex-col justify-center">
-                    <i class="fa-solid fa-book-open-reader text-2xl text-purple-500 mb-2"></i>
-                    <h4 class="font-bold text-gray-700" data-i18n="feat_r_4">文本可讀性分析</h4>
-                </div>
-                <div onclick="logAction('Concept Net')" class="bg-white p-5 rounded-lg shadow-sm border border-gray-200 hover:border-purple-400 hover:shadow-md hover:bg-purple-50 cursor-pointer transition text-center h-32 flex flex-col justify-center">
-                    <i class="fa-solid fa-circle-nodes text-2xl text-purple-500 mb-2"></i>
-                    <h4 class="font-bold text-gray-700" data-i18n="feat_r_5">概念網絡分析</h4>
-                </div>
-                <div onclick="logAction('SFL')" class="bg-white p-5 rounded-lg shadow-sm border border-gray-200 hover:border-purple-400 hover:shadow-md hover:bg-purple-50 cursor-pointer transition text-center h-32 flex flex-col justify-center">
-                    <i class="fa-solid fa-spell-check text-2xl text-purple-500 mb-2"></i>
-                    <h4 class="font-bold text-gray-700" data-i18n="feat_r_6">系統功能語言分析</h4>
-                </div>
-                <div onclick="logAction('Word Cloud')" class="bg-white p-5 rounded-lg shadow-sm border border-gray-200 hover:border-purple-400 hover:shadow-md hover:bg-purple-50 cursor-pointer transition text-center h-32 flex flex-col justify-center">
-                    <i class="fa-solid fa-cloud text-2xl text-purple-500 mb-2"></i>
-                    <h4 class="font-bold text-gray-700" data-i18n="feat_r_7">文本文字雲系統</h4>
-                </div>
-                <div onclick="logAction('Similarity')" class="bg-white p-5 rounded-lg shadow-sm border border-gray-200 hover:border-purple-400 hover:shadow-md hover:bg-purple-50 cursor-pointer transition text-center h-32 flex flex-col justify-center">
-                    <i class="fa-solid fa-clone text-2xl text-purple-500 mb-2"></i>
-                    <h4 class="font-bold text-gray-700" data-i18n="feat_r_8">文本相似性分析</h4>
-                </div>
-            </div>
-        </div>
-
     </main>
 
-    <!-- 頁尾資訊 -->
     <footer class="text-center py-8 text-gray-500 text-sm mt-12 border-t bg-gray-100">
         <div class="flex flex-col gap-2">
             <p>&copy; 2024 Science Learning Hub. AI-Powered Education.</p>
@@ -358,96 +173,61 @@
     </footer>
 
     <script>
-        // **********************************************************
-        //  重要：請將下方的 URL 替換成您 Google Apps Script 部署後的網址
-        // **********************************************************
+        // *** GAS URL ***
         const GAS_URL = "https://script.google.com/macros/s/AKfycbzcDKkz8Tilzb3qbx0_fDR7QoG4-c2JCtsa4p9V8_1gBjZaEMlvQHd72OD0kZq_jW8H/exec"; 
 
         let currentUser = null;
 
-        // 語言字典 (繁中, 英文, 日文, 簡中)
+        // 語言字典
         const translations = {
             "zh-TW": {
                 "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub", "welcome_prefix": "歡迎來到",
-                "logout": "登出", "btn_login": "登入", "back": "返回", 
-                "tab_login": "登入", "tab_register": "註冊新帳號", "btn_login_action": "登入系統", "btn_register_action": "註冊並登入",
-                "select_role": "請選擇您的身份以進入專屬學習空間",
-                // 移除 "label_select_role" 因為已經不需要顯示下拉選單標籤
-                "role_student": "學生", "role_teacher": "教師", "role_researcher": "研究員",
-                "msg_registering_as": "您正在註冊身分：",
-                "desc_student": "探索科學文本、重點整理與測驗回饋",
-                "desc_teacher": "備課資源、命題檢核與學習診斷",
-                "desc_researcher": "高階文本分析與系統語言研究",
+                "logout": "登出", "btn_login": "登入", "back": "返回", "tab_login": "登入", "tab_register": "註冊新帳號", 
+                "btn_login_action": "登入系統", "btn_register_action": "註冊並登入", "select_role": "請選擇您的身份以進入專屬學習空間",
+                "label_select_role": "註冊身分", "role_student": "學生", "role_teacher": "教師", "role_researcher": "研究員",
+                "reg_title_student": "學生帳號註冊", "reg_title_teacher": "教師帳號註冊", "reg_title_researcher": "研究員帳號註冊",
+                "desc_student": "探索科學文本、重點整理與測驗回饋", "desc_teacher": "備課資源、命題檢核與學習診斷", "desc_researcher": "高階文本分析與系統語言研究",
                 "label_name": "姓名", "label_gender": "性別", "gender_male": "男", "gender_female": "女", "gender_other": "其他",
-                "label_email": "Email", "label_email_account": "Email (帳號)",
-                "label_password": "密碼", "msg_loading": "正在連接資料庫...",
-                "dash_student": "學生學習專區", "feat_s_1": "科學雙語文本", "feat_s_2": "單元重點整理", "feat_s_3": "AI自動命題與評分回饋",
-                "dash_teacher": "教師備課中心", "feat_t_1": "中小學自然命題用語檢核", "feat_t_2": "單元備課教學重點", "feat_t_3": "學生學習狀況診斷",
-                "dash_researcher": "研究分析工作台", "feat_r_1": "科學文本斷詞", "feat_r_2": "科學文本查詢", "feat_r_3": "文本詞彙比較", "feat_r_4": "文本可讀性分析",
-                "feat_r_5": "概念網絡分析", "feat_r_6": "系統功能語言分析", "feat_r_7": "文本文字雲系統", "feat_r_8": "文本相似性分析",
+                "label_email": "Email", "label_email_account": "Email (帳號)", "label_password": "密碼", "msg_loading": "正在連接資料庫...",
                 "label_school_student": "就讀學校 (縣市+校名)", "label_grade_student": "就讀年級",
                 "label_school_teacher": "服務學校 (縣市+校名)", "label_position": "職稱", "label_teaching_grade": "教學年級", "label_subject": "教學科目", "label_seniority": "教學年資",
                 "label_unit": "服務單位", "label_research_title": "職稱", "label_field": "研究領域"
             },
             "en": {
                 "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub", "welcome_prefix": "Welcome to",
-                "logout": "Logout", "btn_login": "Login", "back": "Back", 
-                "tab_login": "Login", "tab_register": "Sign Up", "btn_login_action": "Login", "btn_register_action": "Register & Login",
-                "select_role": "Please select your role to continue",
-                "role_student": "Student", "role_teacher": "Teacher", "role_researcher": "Researcher",
-                "msg_registering_as": "Registering as: ",
-                "desc_student": "Explore texts, summaries, and AI feedback",
-                "desc_teacher": "Resources, terminology check, and diagnosis",
-                "desc_researcher": "Advanced analysis and linguistics",
+                "logout": "Logout", "btn_login": "Login", "back": "Back", "tab_login": "Login", "tab_register": "Sign Up",
+                "btn_login_action": "Login", "btn_register_action": "Register & Login", "select_role": "Please select your role to continue",
+                "label_select_role": "Role", "role_student": "Student", "role_teacher": "Teacher", "role_researcher": "Researcher",
+                "reg_title_student": "Student Registration", "reg_title_teacher": "Teacher Registration", "reg_title_researcher": "Researcher Registration",
+                "desc_student": "Explore texts, summaries, and AI feedback", "desc_teacher": "Resources, terminology check, and diagnosis", "desc_researcher": "Advanced analysis and linguistics",
                 "label_name": "Name", "label_gender": "Gender", "gender_male": "Male", "gender_female": "Female", "gender_other": "Other",
-                "label_email": "Email", "label_email_account": "Email (Account)",
-                "label_password": "Password", "msg_loading": "Connecting...",
-                "dash_student": "Student Learning Zone", "feat_s_1": "Bilingual Text", "feat_s_2": "Unit Summary", "feat_s_3": "AI Grading & Feedback",
-                "dash_teacher": "Teacher Prep Center", "feat_t_1": "Term Checker", "feat_t_2": "Lesson Key Points", "feat_t_3": "Student Diagnosis",
-                "dash_researcher": "Research Workbench", "feat_r_1": "Segmentation", "feat_r_2": "Text Query", "feat_r_3": "Vocabulary Comp.", "feat_r_4": "Readability",
-                "feat_r_5": "Concept Net", "feat_r_6": "System Functional Ling.", "feat_r_7": "Word Cloud", "feat_r_8": "Similarity Analysis",
+                "label_email": "Email", "label_email_account": "Email (Account)", "label_password": "Password", "msg_loading": "Connecting...",
                 "label_school_student": "School Name (City+Name)", "label_grade_student": "Grade",
                 "label_school_teacher": "School Name (City+Name)", "label_position": "Title", "label_teaching_grade": "Teaching Grade", "label_subject": "Subject", "label_seniority": "Seniority",
                 "label_unit": "Institution", "label_research_title": "Title", "label_field": "Research Field"
             },
             "ja": {
                 "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub", "welcome_prefix": "ようこそ",
-                "logout": "ログアウト", "btn_login": "ログイン", "back": "戻る", 
-                "tab_login": "ログイン", "tab_register": "新規登録", "btn_login_action": "ログイン", "btn_register_action": "登録してログイン",
-                "select_role": "役割を選択して進んでください",
-                "role_student": "学生", "role_teacher": "教師", "role_researcher": "研究員",
-                "msg_registering_as": "登録する役割：",
-                "desc_student": "科学テキスト、要約、AIフィードバック",
-                "desc_teacher": "授業準備、用語チェック、学習診断",
-                "desc_researcher": "高度なテキスト分析と言語研究",
+                "logout": "ログアウト", "btn_login": "ログイン", "back": "戻る", "tab_login": "ログイン", "tab_register": "新規登録",
+                "btn_login_action": "ログイン", "btn_register_action": "登録してログイン", "select_role": "役割を選択して進んでください",
+                "label_select_role": "役割", "role_student": "学生", "role_teacher": "教師", "role_researcher": "研究員",
+                "reg_title_student": "学生登録", "reg_title_teacher": "教師登録", "reg_title_researcher": "研究員登録",
+                "desc_student": "科学テキスト、要約、AIフィードバック", "desc_teacher": "授業準備、用語チェック、学習診断", "desc_researcher": "高度なテキスト分析と言語研究",
                 "label_name": "氏名", "label_gender": "性別", "gender_male": "男性", "gender_female": "女性", "gender_other": "その他",
-                "label_email": "メールアドレス", "label_email_account": "メールアドレス (ID)",
-                "label_password": "パスワード", "msg_loading": "接続中...",
-                "dash_student": "学生学習ゾーン", "feat_s_1": "科学バイリンガルテキスト", "feat_s_2": "単元のまとめ", "feat_s_3": "AI採点とフィードバック",
-                "dash_teacher": "教師準備センター", "feat_t_1": "用語チェッカー", "feat_t_2": "授業の要点", "feat_t_3": "学習状況診断",
-                "dash_researcher": "研究分析台", "feat_r_1": "テキスト分かち書き", "feat_r_2": "テキスト検索", "feat_r_3": "語彙比較", "feat_r_4": "可読性分析",
-                "feat_r_5": "概念ネットワーク", "feat_r_6": "体系機能言語学", "feat_r_7": "ワードクラウド", "feat_r_8": "類似性分析",
+                "label_email": "メールアドレス", "label_email_account": "メールアドレス (ID)", "label_password": "パスワード", "msg_loading": "接続中...",
                 "label_school_student": "学校名 (県市+校名)", "label_grade_student": "学年",
                 "label_school_teacher": "勤務校 (県市+校名)", "label_position": "職名", "label_teaching_grade": "担当学年", "label_subject": "担当科目", "label_seniority": "教職経験年数",
                 "label_unit": "所属機関", "label_research_title": "職名", "label_field": "研究分野"
             },
             "zh-CN": {
                 "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub", "welcome_prefix": "欢迎来到",
-                "logout": "登出", "btn_login": "登录", "back": "返回", 
-                "tab_login": "登录", "tab_register": "注册新账号", "btn_login_action": "登录系统", "btn_register_action": "注册并登录",
-                "select_role": "请选择您的身份以进入专属学习空间",
-                "role_student": "学生", "role_teacher": "教师", "role_researcher": "研究员",
-                "msg_registering_as": "您正在注册身份：",
-                "desc_student": "探索科学文本、重点整理与测验反馈",
-                "desc_teacher": "备课资源、命题检核与学习诊断",
-                "desc_researcher": "高阶文本分析与系统语言研究",
+                "logout": "登出", "btn_login": "登录", "back": "返回", "tab_login": "登录", "tab_register": "注册新账号",
+                "btn_login_action": "登录系统", "btn_register_action": "注册并登录", "select_role": "请选择您的身份以进入专属学习空间",
+                "label_select_role": "注册身份", "role_student": "学生", "role_teacher": "教师", "role_researcher": "研究员",
+                "reg_title_student": "学生账号注册", "reg_title_teacher": "教师账号注册", "reg_title_researcher": "研究员账号注册",
+                "desc_student": "探索科学文本、重点整理与测验反馈", "desc_teacher": "备课资源、命题检核与学习诊断", "desc_researcher": "高阶文本分析与系统语言研究",
                 "label_name": "姓名", "label_gender": "性别", "gender_male": "男", "gender_female": "女", "gender_other": "其他",
-                "label_email": "电子邮箱", "label_email_account": "电子邮箱 (账号)",
-                "label_password": "密码", "msg_loading": "正在连接数据库...",
-                "dash_student": "学生学习专区", "feat_s_1": "科学双语文本", "feat_s_2": "单元重点整理", "feat_s_3": "AI自动命题与评分反馈",
-                "dash_teacher": "教师备课中心", "feat_t_1": "中小学自然命题用语检核", "feat_t_2": "单元备课教学重点", "feat_t_3": "学生学习状况诊断",
-                "dash_researcher": "研究分析工作台", "feat_r_1": "科学文本断词", "feat_r_2": "科学文本查询", "feat_r_3": "文本词汇比较", "feat_r_4": "文本可读性分析",
-                "feat_r_5": "概念网络分析", "feat_r_6": "系统功能语言分析", "feat_r_7": "文本文字雲系統", "feat_r_8": "文本相似性分析",
+                "label_email": "电子邮箱", "label_email_account": "电子邮箱 (账号)", "label_password": "密码", "msg_loading": "正在连接数据库...",
                 "label_school_student": "就读学校 (县市+校名)", "label_grade_student": "就读年级",
                 "label_school_teacher": "服务学校 (县市+校名)", "label_position": "职称", "label_teaching_grade": "教学年级", "label_subject": "教学科目", "label_seniority": "教学年资",
                 "label_unit": "服务单位", "label_research_title": "职称", "label_field": "研究领域"
@@ -461,21 +241,15 @@
                 const key = el.getAttribute("data-i18n");
                 if (translations[lang] && translations[lang][key]) {
                     const tagName = el.tagName.toLowerCase();
-                    if(tagName === 'input' || tagName === 'textarea') {
-                        el.placeholder = translations[lang][key];
-                    } else {
-                        el.innerText = translations[lang][key];
-                    }
+                    if(tagName === 'input' || tagName === 'textarea') el.placeholder = translations[lang][key];
+                    else el.innerText = translations[lang][key];
                 }
             });
-            // 更新註冊身分提示 (因為它是動態生成的)
-            const roleInput = document.getElementById("input-role").value;
-            if(roleInput) {
-                updateRegisterBadge(roleInput);
-            }
+            // 更新註冊標題 (若已選定角色)
+            const role = document.getElementById("input-role").value;
+            if(role) updateRoleDisplay(role);
         }
 
-        // === 頁面切換邏輯 ===
         function switchAuthMode(mode) {
             document.getElementById("form-login").classList.add("hidden-section");
             document.getElementById("form-register").classList.add("hidden-section");
@@ -494,18 +268,30 @@
             }
         }
 
+        // 情境A: 從首頁卡片進入 -> 隱藏選擇框，顯示標題
         function preSelectRole(role) {
             showAuthSection('register');
-            document.getElementById("input-role").value = role; // 設置隱藏欄位
-            updateRegisterBadge(role); // 更新視覺提示
-            updateRegisterFields();
+            document.getElementById("input-role").value = role; 
+            
+            // UI 控制
+            document.getElementById("role-select-block").classList.add("hidden"); // 隱藏選擇框
+            document.getElementById("role-display-block").classList.remove("hidden"); // 顯示標題
+            
+            updateRoleDisplay(role);
+            updateRegisterFields(role);
         }
 
+        // 情境B: 從上方登入按鈕進入 -> 顯示選擇框
         function showLoginModal() {
-            // 如果直接按登入，不特定預選角色 (註冊tab可能會空白或預設第一個，這裡預設學生)
+            // 預設給學生，但顯示選擇框讓使用者改
             document.getElementById("input-role").value = 'student';
-            updateRegisterBadge('student');
-            updateRegisterFields();
+            
+            // UI 控制
+            document.getElementById("role-select-block").classList.remove("hidden"); // 顯示選擇框
+            document.getElementById("role-display-block").classList.add("hidden"); // 隱藏固定標題
+            document.getElementById("input-role-select").value = 'student'; // 同步選單
+
+            updateRegisterFields('student');
             showAuthSection('login');
         }
 
@@ -515,23 +301,22 @@
             switchAuthMode(mode);
         }
 
-        function updateRegisterBadge(role) {
+        function updateRoleDisplay(role) {
             const lang = document.getElementById("language-selector").value;
-            const roleName = translations[lang]["role_" + role];
-            const msg = translations[lang]["msg_registering_as"];
-            
-            const badge = document.getElementById("register-role-badge");
-            badge.innerText = msg + roleName;
-            
-            // 根據角色改變 badge 顏色
-            badge.className = "px-4 py-1 rounded-full text-sm font-medium ";
-            if(role === 'student') badge.className += "bg-blue-100 text-blue-800";
-            else if(role === 'teacher') badge.className += "bg-green-100 text-green-800";
-            else if(role === 'researcher') badge.className += "bg-purple-100 text-purple-800";
+            // 更新標題文字 (例如: 學生帳號註冊)
+            const titleKey = "reg_title_" + role;
+            const titleText = translations[lang][titleKey] || translations["zh-TW"][titleKey];
+            document.getElementById("reg-role-display-text").innerText = titleText;
         }
 
-        function updateRegisterFields() {
-            const role = document.getElementById("input-role").value;
+        // 下拉選單變更時同步 (僅用於情境B)
+        function syncRoleFromSelector() {
+            const role = document.getElementById("input-role-select").value;
+            document.getElementById("input-role").value = role;
+            updateRegisterFields(role);
+        }
+
+        function updateRegisterFields(role) {
             document.querySelectorAll(".role-fields").forEach(el => el.classList.add("hidden-section"));
             document.getElementById("fields-" + role).classList.remove("hidden-section");
         }
@@ -539,22 +324,18 @@
         function goHome() {
             document.querySelectorAll("main > div").forEach(el => el.classList.add("hidden-section"));
             document.getElementById("section-home").classList.remove("hidden-section");
-            currentUser = null;
-            document.getElementById("user-info-display").classList.add("hidden");
-            document.getElementById("logout-btn").classList.add("hidden");
-            document.getElementById("nav-login-btn").classList.remove("hidden");
-            
             document.getElementById("form-login").reset();
             document.getElementById("form-register").reset();
         }
 
         function logout() {
             if(confirm("確定要登出嗎？")) {
+                sessionStorage.removeItem("currentUser");
                 goHome();
+                window.location.reload();
             }
         }
 
-        // === 後端交互邏輯 ===
         function handleLogin(event) {
             event.preventDefault();
             const email = document.getElementById("login-email").value;
@@ -562,16 +343,9 @@
             const btn = document.getElementById("btn-do-login");
             const loading = document.getElementById("loading-msg");
 
-            btn.disabled = true; btn.classList.add("opacity-50");
-            loading.classList.remove("hidden");
+            btn.disabled = true; btn.classList.add("opacity-50"); loading.classList.remove("hidden");
 
             const payload = { type: "login", email: email, password: password };
-
-            if (GAS_URL === "請在此填入您的GAS_Web_App_URL") {
-                alert("請先設定 GAS_URL！(目前為演示模式，將模擬登入)");
-                finalizeLogin({name: "演示用戶", role: "student"});
-                return;
-            }
 
             fetch(GAS_URL, {
                 method: "POST",
@@ -621,20 +395,13 @@
 
             const btn = document.getElementById("btn-do-register");
             const loading = document.getElementById("loading-msg");
-            btn.disabled = true; btn.classList.add("opacity-50");
-            loading.classList.remove("hidden");
+            btn.disabled = true; btn.classList.add("opacity-50"); loading.classList.remove("hidden");
 
             const payload = {
                 type: "register",
                 role: role, name: name, gender: gender, email: email, password: password, language: lang,
                 ...specificData
             };
-
-            if (GAS_URL === "請在此填入您的GAS_Web_App_URL") {
-                alert("請先設定 GAS_URL！");
-                btn.disabled = false; btn.classList.remove("opacity-50"); loading.classList.add("hidden");
-                return;
-            }
 
              fetch(GAS_URL, {
                 method: "POST",
@@ -659,36 +426,15 @@
         }
 
         function finalizeLogin(user) {
-            currentUser = user;
-            document.getElementById("section-auth").classList.add("hidden-section");
-            document.getElementById("dashboard-" + user.role).classList.remove("hidden-section");
+            sessionStorage.setItem("currentUser", JSON.stringify(user));
             
-            const display = document.getElementById("user-info-display");
-            display.innerText = `${user.name} (${user.role})`;
-            display.classList.remove("hidden");
-            document.getElementById("logout-btn").classList.remove("hidden");
-            document.getElementById("nav-login-btn").classList.add("hidden");
-        }
-
-        function logAction(actionName) {
-            alert("正在前往功能頁面: " + actionName + "\n(記錄已送往後台)");
-            
-            if (!currentUser || GAS_URL === "https://script.google.com/macros/s/AKfycbzcDKkz8Tilzb3qbx0_fDR7QoG4-c2JCtsa4p9V8_1gBjZaEMlvQHd72OD0kZq_jW8H/exec") return;
-
-            const payload = {
-                type: "log",
-                name: currentUser.name,
-                role: currentUser.role,
-                action: "click_feature",
-                page: actionName
-            };
-
-            fetch(GAS_URL, {
-                method: "POST",
-                mode: "no-cors",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
+            if (user.role === 'researcher') {
+                window.location.href = 'researcher.html';
+            } else {
+                alert(user.role + " 頁面開發中，登入成功！");
+                // 這裡可以放 student.html 或 teacher.html 的跳轉
+                goHome(); // 暫時回首頁
+            }
         }
     </script>
 </body>
