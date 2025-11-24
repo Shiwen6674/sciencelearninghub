@@ -303,7 +303,7 @@
     <script>
         // *** 設定 ***
         // 請將下方引號中的網址換成您在 Apps Script 部署後取得的 Web App URL
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbzcDKkz8Tilzb3qbx0_fDR7QoG4-c2JCtsa4p9V8_1gBjZaEMlvQHd72OD0kZq_jW8H/exec"; 
+        const GAS_URL = "請在此填入您的GAS_Web_App_URL"; 
 
         let currentUser = null;
 
@@ -527,7 +527,7 @@
         function logAction(actionName) {
             alert("您點擊了功能: " + actionName + "\n(系統正在記錄您的操作...)");
             
-            if (!currentUser || GAS_URL === "請在此填入您的GAS_Web_App_URL") return;
+            if (!currentUser || GAS_URL === "https://script.google.com/macros/s/AKfycbzcDKkz8Tilzb3qbx0_fDR7QoG4-c2JCtsa4p9V8_1gBjZaEMlvQHd72OD0kZq_jW8H/exec") return;
 
             const payload = {
                 type: "log",
