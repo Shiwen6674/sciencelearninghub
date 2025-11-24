@@ -125,7 +125,6 @@
             <!-- A. 登入表單 -->
             <form id="form-login" onsubmit="handleLogin(event)" class="space-y-6">
                 <div>
-                    <!-- 修改點：加入 data-i18n 屬性 -->
                     <label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_email">Email</label>
                     <input type="email" id="login-email" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition" placeholder="name@example.com">
                 </div>
@@ -140,20 +139,20 @@
 
             <!-- B. 註冊表單 -->
             <form id="form-register" class="hidden-section space-y-4" onsubmit="handleRegister(event)">
-                <!-- 角色選擇提示區塊 -->
-                <div class="p-4 bg-blue-50 rounded-lg border border-blue-100 mb-4">
-                    <label class="block text-blue-800 text-sm font-bold mb-2" data-i18n="label_select_role">註冊身分</label>
-                    <select id="input-role" onchange="updateRegisterFields()" class="w-full px-3 py-2 rounded border border-blue-200 text-gray-700 bg-white focus:outline-none focus:border-blue-500">
-                        <option value="student" data-i18n="role_student">我是學生</option>
-                        <option value="teacher" data-i18n="role_teacher">我是教師</option>
-                        <option value="researcher" data-i18n="role_researcher">我是研究員</option>
-                    </select>
+                
+                <!-- 隱藏的角色輸入欄位 (雖然看不到，但會默默紀錄角色) -->
+                <input type="hidden" id="input-role" value="">
+
+                <!-- 顯示當前註冊角色的標題 -->
+                <div class="mb-6 text-center">
+                    <span class="bg-gray-100 text-gray-600 px-4 py-1 rounded-full text-sm font-medium" id="register-role-badge">
+                        <!-- JS會自動填入：正在註冊：學生 -->
+                    </span>
                 </div>
 
                 <!-- 帳號密碼區 -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <!-- 修改點：加入 data-i18n 屬性 -->
                         <label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_email_account">Email (帳號)</label>
                         <input type="email" id="reg-email" required class="w-full px-3 py-2 rounded border border-gray-300 focus:border-blue-500 outline-none" placeholder="name@example.com">
                     </div>
@@ -372,10 +371,13 @@
                 "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub", "welcome_prefix": "歡迎來到",
                 "logout": "登出", "btn_login": "登入", "back": "返回", 
                 "tab_login": "登入", "tab_register": "註冊新帳號", "btn_login_action": "登入系統", "btn_register_action": "註冊並登入",
-                "select_role": "請選擇您的身份以進入專屬學習空間", "label_select_role": "註冊身分",
-                "role_student": "我是學生", "desc_student": "探索科學文本、重點整理與測驗回饋",
-                "role_teacher": "我是教師", "desc_teacher": "備課資源、命題檢核與學習診斷",
-                "role_researcher": "我是研究員", "desc_researcher": "高階文本分析與系統語言研究",
+                "select_role": "請選擇您的身份以進入專屬學習空間",
+                // 移除 "label_select_role" 因為已經不需要顯示下拉選單標籤
+                "role_student": "學生", "role_teacher": "教師", "role_researcher": "研究員",
+                "msg_registering_as": "您正在註冊身分：",
+                "desc_student": "探索科學文本、重點整理與測驗回饋",
+                "desc_teacher": "備課資源、命題檢核與學習診斷",
+                "desc_researcher": "高階文本分析與系統語言研究",
                 "label_name": "姓名", "label_gender": "性別", "gender_male": "男", "gender_female": "女", "gender_other": "其他",
                 "label_email": "Email", "label_email_account": "Email (帳號)",
                 "label_password": "密碼", "msg_loading": "正在連接資料庫...",
@@ -391,10 +393,12 @@
                 "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub", "welcome_prefix": "Welcome to",
                 "logout": "Logout", "btn_login": "Login", "back": "Back", 
                 "tab_login": "Login", "tab_register": "Sign Up", "btn_login_action": "Login", "btn_register_action": "Register & Login",
-                "select_role": "Please select your role to continue", "label_select_role": "Role",
-                "role_student": "I am a Student", "desc_student": "Explore texts, summaries, and AI feedback",
-                "role_teacher": "I am a Teacher", "desc_teacher": "Resources, terminology check, and diagnosis",
-                "role_researcher": "I am a Researcher", "desc_researcher": "Advanced analysis and linguistics",
+                "select_role": "Please select your role to continue",
+                "role_student": "Student", "role_teacher": "Teacher", "role_researcher": "Researcher",
+                "msg_registering_as": "Registering as: ",
+                "desc_student": "Explore texts, summaries, and AI feedback",
+                "desc_teacher": "Resources, terminology check, and diagnosis",
+                "desc_researcher": "Advanced analysis and linguistics",
                 "label_name": "Name", "label_gender": "Gender", "gender_male": "Male", "gender_female": "Female", "gender_other": "Other",
                 "label_email": "Email", "label_email_account": "Email (Account)",
                 "label_password": "Password", "msg_loading": "Connecting...",
@@ -410,10 +414,12 @@
                 "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub", "welcome_prefix": "ようこそ",
                 "logout": "ログアウト", "btn_login": "ログイン", "back": "戻る", 
                 "tab_login": "ログイン", "tab_register": "新規登録", "btn_login_action": "ログイン", "btn_register_action": "登録してログイン",
-                "select_role": "役割を選択して進んでください", "label_select_role": "役割",
-                "role_student": "学生です", "desc_student": "科学テキスト、要約、AIフィードバック",
-                "role_teacher": "教師です", "desc_teacher": "授業準備、用語チェック、学習診断",
-                "role_researcher": "研究員です", "desc_researcher": "高度なテキスト分析と言語研究",
+                "select_role": "役割を選択して進んでください",
+                "role_student": "学生", "role_teacher": "教師", "role_researcher": "研究員",
+                "msg_registering_as": "登録する役割：",
+                "desc_student": "科学テキスト、要約、AIフィードバック",
+                "desc_teacher": "授業準備、用語チェック、学習診断",
+                "desc_researcher": "高度なテキスト分析と言語研究",
                 "label_name": "氏名", "label_gender": "性別", "gender_male": "男性", "gender_female": "女性", "gender_other": "その他",
                 "label_email": "メールアドレス", "label_email_account": "メールアドレス (ID)",
                 "label_password": "パスワード", "msg_loading": "接続中...",
@@ -429,10 +435,12 @@
                 "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub", "welcome_prefix": "欢迎来到",
                 "logout": "登出", "btn_login": "登录", "back": "返回", 
                 "tab_login": "登录", "tab_register": "注册新账号", "btn_login_action": "登录系统", "btn_register_action": "注册并登录",
-                "select_role": "请选择您的身份以进入专属学习空间", "label_select_role": "注册身份",
-                "role_student": "我是学生", "desc_student": "探索科学文本、重点整理与测验反馈",
-                "role_teacher": "我是教师", "desc_teacher": "备课资源、命题检核与学习诊断",
-                "role_researcher": "我是研究员", "desc_researcher": "高阶文本分析与系统语言研究",
+                "select_role": "请选择您的身份以进入专属学习空间",
+                "role_student": "学生", "role_teacher": "教师", "role_researcher": "研究员",
+                "msg_registering_as": "您正在注册身份：",
+                "desc_student": "探索科学文本、重点整理与测验反馈",
+                "desc_teacher": "备课资源、命题检核与学习诊断",
+                "desc_researcher": "高阶文本分析与系统语言研究",
                 "label_name": "姓名", "label_gender": "性别", "gender_male": "男", "gender_female": "女", "gender_other": "其他",
                 "label_email": "电子邮箱", "label_email_account": "电子邮箱 (账号)",
                 "label_password": "密码", "msg_loading": "正在连接数据库...",
@@ -460,6 +468,11 @@
                     }
                 }
             });
+            // 更新註冊身分提示 (因為它是動態生成的)
+            const roleInput = document.getElementById("input-role").value;
+            if(roleInput) {
+                updateRegisterBadge(roleInput);
+            }
         }
 
         // === 頁面切換邏輯 ===
@@ -483,11 +496,16 @@
 
         function preSelectRole(role) {
             showAuthSection('register');
-            document.getElementById("input-role").value = role;
+            document.getElementById("input-role").value = role; // 設置隱藏欄位
+            updateRegisterBadge(role); // 更新視覺提示
             updateRegisterFields();
         }
 
         function showLoginModal() {
+            // 如果直接按登入，不特定預選角色 (註冊tab可能會空白或預設第一個，這裡預設學生)
+            document.getElementById("input-role").value = 'student';
+            updateRegisterBadge('student');
+            updateRegisterFields();
             showAuthSection('login');
         }
 
@@ -495,6 +513,21 @@
             document.getElementById("section-home").classList.add("hidden-section");
             document.getElementById("section-auth").classList.remove("hidden-section");
             switchAuthMode(mode);
+        }
+
+        function updateRegisterBadge(role) {
+            const lang = document.getElementById("language-selector").value;
+            const roleName = translations[lang]["role_" + role];
+            const msg = translations[lang]["msg_registering_as"];
+            
+            const badge = document.getElementById("register-role-badge");
+            badge.innerText = msg + roleName;
+            
+            // 根據角色改變 badge 顏色
+            badge.className = "px-4 py-1 rounded-full text-sm font-medium ";
+            if(role === 'student') badge.className += "bg-blue-100 text-blue-800";
+            else if(role === 'teacher') badge.className += "bg-green-100 text-green-800";
+            else if(role === 'researcher') badge.className += "bg-purple-100 text-purple-800";
         }
 
         function updateRegisterFields() {
