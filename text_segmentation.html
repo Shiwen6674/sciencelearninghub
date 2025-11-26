@@ -1,1 +1,488 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI 科學文本斷詞系統</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ===== Design System: Zen & Modern ===== */
+    :root {
+      --bg-color: #F7F8FA;           /* 極淡藍灰底，比純白更有質感 */
+      --surface-color: #FFFFFF;      /* 卡片純白 */
+      --primary-color: #4A5568;      /* 專業深灰藍 (主色) */
+      --primary-hover: #2D3748;      /* 深色互動態 */
+      --accent-color: #3182CE;       /* 科技藍 (強調) */
+      --text-main: #1A202C;          /* 主要文字 */
+      --text-sub: #718096;           /* 次要文字 */
+      --border-color: #E2E8F0;       /* 柔和邊框 */
+      --border-focus: #3182ce80;     /* 聚焦光暈 */
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -2px rgba(0,0,0,0.025);
+      --radius-lg: 20px;
+      --radius-md: 12px;
+      --font-sans: 'Noto Sans TC', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Menlo', monospace; /* 專為程式/標記設計的字體 */
+    }
 
+    * { box-sizing: border-box; outline: none; }
+    
+    body {
+      margin: 0;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden; /* 讓內容在卡片內捲動 */
+    }
+
+    /* ===== Layout Structure ===== */
+    .app-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding: 0 8px;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin: 0;
+      letter-spacing: 0.5px;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--text-sub);
+      margin-top: 4px;
+    }
+
+    .status-badge {
+      background: #EDF2F7;
+      color: var(--text-sub);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .status-badge.active { background: #C6F6D5; color: #22543D; }
+    .dot { width: 8px; height: 8px; background: currentColor; border-radius: 50%; }
+
+    /* ===== Main Workspace ===== */
+    .workspace {
+      display: grid;
+      grid-template-columns: 1fr 60px 1fr; /* 左-中-右 */
+      gap: 24px;
+      flex: 1;
+      min-height: 0; /* 修正 Grid 溢出問題 */
+    }
+
+    /* Panels */
+    .panel {
+      background: var(--surface-color);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      display: flex;
+      flex-direction: column;
+      border: 1px solid var(--border-color);
+      transition: box-shadow 0.3s ease;
+      overflow: hidden;
+    }
+
+    .panel:focus-within {
+      box-shadow: var(--shadow-lg);
+      border-color: #CBD5E0;
+    }
+
+    .panel-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #FAFAFA;
+    }
+
+    .panel-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--primary-color);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .counter {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-sub);
+      background: #EDF2F7;
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+
+    .editor-wrap {
+      flex: 1;
+      position: relative;
+    }
+
+    textarea, .output-view {
+      width: 100%;
+      height: 100%;
+      border: none;
+      padding: 20px;
+      font-size: 16px;
+      line-height: 1.8;
+      resize: none;
+      background: transparent;
+      color: var(--text-main);
+    }
+    
+    /* Input Styling */
+    textarea::placeholder { color: #CBD5E0; }
+    
+    /* Output Styling */
+    .output-view {
+      font-family: var(--font-mono); /* 等寬字體對齊詞性 */
+      white-space: pre-wrap;
+      overflow-y: auto;
+      background-color: #FBFCFD; /* 極淡的區分色 */
+    }
+
+    /* ===== Central Actions ===== */
+    .actions {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .btn-fab {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: none;
+      background: var(--primary-color);
+      color: white;
+      cursor: pointer;
+      box-shadow: var(--shadow-md);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-fab:hover:not(:disabled) {
+      transform: scale(1.1);
+      background: var(--primary-hover);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .btn-fab:active:not(:disabled) {
+      transform: scale(0.95);
+    }
+
+    .btn-fab:disabled {
+      background: #CBD5E0;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: white;
+      border: 1px solid var(--border-color);
+      color: var(--text-sub);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .btn-icon:hover {
+      background: #EDF2F7;
+      color: var(--primary-color);
+    }
+
+    /* SVG Icons */
+    svg { width: 24px; height: 24px; fill: currentColor; }
+    .icon-sm { width: 20px; height: 20px; }
+
+    /* ===== Loading Animation ===== */
+    .spinner {
+      animation: rotate 2s linear infinite;
+      z-index: 2;
+      width: 24px; height: 24px;
+    }
+    .path {
+      stroke: #ffffff;
+      stroke-linecap: round;
+      animation: dash 1.5s ease-in-out infinite;
+    }
+    @keyframes rotate { 100% { transform: rotate(360deg); } }
+    @keyframes dash {
+      0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; }
+      50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35; }
+      100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124; }
+    }
+
+    /* ===== Toast Notification ===== */
+    #toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--primary-color);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 30px;
+      box-shadow: var(--shadow-lg);
+      font-size: 14px;
+      font-weight: 500;
+      opacity: 0;
+      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    #toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    /* ===== Scrollbar Polish ===== */
+    textarea::-webkit-scrollbar, .output-view::-webkit-scrollbar { width: 8px; }
+    textarea::-webkit-scrollbar-track, .output-view::-webkit-scrollbar-track { background: transparent; }
+    textarea::-webkit-scrollbar-thumb, .output-view::-webkit-scrollbar-thumb {
+      background-color: #CBD5E0;
+      border-radius: 4px;
+      border: 2px solid transparent;
+      background-clip: content-box;
+    }
+    textarea::-webkit-scrollbar-thumb:hover, .output-view::-webkit-scrollbar-thumb:hover { background-color: #A0AEC0; }
+
+    /* ===== Mobile Responsive ===== */
+    @media (max-width: 768px) {
+      .app-container { padding: 16px; height: auto; min-height: 100vh; }
+      .workspace {
+        grid-template-columns: 1fr;
+        grid-template-rows: minmax(250px, auto) auto minmax(250px, auto);
+        gap: 16px;
+      }
+      .actions { flex-direction: row; }
+      .btn-fab { width: 48px; height: 48px; }
+      body { overflow: auto; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+  <header>
+    <div class="brand">
+      <h1>CKIP 科學文本斷詞</h1>
+      <span class="subtitle">AI 精準詞性標記與斷詞工具</span>
+    </div>
+    <div class="status-badge" id="status">
+      <div class="dot"></div>
+      <span id="statusText">初始化中...</span>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <section class="panel">
+      <div class="panel-header">
+        <span class="panel-title">原始文本</span>
+        <div style="display:flex; gap:10px; align-items:center;">
+            <span class="counter" id="count">0 / 500</span>
+            <button class="btn-icon" id="clearIn" title="清空內容">
+            <svg class="icon-sm" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+            </button>
+        </div>
+      </div>
+      <div class="editor-wrap">
+        <textarea id="inp" placeholder="請在此貼上需要斷詞的科學文章..."></textarea>
+      </div>
+    </section>
+
+    <div class="actions">
+      <button id="run" class="btn-fab" title="執行斷詞" disabled>
+        <svg viewBox="0 0 24 24" id="icon-play"><path d="M8 5v14l11-7z"/></svg>
+        <svg class="spinner" viewBox="0 0 50 50" id="icon-load" style="display:none">
+          <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+        </svg>
+      </button>
+    </div>
+
+    <section class="panel">
+      <div class="panel-header">
+        <span class="panel-title">斷詞結果</span>
+        <button class="btn-icon" id="copyOut" title="複製結果">
+          <svg class="icon-sm" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+        </button>
+      </div>
+      <div class="editor-wrap">
+        <div id="out" class="output-view" tabindex="0"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="toast">
+    <svg style="width:20px;height:20px;" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+    <span>已成功複製到剪貼簿</span>
+</div>
+
+<script>
+  // ---- Logic Core ----
+  const MAX = 500;
+  const $ = s => document.querySelector(s);
+  const inp = $('#inp'), out = $('#out'), run = $('#run'), count = $('#count');
+  const statusEl = $('#status'), statusText = $('#statusText');
+  const toast = $('#toast');
+  
+  // Icons
+  const iconPlay = $('#icon-play');
+  const iconLoad = $('#icon-load');
+
+  const charCount = s => Array.from(s || '').length;
+
+  // 狀態管理
+  function setStatus(state) { // 'init', 'ready', 'processing', 'error'
+    statusEl.className = 'status-badge'; 
+    if(state === 'ready') {
+        statusEl.classList.add('active');
+        statusText.textContent = '系統就緒';
+        run.disabled = false;
+    } else if (state === 'processing') {
+        statusText.textContent = 'AI 運算中...';
+        run.disabled = true;
+        iconPlay.style.display = 'none';
+        iconLoad.style.display = 'block';
+    } else if (state === 'error') {
+        statusText.textContent = '連線異常';
+    } else {
+        statusText.textContent = '初始化中...';
+    }
+  }
+
+  // 初始化檢查
+  window.addEventListener('load', () => {
+    let tries = 0;
+    const tick = setInterval(() => {
+      const ok = !!(window.google && google.script && google.script.run);
+      if (ok) {
+        setStatus('ready');
+        clearInterval(tick);
+      } else if (++tries >= 20) {
+        clearInterval(tick);
+        statusText.textContent = '無法連接後端';
+        // 開發/預覽模式允許點擊，但會報錯
+        run.disabled = false; 
+      }
+    }, 50);
+  });
+
+  // 字數限制與 UI 更新
+  function updateCount() {
+    let arr = Array.from(inp.value || '');
+    if (arr.length > MAX) {
+      arr = arr.slice(0, MAX);
+      inp.value = arr.join('');
+    }
+    count.textContent = `${arr.length} / ${MAX}`;
+    
+    // 超過 400 字變色提醒
+    if(arr.length > 400) count.style.color = '#E53E3E';
+    else count.style.color = 'var(--text-sub)';
+  }
+  inp.addEventListener('input', updateCount);
+
+  // 清空
+  $('#clearIn').addEventListener('click', () => { 
+      inp.value=''; 
+      updateCount(); 
+      inp.focus(); 
+  });
+
+  // Toast 顯示
+  function showToast(msg) {
+      toast.querySelector('span').textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  // 複製
+  $('#copyOut').addEventListener('click', async () => {
+    if(!out.textContent) return;
+    try {
+      await navigator.clipboard.writeText(out.textContent || '');
+      showToast('已複製斷詞結果');
+    } catch {
+      showToast('複製失敗');
+    }
+  });
+
+  // 執行斷詞
+  run.addEventListener('click', () => {
+    const text = (inp.value || '').trim();
+    if (!text) { showToast('請先輸入文字'); inp.focus(); return; }
+    
+    setStatus('processing');
+    out.style.opacity = '0.5'; // 降低透明度表示處理中
+
+    google.script.run
+      .withSuccessHandler(res => {
+        setStatus('ready');
+        iconPlay.style.display = 'block';
+        iconLoad.style.display = 'none';
+        out.style.opacity = '1';
+        
+        if (!res || !res.ok) {
+          out.textContent = '錯誤：' + (res && res.error ? res.error : '未知錯誤');
+          return;
+        }
+        out.textContent = res.text || '';
+      })
+      .withFailureHandler(err => {
+        setStatus('ready'); // 回復狀態讓使用者重試
+        iconPlay.style.display = 'block';
+        iconLoad.style.display = 'none';
+        out.style.opacity = '1';
+        out.textContent = '系統錯誤：' + (err && err.message ? err.message : err);
+      })
+      .api_ckipLikeSegment(text);
+  });
+</script>
+</body>
+</html>
