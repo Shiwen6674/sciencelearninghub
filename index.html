@@ -323,6 +323,20 @@
 
                 <button id="btn-do-register" type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-5 px-8 rounded-xl shadow-lg hover:shadow-green-500/40 transition transform active:scale-95 mt-8 text-xl" data-i18n="btn_register_action">註冊並登入</button>
             </form>
+
+            <!-- C. 忘記密碼表單 -->
+            <form id="form-forgot-password" class="hidden-section space-y-8" onsubmit="handleForgotPassword(event)">
+                <h3 class="text-3xl font-bold text-gray-800 text-center mb-6" data-i18n="forgot_password_title">重設密碼</h3>
+                <p class="text-gray-600 text-lg text-center mb-8" data-i18n="forgot_password_desc">請輸入您註冊時的 Email，系統將發送驗證信給您。</p>
+                <div>
+                    <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_email">Email</label>
+                    <input type="email" id="forgot-email" required class="w-full px-5 py-4 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition text-lg bg-gray-100" placeholder="name@example.com">
+                </div>
+                <button type="submit" id="btn-do-forgot" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg transition transform active:scale-95 text-xl" data-i18n="btn_send_verify">發送驗證信</button>
+                <div class="text-center mt-6">
+                    <button type="button" onclick="showLoginModal()" class="text-gray-500 hover:text-gray-700 underline text-base transition" data-i18n="back_to_login">返回登入</button>
+                </div>
+            </form>
             
             <!-- 隱藏原有的文字提示，改用按鈕動畫 -->
         </div>
@@ -623,21 +637,25 @@
         }
 
         function switchAuthMode(mode) {
-            document.getElementById("form-login").classList.add("hidden-section");
-            document.getElementById("form-register").classList.add("hidden-section");
-            document.getElementById("form-forgot-password").classList.add("hidden-section");
+            // Helper to safe toggle
+            const safeAdd = (id, cls) => { const el = document.getElementById(id); if(el) el.classList.add(cls); };
+            const safeRemove = (id, cls) => { const el = document.getElementById(id); if(el) el.classList.remove(cls); };
+
+            safeAdd("form-login", "hidden-section");
+            safeAdd("form-register", "hidden-section");
+            safeAdd("form-forgot-password", "hidden-section");
             
             const tabLogin = document.getElementById("tab-login");
             const tabRegister = document.getElementById("tab-register");
 
             if(mode === 'login') {
-                document.getElementById("form-login").classList.remove("hidden-section");
-                tabLogin.className = "w-1/2 py-4 text-xl font-bold text-blue-600 border-b-4 border-blue-600 focus:outline-none transition-colors";
-                tabRegister.className = "w-1/2 py-4 text-xl font-bold text-gray-400 hover:text-gray-600 focus:outline-none transition-colors";
+                safeRemove("form-login", "hidden-section");
+                if(tabLogin) tabLogin.className = "w-1/2 py-4 text-xl font-bold text-blue-600 border-b-4 border-blue-600 focus:outline-none transition-colors";
+                if(tabRegister) tabRegister.className = "w-1/2 py-4 text-xl font-bold text-gray-400 hover:text-gray-600 focus:outline-none transition-colors";
             } else {
-                document.getElementById("form-register").classList.remove("hidden-section");
-                tabLogin.className = "w-1/2 py-4 text-xl font-bold text-gray-400 hover:text-gray-600 focus:outline-none transition-colors";
-                tabRegister.className = "w-1/2 py-4 text-xl font-bold text-blue-600 border-b-4 border-blue-600 focus:outline-none transition-colors";
+                safeRemove("form-register", "hidden-section");
+                if(tabLogin) tabLogin.className = "w-1/2 py-4 text-xl font-bold text-gray-400 hover:text-gray-600 focus:outline-none transition-colors";
+                if(tabRegister) tabRegister.className = "w-1/2 py-4 text-xl font-bold text-blue-600 border-b-4 border-blue-600 focus:outline-none transition-colors";
             }
         }
 
@@ -674,6 +692,10 @@
             document.getElementById("input-role-select").value = 'student';
             updateRegisterFields('student');
             showAuthSection('login');
+            
+            // 保險：強制移除隱藏 class，確保顯示
+            const formLogin = document.getElementById("form-login");
+            if(formLogin) formLogin.classList.remove("hidden-section");
         }
 
         function showAuthSection(mode) {
@@ -746,11 +768,14 @@
                 if (data.result === "success") {
                     finalizeLogin(data.user);
                 } else {
-                    // *** 新增：後端錯誤容錯處理 ***
-                    // 如果後端回傳 Exception 或 openById 錯誤，自動切換為演示登入
-                    if (data.message && (data.message.includes("Exception") || data.message.includes("SpreadsheetApp"))) {
-                        console.warn("後端系統錯誤，自動啟用演示模式", data.message);
-                        // 模擬一個使用者物件
+                    // *** 容錯處理：如果後端報錯，強制切換演示模式 ***
+                    // 包括 Exception (後端錯誤), System Error (權限錯誤), openById (試算表錯誤)
+                    if(data.message && (data.message.includes("Exception") || data.message.includes("System Error") || data.message.includes("openById"))) {
+                        console.warn("後端錯誤，啟動容錯模式:", data.message);
+                        // 為了不讓使用者卡住，自動進入
+                        alert("系統偵測到後端連接異常 (權限或ID問題)，將自動以【演示模式】登入，讓您預覽頁面功能。");
+                        
+                        // 使用目標角色或預設角色
                         let mockRole = targetRole || 'student';
                         finalizeLogin({ 
                             name: "演示用戶", 
@@ -764,14 +789,10 @@
             })
             .catch(err => {
                 console.warn("Login fetch warning:", err);
-                // *** 容錯處理 (原有的演示邏輯) ***
-                if (targetRole) {
-                      console.log("CORS error caught, redirecting to target role: " + targetRole);
-                      finalizeLogin({ name: "演示用戶", role: targetRole });
-                } else {
-                      // 如果是通用登入且失敗，則預設導向學生
-                      finalizeLogin({ name: "演示用戶", role: "student" });
-                }
+                // 網絡錯誤時的容錯
+                alert("網路連線異常，將自動以【演示模式】登入。");
+                let mockRole = targetRole || 'student';
+                finalizeLogin({ name: "演示用戶", role: mockRole });
                 
                 btn.disabled = false; 
                 btn.classList.remove("opacity-50");
@@ -843,6 +864,7 @@
                     alert("註冊成功！");
                     finalizeLogin(data.user);
                 } else {
+                    // 註冊失敗時也可以考慮容錯，但通常保留錯誤訊息較好
                     alert("註冊失敗: " + data.message);
                 }
             })
