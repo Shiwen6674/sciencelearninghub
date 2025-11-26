@@ -218,12 +218,12 @@
             <form id="form-login" onsubmit="handleLogin(event)" class="space-y-8">
                 <div>
                     <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_email">Email</label>
-                    <input type="email" id="login-email" required class="w-full px-6 py-4 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition text-lg bg-gray-50 focus:bg-white" placeholder="name@example.com">
+                    <input type="email" id="login-email" required class="w-full px-6 py-4 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition text-lg bg-gray-100 focus:bg-white" placeholder="name@example.com">
                 </div>
                 <div>
                     <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_password">密碼</label>
                     <div class="relative">
-                        <input type="password" id="login-password" required class="w-full px-6 py-4 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition pr-14 text-lg bg-gray-50 focus:bg-white" placeholder="••••••••">
+                        <input type="password" id="login-password" required class="w-full px-6 py-4 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition pr-14 text-lg bg-gray-100 focus:bg-white" placeholder="••••••••">
                         <i class="fa-solid fa-eye password-toggle absolute right-5 top-1/2 -translate-y-1/2" onclick="togglePassword('login-password', this)"></i>
                     </div>
                 </div>
@@ -623,21 +623,25 @@
         }
 
         function switchAuthMode(mode) {
-            document.getElementById("form-login").classList.add("hidden-section");
-            document.getElementById("form-register").classList.add("hidden-section");
-            document.getElementById("form-forgot-password").classList.add("hidden-section");
+            // Helper to safe toggle
+            const safeAdd = (id, cls) => { const el = document.getElementById(id); if(el) el.classList.add(cls); };
+            const safeRemove = (id, cls) => { const el = document.getElementById(id); if(el) el.classList.remove(cls); };
+
+            safeAdd("form-login", "hidden-section");
+            safeAdd("form-register", "hidden-section");
+            safeAdd("form-forgot-password", "hidden-section");
             
             const tabLogin = document.getElementById("tab-login");
             const tabRegister = document.getElementById("tab-register");
 
             if(mode === 'login') {
-                document.getElementById("form-login").classList.remove("hidden-section");
-                tabLogin.className = "w-1/2 py-4 text-xl font-bold text-blue-600 border-b-4 border-blue-600 focus:outline-none transition-colors";
-                tabRegister.className = "w-1/2 py-4 text-xl font-bold text-gray-400 hover:text-gray-600 focus:outline-none transition-colors";
+                safeRemove("form-login", "hidden-section");
+                if(tabLogin) tabLogin.className = "w-1/2 py-4 text-xl font-bold text-blue-600 border-b-4 border-blue-600 focus:outline-none transition-colors";
+                if(tabRegister) tabRegister.className = "w-1/2 py-4 text-xl font-bold text-gray-400 hover:text-gray-600 focus:outline-none transition-colors";
             } else {
-                document.getElementById("form-register").classList.remove("hidden-section");
-                tabLogin.className = "w-1/2 py-4 text-xl font-bold text-gray-400 hover:text-gray-600 focus:outline-none transition-colors";
-                tabRegister.className = "w-1/2 py-4 text-xl font-bold text-blue-600 border-b-4 border-blue-600 focus:outline-none transition-colors";
+                safeRemove("form-register", "hidden-section");
+                if(tabLogin) tabLogin.className = "w-1/2 py-4 text-xl font-bold text-gray-400 hover:text-gray-600 focus:outline-none transition-colors";
+                if(tabRegister) tabRegister.className = "w-1/2 py-4 text-xl font-bold text-blue-600 border-b-4 border-blue-600 focus:outline-none transition-colors";
             }
         }
 
@@ -674,6 +678,10 @@
             document.getElementById("input-role-select").value = 'student';
             updateRegisterFields('student');
             showAuthSection('login');
+            
+            // 保險：強制移除隱藏 class，確保顯示
+            const formLogin = document.getElementById("form-login");
+            if(formLogin) formLogin.classList.remove("hidden-section");
         }
 
         function showAuthSection(mode) {
