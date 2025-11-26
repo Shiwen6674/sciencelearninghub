@@ -323,20 +323,6 @@
 
                 <button id="btn-do-register" type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-5 px-8 rounded-xl shadow-lg hover:shadow-green-500/40 transition transform active:scale-95 mt-8 text-xl" data-i18n="btn_register_action">註冊並登入</button>
             </form>
-
-            <!-- C. 忘記密碼表單 -->
-            <form id="form-forgot-password" class="hidden-section space-y-8" onsubmit="handleForgotPassword(event)">
-                <h3 class="text-3xl font-bold text-gray-800 text-center mb-6" data-i18n="forgot_password_title">重設密碼</h3>
-                <p class="text-gray-600 text-lg text-center mb-8" data-i18n="forgot_password_desc">請輸入您註冊時的 Email，系統將發送驗證信給您。</p>
-                <div>
-                    <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_email">Email</label>
-                    <input type="email" id="forgot-email" required class="w-full px-5 py-4 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition text-lg bg-gray-100" placeholder="name@example.com">
-                </div>
-                <button type="submit" id="btn-do-forgot" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg transition transform active:scale-95 text-xl" data-i18n="btn_send_verify">發送驗證信</button>
-                <div class="text-center mt-6">
-                    <button type="button" onclick="showLoginModal()" class="text-gray-500 hover:text-gray-700 underline text-base transition" data-i18n="back_to_login">返回登入</button>
-                </div>
-            </form>
             
             <!-- 隱藏原有的文字提示，改用按鈕動畫 -->
         </div>
@@ -751,6 +737,16 @@
             // 顯示 Loading 動畫取代文字
             btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> 登入中...';
 
+            // ★ 萬用帳號 Logic
+            if (email === 'test' && password === 'test') {
+                // Simulate a slight network delay for realism
+                setTimeout(() => {
+                    alert("測試帳號登入成功！(身分: 學生)");
+                    finalizeLogin({ name: "測試人員", role: "student", email: "test@example.com" });
+                }, 500);
+                return;
+            }
+
             const payload = { type: "login", email: email, password: password };
 
             fetch(GAS_URL, {
@@ -921,7 +917,7 @@
         // ★ 修正：使用 Apps Script 動態路由跳轉
         function finalizeLogin(user) {
             sessionStorage.setItem("currentUser", JSON.stringify(user));
-            const role = user.role.toLowerCase(); 
+            const role = String(user.role).trim().toLowerCase();
 
             // 1. 確保角色名稱與 HTML 檔案名稱一致
             if (['researcher', 'student', 'teacher'].includes(role)) {
