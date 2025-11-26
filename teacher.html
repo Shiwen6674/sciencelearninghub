@@ -48,13 +48,12 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .hidden-section { display: none !important; }
         
-        /* 玻璃擬態 (Glassmorphism) - 針對教師版微調邊框色 */
         .glass-panel {
             background: rgba(255, 255, 255, 0.75);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 8px 32px 0 rgba(31, 135, 38, 0.1); /* 綠色系陰影 */
+            box-shadow: 0 8px 32px 0 rgba(31, 135, 38, 0.1);
         }
 
         .glass-card {
@@ -66,11 +65,10 @@
         .glass-card:hover {
             background: rgba(255, 255, 255, 0.9);
             transform: translateY(-8px);
-            box-shadow: 0 15px 50px -10px rgba(34, 197, 94, 0.3); /* 綠色光暈 */
+            box-shadow: 0 15px 50px -10px rgba(34, 197, 94, 0.3);
             border-color: rgba(34, 197, 94, 0.4);
         }
 
-        /* 3D 標題 - 綠色系漸層 */
         .title-3d {
             background: linear-gradient(135deg, #064e3b 0%, #059669 50%, #047857 100%);
             -webkit-background-clip: text;
@@ -82,12 +80,11 @@
         
         select, button, input, textarea { font-size: 1rem !important; }
         
-        /* 背景 Canvas - 保持一致但底色微調 */
         #canvas-container {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%; z-index: -10;
             overflow: hidden;
-            background: linear-gradient(-45deg, #f0fdf4, #ecfdf5, #f0f9ff, #f8fafc); /* 偏綠與藍的淡色 */
+            background: linear-gradient(-45deg, #f0fdf4, #ecfdf5, #f0f9ff, #f8fafc);
             background-size: 400% 400%;
             animation: gradientBG 20s ease infinite;
         }
@@ -100,12 +97,10 @@
 </head>
 <body class="min-h-screen font-sans flex flex-col text-slate-800 relative overflow-x-hidden selection:bg-green-200 selection:text-green-900">
 
-    <!-- 背景動態層 -->
     <div id="canvas-container">
         <canvas id="network-canvas"></canvas>
     </div>
 
-    <!-- 頂部導航列 -->
     <nav class="glass-panel sticky top-0 z-50 border-b-0">
         <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
             <div class="flex items-center space-x-3 cursor-pointer" onclick="backToDashboard()">
@@ -136,7 +131,6 @@
         </div>
     </nav>
 
-    <!-- 主內容區 -->
     <main class="flex-1 overflow-y-auto p-6 md:p-10 relative z-10">
         <div class="max-w-7xl mx-auto">
             
@@ -144,16 +138,14 @@
             <div id="dashboard-view" class="fade-in">
                 <div class="text-center mb-20 mt-8">
                     <span class="text-green-600 font-bold tracking-wider text-base uppercase mb-3 block opacity-80" data-i18n="role_teacher">教師專區</span>
-                    <!-- 修改：歡迎標題改為「歡迎來到科學教學中心」 -->
                     <h1 class="title-3d text-5xl md:text-7xl font-black mb-6 tracking-tight leading-tight" data-i18n="welcome_teacher">歡迎來到科學教學中心</h1>
                     <p class="text-slate-500 text-xl md:text-2xl max-w-3xl mx-auto font-medium" data-i18n="select_tool">請選擇下方的教學輔助工具以提升教學成效</p>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-10 px-4 mb-12">
-                    <!-- 卡片 1：命題用語檢核 (修改為跳轉連結) -->
-                    <div onclick="window.location.href='Itemvocabularyexamination.html'" class="glass-card p-10 rounded-[2.5rem] cursor-pointer group relative overflow-hidden flex flex-col items-center text-center">
+                    <!-- 卡片 1：命題用語檢核 (外層卡片直接跳轉) -->
+                    <div onclick="window.location.href='itemvocabularyexamination.html'" class="glass-card p-10 rounded-[2.5rem] cursor-pointer group relative overflow-hidden flex flex-col items-center text-center">
                         <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-green-400/10 rounded-full blur-3xl group-hover:bg-green-400/20 transition"></div>
-                        
                         <div class="w-28 h-28 bg-gradient-to-br from-green-50 to-white rounded-3xl flex items-center justify-center mb-8 shadow-lg shadow-green-100 group-hover:scale-110 transition duration-300 border border-green-100 group-hover:border-green-200">
                             <i class="fa-solid fa-check-double text-6xl text-green-600"></i>
                         </div>
@@ -164,7 +156,6 @@
                     <!-- 卡片 2 -->
                     <div onclick="openTool('lesson-plan')" class="glass-card p-10 rounded-[2.5rem] cursor-pointer group relative overflow-hidden flex flex-col items-center text-center">
                         <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-emerald-400/10 rounded-full blur-3xl group-hover:bg-emerald-400/20 transition"></div>
-                        
                         <div class="w-28 h-28 bg-gradient-to-br from-emerald-50 to-white rounded-3xl flex items-center justify-center mb-8 shadow-lg shadow-emerald-100 group-hover:scale-110 transition duration-300 border border-emerald-100 group-hover:border-emerald-200">
                             <i class="fa-solid fa-book-open text-6xl text-emerald-600"></i>
                         </div>
@@ -175,7 +166,6 @@
                     <!-- 卡片 3 -->
                     <div onclick="openTool('diagnosis')" class="glass-card p-10 rounded-[2.5rem] cursor-pointer group relative overflow-hidden flex flex-col items-center text-center">
                         <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-teal-400/10 rounded-full blur-3xl group-hover:bg-teal-400/20 transition"></div>
-                        
                         <div class="w-28 h-28 bg-gradient-to-br from-teal-50 to-white rounded-3xl flex items-center justify-center mb-8 shadow-lg shadow-teal-100 group-hover:scale-110 transition duration-300 border border-teal-100 group-hover:border-teal-200">
                             <i class="fa-solid fa-stethoscope text-6xl text-teal-600"></i>
                         </div>
@@ -194,7 +184,7 @@
                 <!-- 工具內容區塊 -->
                 <div class="glass-panel p-8 rounded-3xl min-h-[500px]">
                     
-                    <!-- 1. 命題檢核 (此區塊現在由超連結取代，但保留程式碼結構以防未來需要切回) -->
+                    <!-- 1. 命題檢核 (內層按鈕也加上跳轉) -->
                     <div id="tool-term-check" class="tool-view hidden-section">
                         <h2 class="text-2xl font-bold text-green-800 mb-6 flex items-center gap-3 border-b border-slate-200/50 pb-4">
                             <i class="fa-solid fa-check-double"></i> <span data-i18n="feat_t_1">命題用語檢核</span>
@@ -218,7 +208,8 @@
                                         <option>國小六年級</option>
                                         <option>國中七年級</option>
                                     </select>
-                                    <button class="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 rounded-xl hover:shadow-lg hover:shadow-green-500/30 transition font-bold transform active:scale-95">
+                                    <!-- 雙重保險：內層按鈕也導向正確頁面 -->
+                                    <button onclick="window.location.href='itemvocabularyexamination.html'" class="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 rounded-xl hover:shadow-lg hover:shadow-green-500/30 transition font-bold transform active:scale-95">
                                         <i class="fa-solid fa-magnifying-glass mr-2"></i> 開始檢核
                                     </button>
                                 </div>
@@ -232,6 +223,7 @@
 
                     <!-- 2. 單元備課 -->
                     <div id="tool-lesson-plan" class="tool-view hidden-section">
+                        <!-- 省略重複內容，保持原樣 -->
                         <h2 class="text-2xl font-bold text-emerald-800 mb-6 flex items-center gap-3 border-b border-slate-200/50 pb-4">
                             <i class="fa-solid fa-book-open"></i> <span data-i18n="feat_t_2">單元備課重點</span>
                         </h2>
@@ -249,8 +241,6 @@
                             <button class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-4 rounded-2xl hover:shadow-lg hover:shadow-emerald-500/30 transition transform active:scale-95 font-bold text-lg">
                                 <i class="fa-solid fa-wand-magic-sparkles mr-2"></i> 生成 AI 備課建議
                             </button>
-                            
-                            <!-- 結果預覽區 -->
                             <div class="p-8 bg-white/60 rounded-3xl border-2 border-dashed border-slate-300 text-center text-slate-400 flex flex-col items-center justify-center h-64">
                                 <i class="fa-regular fa-file-lines text-4xl mb-4 opacity-50"></i>
                                 <p>備課內容將顯示於此處</p>
@@ -260,6 +250,7 @@
 
                     <!-- 3. 學習診斷 -->
                     <div id="tool-diagnosis" class="tool-view hidden-section">
+                         <!-- 省略重複內容，保持原樣 -->
                         <h2 class="text-2xl font-bold text-teal-800 mb-6 flex items-center gap-3 border-b border-slate-200/50 pb-4">
                             <i class="fa-solid fa-stethoscope"></i> <span data-i18n="feat_t_3">學習狀況診斷</span>
                         </h2>
@@ -272,7 +263,6 @@
                                 <p class="text-teal-800 font-bold text-lg">點擊上傳班級答題數據</p>
                                 <p class="text-teal-600/70 text-sm mt-2">支援格式: .csv, .xlsx</p>
                             </div>
-                            
                             <div class="space-y-6">
                                 <div class="bg-white/80 p-6 rounded-2xl border border-white/60 shadow-sm">
                                     <h4 class="font-bold text-slate-700 mb-2 flex items-center"><i class="fa-solid fa-chart-pie mr-2 text-teal-500"></i> 預期分析結果</h4>
