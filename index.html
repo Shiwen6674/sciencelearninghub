@@ -726,8 +726,9 @@
 
         function handleLogin(event) {
             event.preventDefault();
-            const email = document.getElementById("login-email").value;
-            const password = document.getElementById("login-password").value;
+            // 修正：使用 trim() 去除多餘空白
+            const email = document.getElementById("login-email").value.trim();
+            const password = document.getElementById("login-password").value.trim();
             const btn = document.getElementById("btn-do-login");
 
             const originalBtnText = btn.innerText;
@@ -737,12 +738,14 @@
             // 顯示 Loading 動畫取代文字
             btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> 登入中...';
 
-            // ★ 萬用帳號 Logic
-            if (email === 'test' && password === 'test') {
+            // ★ 萬用帳號 Logic (Updated to test@abc.com)
+            if (email === 'test@abc.com' && password === 'test') {
                 // Simulate a slight network delay for realism
                 setTimeout(() => {
-                    alert("測試帳號登入成功！(身分: 學生)");
-                    finalizeLogin({ name: "測試人員", role: "student", email: "test@example.com" });
+                    // 使用者在首頁點選的身份 (targetRole)，如果沒點選(從右上角登入)則預設 student
+                    const finalRole = targetRole || 'student'; 
+                    alert("測試帳號登入成功！\n識別身份: " + finalRole);
+                    finalizeLogin({ name: "測試人員", role: finalRole, email: "test@abc.com" });
                 }, 500);
                 return;
             }
@@ -917,16 +920,16 @@
         // ★ 修正：使用 Apps Script 動態路由跳轉
         function finalizeLogin(user) {
             sessionStorage.setItem("currentUser", JSON.stringify(user));
-            const role = String(user.role).trim().toLowerCase();
+            // 強制轉小寫並去除空白，避免資料庫存的 "Teacher " 或 "Student" (大寫S) 造成誤判
+            const role = user.role ? String(user.role).trim().toLowerCase() : 'student';
 
             // 1. 確保角色名稱與 HTML 檔案名稱一致
-            if (['researcher', 'student', 'teacher'].includes(role)) {
-                
-                // *** 修正：直接跳轉到對應的 HTML 檔案，解決 GitHub Pages 路徑問題 ***
-                window.location.href = role + '.html';
-                
+            if (role === 'teacher') {
+                window.location.href = 'teacher.html';
+            } else if (role === 'researcher') {
+                window.location.href = 'researcher.html';
             } else {
-                // 預設或未知角色，導向 student 頁面
+                // 預設為學生
                 window.location.href = 'student.html';
             }
         }
