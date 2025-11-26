@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -7,6 +6,8 @@
     <title>文本詞彙比較 | Science Learning Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 引入 Markdown 解析器 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     
     <script>
         tailwind.config = {
@@ -43,7 +44,6 @@
         .glass-panel {
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.6);
             box-shadow: 0 8px 32px 0 rgba(126, 34, 206, 0.08);
         }
@@ -83,6 +83,11 @@
             border-color: rgba(168, 85, 247, 0.2);
         }
         
+        /* AI 報告優化樣式 */
+        .ai-report-content table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.95rem; }
+        .ai-report-content th { background-color: #f3e8ff; color: #6b21a8; font-weight: bold; padding: 0.75rem; text-align: left; border-bottom: 2px solid #d8b4fe; }
+        .ai-report-content td { padding: 0.75rem; border-bottom: 1px solid #f3f4f6; color: #4b5563; }
+        .ai-report-content tr:last-child td { border-bottom: none; }
         /* 調整下拉選單樣式 */
         select { font-size: 0.95rem; }
     </style>
@@ -100,11 +105,10 @@
                 <div class="bg-purple-100 p-2 rounded-xl text-purple-600 shadow-sm transition group-hover:scale-105 group-hover:bg-purple-200">
                     <i class="fa-solid fa-arrow-left text-lg"></i>
                 </div>
-                <!-- ★ 新增 data-i18n 標籤，讓它能隨語言切換 -->
                 <span class="text-xl font-bold tracking-tight text-slate-800 group-hover:text-purple-700 transition" data-i18n="back_researcher">返回研究中心</span>
             </div>
             
-            <!-- 新增語言選單 -->
+            <!-- 語言選單 -->
             <div class="flex items-center space-x-4">
                  <select id="language-selector" onchange="changeLanguage()" class="glass-panel rounded-xl py-2 px-4 text-sm font-medium outline-none focus:ring-2 focus:ring-purple-400/50 cursor-pointer text-slate-700 border border-purple-200 hover:bg-white/90 transition">
                     <option value="zh-TW">繁體中文</option>
@@ -134,11 +138,15 @@
             <!-- 輸入區塊 -->
             <div class="glass-panel p-8 rounded-[2.5rem] mb-8 border border-white/60 max-w-7xl mx-auto">
                 
-                <!-- 控制列 (極簡化：只保留載入範例) -->
-                <div class="flex items-center justify-end mb-6">
-                    <button onclick="loadDemo()" class="text-sm font-bold text-purple-600 hover:text-purple-800 hover:underline transition flex items-center gap-2 bg-purple-50 px-4 py-2 rounded-full border border-purple-100 hover:bg-purple-100">
-                        <i class="fa-solid fa-flask"></i> <span data-i18n="btn_load_demo">載入範例</span>
-                    </button>
+                <div class="flex items-center justify-between mb-6 bg-purple-50/60 p-4 rounded-2xl border border-purple-100/50 backdrop-blur-sm">
+                    <div class="flex items-center gap-2 text-sm font-bold text-purple-800">
+                        <i class="fa-solid fa-sliders"></i> <span data-i18n="label_settings">設定</span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <button onclick="loadDemo()" class="text-sm font-bold text-purple-600 hover:text-purple-800 hover:underline transition flex items-center gap-2 bg-white/80 px-4 py-2 rounded-full border border-purple-100 hover:bg-white shadow-sm">
+                            <i class="fa-solid fa-flask"></i> <span data-i18n="btn_load_demo">載入範例</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 relative">
@@ -195,9 +203,8 @@
             <!-- 分析結果區 (預設隱藏) -->
             <div id="analysis-results" class="hidden mb-10 animate-fade-in-up">
                 
-                <!-- 4 欄位結果區 (A獨有, 聯集, 交集, B獨有) -->
+                <!-- 4 欄位結果區 -->
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-                    
                     <!-- 1. A 獨有 -->
                     <div class="result-card bg-white/80 backdrop-blur-md p-5 rounded-3xl shadow-sm border border-purple-100 flex flex-col h-[500px]">
                         <div class="flex items-center justify-between mb-4 pb-3 border-b border-purple-50">
@@ -206,13 +213,12 @@
                             </h3>
                             <span class="bg-purple-100 text-purple-700 text-xs px-2.5 py-1 rounded-lg font-black" id="countOnlyA">0</span>
                         </div>
-                        <textarea id="onlyA" readonly class="flex-1 w-full bg-transparent resize-none outline-none text-slate-600 custom-scrollbar text-sm leading-relaxed font-mono" placeholder="A 文本獨有的詞彙..."></textarea>
+                        <textarea id="onlyA" readonly class="flex-1 w-full bg-transparent resize-none outline-none text-slate-600 custom-scrollbar text-sm leading-relaxed font-mono" placeholder="..."></textarea>
                         <button onclick="copyToClipboard('onlyA')" class="mt-3 w-full py-2 rounded-xl border border-purple-200 text-purple-600 hover:bg-purple-50 transition text-xs font-bold flex items-center justify-center gap-2">
                             <i class="fa-regular fa-copy"></i> <span data-i18n="btn_copy">複製</span>
                         </button>
                     </div>
-
-                    <!-- 2. 聯集 (Union) -->
+                    <!-- 2. 聯集 -->
                     <div class="result-card bg-white/80 backdrop-blur-md p-5 rounded-3xl shadow-sm border border-fuchsia-100 flex flex-col h-[500px]">
                         <div class="flex items-center justify-between mb-4 pb-3 border-b border-fuchsia-50">
                              <h3 class="font-bold text-fuchsia-700 flex items-center gap-2">
@@ -220,13 +226,12 @@
                             </h3>
                             <span class="bg-fuchsia-100 text-fuchsia-700 text-xs px-2.5 py-1 rounded-lg font-black" id="countUnion">0</span>
                         </div>
-                        <textarea id="unionResult" readonly class="flex-1 w-full bg-transparent resize-none outline-none text-slate-600 custom-scrollbar text-sm leading-relaxed font-mono" placeholder="所有出現過的詞彙..."></textarea>
+                        <textarea id="unionResult" readonly class="flex-1 w-full bg-transparent resize-none outline-none text-slate-600 custom-scrollbar text-sm leading-relaxed font-mono" placeholder="..."></textarea>
                         <button onclick="copyToClipboard('unionResult')" class="mt-3 w-full py-2 rounded-xl border border-fuchsia-200 text-fuchsia-600 hover:bg-fuchsia-50 transition text-xs font-bold flex items-center justify-center gap-2">
                             <i class="fa-regular fa-copy"></i> <span data-i18n="btn_copy">複製</span>
                         </button>
                     </div>
-
-                    <!-- 3. 交集 (Common) - 改為 Teal/Cyan 風格 -->
+                    <!-- 3. 交集 -->
                     <div class="result-card bg-white/80 backdrop-blur-md p-5 rounded-3xl shadow-sm border border-teal-100 flex flex-col h-[500px]">
                         <div class="flex items-center justify-between mb-4 pb-3 border-b border-teal-50">
                             <h3 class="font-bold text-teal-700 flex items-center gap-2">
@@ -234,13 +239,11 @@
                             </h3>
                             <span class="bg-teal-100 text-teal-700 text-xs px-2.5 py-1 rounded-lg font-black" id="countCommon">0</span>
                         </div>
-                        <textarea id="common" readonly class="flex-1 w-full bg-transparent resize-none outline-none text-slate-600 custom-scrollbar text-sm leading-relaxed font-mono" placeholder="共同出現的詞彙..."></textarea>
-                        <!-- 按鈕樣式統一 -->
+                        <textarea id="common" readonly class="flex-1 w-full bg-transparent resize-none outline-none text-slate-600 custom-scrollbar text-sm leading-relaxed font-mono" placeholder="..."></textarea>
                         <button onclick="copyToClipboard('common')" class="mt-3 w-full py-2 rounded-xl border border-teal-200 text-teal-600 hover:bg-teal-50 transition text-xs font-bold flex items-center justify-center gap-2">
                             <i class="fa-regular fa-copy"></i> <span data-i18n="btn_copy">複製</span>
                         </button>
                     </div>
-
                     <!-- 4. B 獨有 -->
                     <div class="result-card bg-white/80 backdrop-blur-md p-5 rounded-3xl shadow-sm border border-indigo-100 flex flex-col h-[500px]">
                         <div class="flex items-center justify-between mb-4 pb-3 border-b border-indigo-50">
@@ -249,18 +252,37 @@
                             </h3>
                             <span class="bg-indigo-100 text-indigo-700 text-xs px-2.5 py-1 rounded-lg font-black" id="countOnlyB">0</span>
                         </div>
-                        <textarea id="onlyB" readonly class="flex-1 w-full bg-transparent resize-none outline-none text-slate-600 custom-scrollbar text-sm leading-relaxed font-mono" placeholder="B 文本獨有的詞彙..."></textarea>
+                        <textarea id="onlyB" readonly class="flex-1 w-full bg-transparent resize-none outline-none text-slate-600 custom-scrollbar text-sm leading-relaxed font-mono" placeholder="..."></textarea>
                         <button onclick="copyToClipboard('onlyB')" class="mt-3 w-full py-2 rounded-xl border border-indigo-200 text-indigo-600 hover:bg-indigo-50 transition text-xs font-bold flex items-center justify-center gap-2">
                             <i class="fa-regular fa-copy"></i> <span data-i18n="btn_copy">複製</span>
                         </button>
                     </div>
                 </div>
                 
-                <!-- 下載報告按鈕 -->
-                <div class="mt-8 text-center">
-                    <button onclick="downloadReport()" class="text-slate-400 hover:text-purple-600 transition text-sm font-bold flex items-center justify-center gap-2 mx-auto">
+                <!-- 下載報告 & AI 分析按鈕 -->
+                <div class="mt-8 flex flex-col items-center gap-4">
+                    <button onclick="analyzeWithGemini()" class="bg-gradient-to-r from-amber-400 to-orange-500 text-white px-8 py-3 rounded-2xl font-bold text-lg shadow-lg hover:shadow-orange-500/40 hover:scale-105 transition transform flex items-center gap-2 relative overflow-hidden group">
+                        <span class="absolute top-0 left-0 w-full h-full bg-white/20 animate-pulse-slow"></span>
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="btn_ai_analyze">AI 深度差異分析</span>
+                    </button>
+                    <button onclick="downloadReport()" class="text-slate-400 hover:text-purple-600 transition text-sm font-bold flex items-center justify-center gap-2">
                         <i class="fa-solid fa-download"></i> <span data-i18n="btn_download_report">下載完整分析報告 (.txt)</span>
                     </button>
+                </div>
+
+                <!-- AI 分析結果顯示區 -->
+                <div id="ai-analysis-result" class="hidden mt-8 glass-panel p-8 rounded-3xl border-2 border-amber-200/50 bg-white/90">
+                    <div class="flex justify-between items-center mb-6 border-b border-amber-100 pb-4">
+                        <h2 class="text-2xl font-bold text-amber-700 flex items-center gap-2">
+                            <i class="fa-solid fa-robot"></i> <span data-i18n="ai_report_title">AI 分析報告</span>
+                        </h2>
+                        <button onclick="document.getElementById('ai-analysis-result').classList.add('hidden')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+                    </div>
+                    <div id="ai-content" class="ai-report-content text-slate-700 leading-relaxed">
+                        <div class="flex items-center justify-center py-10 text-amber-600">
+                            <i class="fa-solid fa-circle-notch fa-spin mr-3 text-2xl"></i> <span data-i18n="msg_generating">正在生成深度分析...</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -274,65 +296,79 @@
     </div>
 
     <script>
+        const apiKey = ""; 
+
         // *** 多語系字典 ***
         const translations = {
             "zh-TW": {
-                "back_researcher": "返回研究中心",
-                "tool_name": "文本比較工具", "page_title": "文本詞彙差異分析", "page_subtitle": "Text Vocabulary Comparison & Set Analysis",
-                "btn_load_demo": "載入範例", "label_text_a": "文本 A", "label_text_b": "文本 B", "btn_clear": "清空", "label_count": "詞彙數",
+                "back_researcher": "返回研究中心", "tool_name": "文本比較工具", "page_title": "文本詞彙差異分析", "page_subtitle": "Text Vocabulary Comparison & Set Analysis",
+                "label_settings": "設定", "btn_load_demo": "載入範例", "label_text_a": "文本 A", "label_text_b": "文本 B", "btn_clear": "清空", "label_count": "詞彙數",
                 "btn_start_compare": "開始比較分析", "header_only_a": "A 獨有", "header_union": "AB 聯集", "header_common": "AB 交集", "header_only_b": "B 獨有",
-                "btn_copy": "複製", "btn_download_report": "下載完整分析報告 (.txt)", "msg_input_empty": "請先輸入或貼上文本", "msg_analysis_done": "分析完成！", "msg_copied": "內容已複製", "msg_downloading": "報告下載中...", "msg_demo_loaded": "範例資料已載入",
+                "btn_copy": "複製", "btn_download_report": "下載完整分析報告 (.txt)", "btn_ai_analyze": "AI 深度差異分析", "ai_report_title": "AI 分析報告",
+                "msg_input_empty": "請先輸入或貼上文本", "msg_analysis_done": "分析完成！", "msg_copied": "內容已複製", "msg_downloading": "報告下載中...", "msg_demo_loaded": "範例資料已載入",
+                "msg_generating": "正在生成深度分析...", "msg_ai_error": "AI 分析服務暫時無法使用，請稍後再試。", "msg_ai_empty": "請先執行比較分析，確認有詞彙資料後再使用 AI 分析。",
                 "demo_text_a": "光合作用 是 植物 利用 葉綠素 吸收 太陽能 ， 將 水 和 二氧化碳 轉化 為 葡萄糖 與 氧氣 的 過程 。 這 是 生態系 能量 的 基礎 。",
                 "demo_text_b": "呼吸作用 是 生物 利用 氧氣 將 葡萄糖 分解 ， 產生 能量 、 水 和 二氧化碳 的 過程 。 這 是 維持 生命 現象 所 必需 的 。"
             },
             "en": {
-                "back_researcher": "Back to Research Center",
-                "tool_name": "Text Compare Tool", "page_title": "Vocabulary Gap Analysis", "page_subtitle": "Text Vocabulary Comparison & Set Analysis",
-                "btn_load_demo": "Load Demo", "label_text_a": "Text A", "label_text_b": "Text B", "btn_clear": "Clear", "label_count": "Words",
+                "back_researcher": "Back to Research Center", "tool_name": "Corpus Search", "page_title": "Scientific Corpus Query", "page_subtitle": "Search Scientific Text Corpus & Analysis",
+                "label_settings": "Settings", "btn_load_demo": "Load Demo", "label_text_a": "Text A", "label_text_b": "Text B", "btn_clear": "Clear", "label_count": "Words",
                 "btn_start_compare": "Compare", "header_only_a": "Unique to A", "header_union": "Union (A ∪ B)", "header_common": "Intersection (A ∩ B)", "header_only_b": "Unique to B",
-                "btn_copy": "Copy", "btn_download_report": "Download Report (.txt)", "msg_input_empty": "Please enter text first", "msg_analysis_done": "Analysis Complete!", "msg_copied": "Copied!", "msg_downloading": "Downloading...", "msg_demo_loaded": "Demo Loaded",
+                "btn_copy": "Copy", "btn_download_report": "Download Report (.txt)", "btn_ai_analyze": "AI Deep Analysis", "ai_report_title": "AI Analysis Report",
+                "msg_input_empty": "Please enter text first", "msg_analysis_done": "Analysis Complete!", "msg_copied": "Copied!", "msg_downloading": "Downloading...", "msg_demo_loaded": "Demo Loaded",
+                "msg_generating": "Generating analysis...", "msg_ai_error": "AI service unavailable, please try again later.", "msg_ai_empty": "Please run comparison first.",
                 "demo_text_a": "Photosynthesis is the process used by plants to convert light energy into chemical energy that can later be released to fuel the organism's activities.",
                 "demo_text_b": "Cellular respiration is a set of metabolic reactions and processes that take place in the cells of organisms to convert biochemical energy from nutrients into adenosine triphosphate."
             },
             "ja": {
-                "back_researcher": "研究センターへ戻る",
-                "tool_name": "テキスト比較", "page_title": "語彙差異分析", "page_subtitle": "Text Vocabulary Comparison & Set Analysis",
-                "btn_load_demo": "デモをロード", "label_text_a": "テキスト A", "label_text_b": "テキスト B", "btn_clear": "クリア", "label_count": "語数",
+                "back_researcher": "研究センターへ戻る", "tool_name": "テキスト比較", "page_title": "語彙差異分析", "page_subtitle": "Text Vocabulary Comparison & Set Analysis",
+                "label_settings": "設定", "btn_load_demo": "デモをロード", "label_text_a": "テキスト A", "label_text_b": "テキスト B", "btn_clear": "クリア", "label_count": "語数",
                 "btn_start_compare": "比較開始", "header_only_a": "A のみ", "header_union": "和集合 (A ∪ B)", "header_common": "共通 (A ∩ B)", "header_only_b": "B のみ",
-                "btn_copy": "コピー", "btn_download_report": "レポートをダウンロード (.txt)", "msg_input_empty": "テキストを入力してください", "msg_analysis_done": "分析完了！", "msg_copied": "コピーしました", "msg_downloading": "ダウンロード中...", "msg_demo_loaded": "デモデータをロードしました",
+                "btn_copy": "コピー", "btn_download_report": "レポートをダウンロード (.txt)", "btn_ai_analyze": "AI 詳細分析", "ai_report_title": "AI 分析レポート",
+                "msg_input_empty": "テキストを入力してください", "msg_analysis_done": "分析完了！", "msg_copied": "コピーしました", "msg_downloading": "ダウンロード中...", "msg_demo_loaded": "デモデータをロードしました",
+                "msg_generating": "分析を生成中...", "msg_ai_error": "AI サービスは現在利用できません。後でもう一度お試しください。", "msg_ai_empty": "AI 分析を使用する前に、比較を実行してください。",
                 "demo_text_a": "光合成 は 植物 が 光エネルギー を 利用 して 水 と 二酸化炭素 から 酸素 と 炭水化物 を 合成 する 過程 です 。",
                 "demo_text_b": "呼吸 は 生物 が 酸素 を 用いて 有機物 を 分解 し 、 エネルギー を 取り出す 過程 です 。"
             },
             "zh-CN": {
-                "back_researcher": "返回研究中心",
-                "tool_name": "文本比较工具", "page_title": "文本词汇差异分析", "page_subtitle": "Text Vocabulary Comparison & Set Analysis",
-                "btn_load_demo": "载入范例", "label_text_a": "文本 A", "label_text_b": "文本 B", "btn_clear": "清空", "label_count": "词汇数",
+                "back_researcher": "返回研究中心", "tool_name": "文本比较工具", "page_title": "文本词汇差异分析", "page_subtitle": "Text Vocabulary Comparison & Set Analysis",
+                "label_settings": "设定", "btn_load_demo": "载入范例", "label_text_a": "文本 A", "label_text_b": "文本 B", "btn_clear": "清空", "label_count": "词汇数",
                 "btn_start_compare": "开始比较分析", "header_only_a": "A 独有", "header_union": "AB 并集", "header_common": "AB 交集", "header_only_b": "B 独有",
-                "btn_copy": "复制", "btn_download_report": "下载完整分析报告 (.txt)", "msg_input_empty": "请先输入或贴上文本", "msg_analysis_done": "分析完成！", "msg_copied": "内容已复制", "msg_downloading": "报告下载中...", "msg_demo_loaded": "范例已载入",
+                "btn_copy": "复制", "btn_download_report": "下载完整分析报告 (.txt)", "btn_ai_analyze": "AI 深度差异分析", "ai_report_title": "AI 分析报告",
+                "msg_input_empty": "请先输入或贴上文本", "msg_analysis_done": "分析完成！", "msg_copied": "内容已复制", "msg_downloading": "报告下载中...", "msg_demo_loaded": "范例已载入",
+                "msg_generating": "正在生成深度分析...", "msg_ai_error": "AI 分析服务暂时无法使用，请稍后再试。", "msg_ai_empty": "请先执行比较分析，确认有词汇资料后再使用 AI 分析。",
                 "demo_text_a": "光合作用 是 植物 利用 叶绿素 吸收 太阳能 ， 将 水 和 二氧化碳 转化 为 葡萄糖 与 氧气 的 过程 。 这 是 生态系 能量 的 基础 。",
                 "demo_text_b": "呼吸作用 是 生物 利用 氧气 将 葡萄糖 分解 ， 产生 能量 、 水 和 二氧化碳 的 过程 。 这 是 维持 生命 现象 所 必需 的 。"
             }
         };
 
+        function getMsg(key) {
+            const lang = document.getElementById("language-selector").value;
+            const dict = translations[lang] || translations['zh-TW'];
+            return dict[key] || translations['zh-TW'][key] || key;
+        }
+
         function changeLanguage() {
             const lang = document.getElementById("language-selector").value;
             document.querySelectorAll("[data-i18n]").forEach(el => {
                 const key = el.getAttribute("data-i18n");
-                if (translations[lang][key]) el.innerText = translations[lang][key];
+                el.innerText = getMsg(key);
             });
-            
-            // 更新 placeholder
             const textA = document.getElementById('textA');
             const textB = document.getElementById('textB');
             if(lang === 'en') {
                 textA.placeholder = "Paste tokenized text A here...";
                 textB.placeholder = "Paste tokenized text B here...";
+            } else if(lang === 'ja') {
+                textA.placeholder = "分かち書きされたテキストAをここに貼り付けてください...";
+                textB.placeholder = "分かち書きされたテキストBをここに貼り付けてください...";
             } else {
-                // 保持預設或根據需求增加更多翻譯
+                textA.placeholder = "在此貼上已斷詞的文本 A...";
+                textB.placeholder = "在此貼上已斷詞的文本 B...";
             }
         }
 
-        // *** Canvas ***
+        // *** 1. Canvas 背景動畫 ***
         (function() {
             const canvas = document.getElementById('network-canvas');
             const ctx = canvas.getContext('2d');
@@ -345,29 +381,18 @@
                     this.size = Math.random() * 2 + 1;
                     this.color = `rgba(168, 85, 247, ${Math.random() * 0.4})`;
                 }
-                update() {
-                    this.x += this.vx; this.y += this.vy;
-                    if(this.x<0||this.x>width) this.vx*=-1; if(this.y<0||this.y>height) this.vy*=-1;
-                }
+                update() { this.x+=this.vx; this.y+=this.vy; if(this.x<0||this.x>width)this.vx*=-1; if(this.y<0||this.y>height)this.vy*=-1; }
                 draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fillStyle=this.color; ctx.fill(); }
             }
             function initParticles() { particles=[]; for(let i=0;i<50;i++) particles.push(new Particle()); }
             function animate() {
                 ctx.clearRect(0, 0, width, height);
                 particles.forEach(p => { p.update(); p.draw(); });
-                for(let i=0; i<particles.length; i++){
-                    for(let j=i; j<particles.length; j++){
-                        const dx = particles[i].x - particles[j].x;
-                        const dy = particles[i].y - particles[j].y;
-                        const dist = Math.sqrt(dx*dx + dy*dy);
-                        if(dist < 150){
-                            ctx.beginPath();
-                            ctx.strokeStyle = `rgba(168, 85, 247, ${0.08 - dist/2000})`;
-                            ctx.lineWidth = 0.5;
-                            ctx.moveTo(particles[i].x, particles[i].y);
-                            ctx.lineTo(particles[j].x, particles[j].y);
-                            ctx.stroke();
-                        }
+                for(let i=0;i<particles.length;i++){
+                    for(let j=i;j<particles.length;j++){
+                        const dx = particles[i].x - particles[j].x; const dy = particles[i].y - particles[j].y;
+                        const dist = Math.sqrt(dx*dx+dy*dy);
+                        if(dist<150){ ctx.beginPath(); ctx.strokeStyle=`rgba(168,85,247,${0.08 - dist/2000})`; ctx.lineWidth=0.5; ctx.moveTo(particles[i].x,particles[i].y); ctx.lineTo(particles[j].x,particles[j].y); ctx.stroke(); }
                     }
                 }
                 requestAnimationFrame(animate);
@@ -375,27 +400,18 @@
             window.addEventListener('resize', resize); resize(); animate();
         })();
 
-        // *** Logic ***
+        // *** 2. 核心邏輯 ***
         document.addEventListener('keydown', function(e) {
             if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { compareTexts(); }
         });
 
-        function getMsg(key) {
-            const lang = document.getElementById("language-selector").value;
-            return translations[lang][key] || translations['zh-TW'][key];
-        }
-
         function loadDemo() {
             const lang = document.getElementById("language-selector").value;
             const t = translations[lang] || translations['zh-TW'];
-
             document.getElementById('textA').value = t.demo_text_a;
             document.getElementById('textB').value = t.demo_text_b;
-            
-            // 觸發 input 事件以更新計數
             document.getElementById('textA').dispatchEvent(new Event('input'));
             document.getElementById('textB').dispatchEvent(new Event('input'));
-            
             showToast(t.msg_demo_loaded); 
         }
 
@@ -410,17 +426,13 @@
             document.getElementById(id).value = '';
             document.getElementById('count' + id.slice(-1)).innerText = '0';
             document.getElementById('analysis-results').classList.add('hidden');
+            document.getElementById('ai-analysis-result').classList.add('hidden');
         }
 
         function splitText(rawText) {
             if (!rawText) return [];
-            // 默認忽略大小寫與標點 (已移除UI開關，直接內建邏輯)
             const ignoreCase = true;
             if (ignoreCase) rawText = rawText.toLowerCase();
-            
-            // 只保留文字、中日文、數字 (排除標點)
-            // \u4e00-\u9fa5: 中文
-            // \u3040-\u309f: 平假名, \u30a0-\u30ff: 片假名 (for Japanese support)
             const cleanedText = rawText.replace(/[^\w\u4e00-\u9fa5\u3040-\u309f\u30a0-\u30ff\s]/g, ' ');
             return cleanedText.split(/\s+/).filter(t => t.length > 0);
         }
@@ -440,7 +452,7 @@
             const setB = new Set(tokensB);
 
             const lang = document.getElementById("language-selector").value;
-            const locale = lang === 'en' ? 'en' : 'zh-Hant'; // 排序語系
+            const locale = lang === 'en' ? 'en' : 'zh-Hant'; 
 
             const onlyA = [...setA].filter(x => !setB.has(x)).sort((a, b) => a.localeCompare(b, locale));
             const common = [...setA].filter(x => setB.has(x)).sort((a, b) => a.localeCompare(b, locale));
@@ -454,6 +466,8 @@
             
             const results = document.getElementById('analysis-results');
             results.classList.remove('hidden');
+            document.getElementById('ai-analysis-result').classList.add('hidden');
+
             setTimeout(() => { results.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
             showToast(getMsg('msg_analysis_done'));
         }
@@ -461,7 +475,7 @@
         function updateResult(elementId, dataArray, countId) {
             const el = document.getElementById(elementId);
             if (dataArray.length === 0) {
-                el.value = "( None )"; // 統一用 None 或根據語系調整
+                el.value = "( None )";
                 el.classList.add('text-slate-300', 'italic');
             } else {
                 el.value = dataArray.join('\n');
@@ -486,13 +500,7 @@
             const onlyB = document.getElementById('onlyB').value;
             const unionResult = document.getElementById('unionResult').value;
             const time = new Date().toLocaleString();
-            
-            const content = `Science Learning Hub - Text Analysis\nTime: ${time}\n\n` +
-                            `=== Union ===\n${unionResult}\n\n` +
-                            `=== Intersection ===\n${common}\n\n` +
-                            `=== Unique A ===\n${onlyA}\n\n` +
-                            `=== Unique B ===\n${onlyB}\n`;
-                            
+            const content = `Science Learning Hub - Text Analysis\nTime: ${time}\n\n=== Union ===\n${unionResult}\n\n=== Intersection ===\n${common}\n\n=== Unique A ===\n${onlyA}\n\n=== Unique B ===\n${onlyB}\n`;
             const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
@@ -501,6 +509,105 @@
             a.click();
             URL.revokeObjectURL(url);
             showToast(getMsg('msg_downloading'));
+        }
+
+        // *** Gemini AI Integration (多語系 Prompt) ***
+        async function analyzeWithGemini() {
+            const resultsPanel = document.getElementById('ai-analysis-result');
+            const contentDiv = document.getElementById('ai-content');
+            const lang = document.getElementById("language-selector").value;
+
+            resultsPanel.classList.remove('hidden');
+            contentDiv.innerHTML = `<div class="flex items-center justify-center py-10 text-amber-600"><i class="fa-solid fa-circle-notch fa-spin mr-3 text-2xl"></i> ${getMsg('msg_generating')}</div>`;
+            resultsPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            const onlyA = document.getElementById('onlyA').value.substring(0, 500); 
+            const onlyB = document.getElementById('onlyB').value.substring(0, 500);
+            const common = document.getElementById('common').value.substring(0, 500);
+
+            if (onlyA === "( None )" && onlyB === "( None )" && common === "( None )") {
+                contentDiv.innerHTML = `<p class='text-red-500 text-center'>${getMsg('msg_ai_empty')}</p>`;
+                return;
+            }
+
+            // 定義各語言的 AI 提示詞
+            const prompts = {
+                'zh-TW': {
+                    role: "你是一位科學教育專家。請針對以下詞彙數據進行深度分析，並直接輸出 HTML 格式的報告。",
+                    constraint: "切勿包含「作為一位科學教育專家...」等開場白或結尾語。請使用 Tailwind CSS class 進行排版，風格需與 '紫色/靛色' 的學術風格一致。",
+                    labels: { common: "共同詞彙", a: "文本 A 獨有", b: "文本 B 獨有" },
+                    titles: ["難度與深度差異", "學科重點偏向", "教學應用建議"],
+                    instruction: "(請在此處生成內容，比較兩者獨有詞彙的專業度。若有具體詞彙，請用 <span class=\"bg-purple-100 text-purple-700 px-1 rounded text-sm font-bold mx-1\">詞彙</span> 標示)"
+                },
+                'en': {
+                    role: "You are a science education expert. Please analyze the following vocabulary data and output a report directly in HTML format.",
+                    constraint: "Do not include opening or closing remarks like 'As a science education expert...'. Use Tailwind CSS classes for layout, matching a 'purple/indigo' academic style.",
+                    labels: { common: "Common Vocabulary", a: "Unique to Text A", b: "Unique to Text B" },
+                    titles: ["Difficulty & Depth Analysis", "Subject Focus Bias", "Teaching Application Suggestions"],
+                    instruction: "(Generate content here. Highlight specific vocabulary using <span class=\"bg-purple-100 text-purple-700 px-1 rounded text-sm font-bold mx-1\">Term</span>)"
+                },
+                'ja': {
+                    role: "あなたは科学教育の専門家です。以下の語彙データを深く分析し、HTML形式のレポートを直接出力してください。",
+                    constraint: "「科学教育の専門家として...」などの前置きや結びの言葉は含めないでください。Tailwind CSSクラスを使用してレイアウトし、スタイルは「紫/藍色」の学術的なスタイルと一致させてください。",
+                    labels: { common: "共通語彙", a: "テキストA固有", b: "テキストB固有" },
+                    titles: ["難易度と深度の差異", "主題の傾向", "教育への応用提案"],
+                    instruction: "(ここでコンテンツを生成します。具体的な語彙がある場合は、<span class=\"bg-purple-100 text-purple-700 px-1 rounded text-sm font-bold mx-1\">語彙</span> でマークしてください)"
+                },
+                'zh-CN': {
+                    role: "你是一位科学教育专家。请针对以下词汇数据进行深度分析，并直接输出 HTML 格式的报告。",
+                    constraint: "切勿包含“作为一位科学教育专家...”等开场白或结束语。请使用 Tailwind CSS class 进行排版，风格需与 '紫色/靛色' 的学术风格一致。",
+                    labels: { common: "共同词汇", a: "文本 A 独有", b: "文本 B 独有" },
+                    titles: ["难度与深度差异", "学科重点偏向", "教学应用建议"],
+                    instruction: "(请在此处生成内容，比较两者独有词汇的专业度。若有具体词汇，请用 <span class=\"bg-purple-100 text-purple-700 px-1 rounded text-sm font-bold mx-1\">词汇</span> 标示)"
+                }
+            };
+
+            const p = prompts[lang] || prompts['zh-TW'];
+
+            const prompt = `
+            ${p.role}
+            ${p.constraint}
+
+            Data:
+            【${p.labels.common}】: ${common}
+            【${p.labels.a}】: ${onlyA}
+            【${p.labels.b}】: ${onlyB}
+
+            Please generate the following 3 HTML blocks (Output HTML directly, NO markdown code fences):
+
+            1. <div class="bg-white/50 p-6 rounded-2xl border border-purple-100 shadow-sm mb-6">
+               <h3 class="text-lg font-bold text-purple-800 mb-3 flex items-center gap-2"><i class="fa-solid fa-layer-group"></i> ${p.titles[0]}</h3>
+               ${p.instruction}
+            </div>
+
+            2. <div class="bg-white/50 p-6 rounded-2xl border border-purple-100 shadow-sm mb-6">
+               <h3 class="text-lg font-bold text-purple-800 mb-3 flex items-center gap-2"><i class="fa-solid fa-magnifying-glass-chart"></i> ${p.titles[1]}</h3>
+               (Content for ${p.titles[1]})
+            </div>
+
+            3. <div class="bg-white/50 p-6 rounded-2xl border border-purple-100 shadow-sm mb-6">
+               <h3 class="text-lg font-bold text-purple-800 mb-3 flex items-center gap-2"><i class="fa-solid fa-chalkboard-user"></i> ${p.titles[2]}</h3>
+               (Content for ${p.titles[2]})
+            </div>
+            `;
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+                
+                if (!response.ok) throw new Error('AI API Error');
+                const data = await response.json();
+                let htmlContent = data.candidates[0].content.parts[0].text;
+                htmlContent = htmlContent.replace(/```html/g, '').replace(/```/g, '');
+                contentDiv.innerHTML = htmlContent;
+
+            } catch (error) {
+                console.error(error);
+                contentDiv.innerHTML = `<div class="text-center text-red-500 py-4"><i class="fa-solid fa-triangle-exclamation mb-2 text-2xl"></i><br>${getMsg('msg_ai_error')}<br><span class="text-xs text-slate-400">${error.message}</span></div>`;
+            }
         }
 
         function showToast(message, type = 'normal') {
