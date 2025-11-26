@@ -1,679 +1,467 @@
-<!doctype html>
-<html lang="zh-Hant">
+<!DOCTYPE html>
+<html lang="zh-TW">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>中小學自然科命題用詞AI檢核系統</title>
-<style>
-/* ====== UI/UX 風格優化：淡雅柔和綠色主題 (V9) ====== */
-:root{
-    --bg:#fcfcfc; /* 接近純白，帶微紋理感 */
-    --fg:#212529; /* 深色文字 */
-    --border:#e9ecef; /* 更淺的邊框 */
-    --card:#ffffff;
-    --muted:#888;
-    --accent:#5D9975; /* 淡雅柔和的鼠尾草綠 (主題色) */
-    --accent-hover: #477f60;
-    --success:#61A54F; /* Fit 標籤綠 */
-    --warning:#ffc107;
-    --danger:#dc3545;
-    --info:#5D9975; /* Tooltip 顏色使用主題色 */
-}
-body{
-    background:var(--bg);
-    color:var(--fg);
-    font-family:"Microsoft JhengHei", "Noto Sans TC", system-ui;
-    font-size: 15px; 
-    margin:0;
-    padding:24px;
-    position: relative;
-    min-height: 100vh;
-    opacity: 0; /* 初始隱藏，用於淡入效果 */
-    transition: opacity 0.8s ease-in;
-}
-.body-loaded {
-    opacity: 1;
-}
-.wrap{max-width:1040px;margin:0 auto;}
-
-/* 系統名稱置中與視覺強化 */
-h1{
-    font-size:30px;
-    letter-spacing:1.5px;
-    color:var(--accent);
-    margin:0 0 20px; 
-    font-weight: 700;
-    text-align: center;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
-}
-
-.card{
-    background:var(--card);
-    border:1px solid var(--border);
-    border-radius:12px;
-    padding:20px;
-    margin:15px 0;
-    box-shadow: 0 4px 8px rgba(0,0,0,.08);
-    transition: box-shadow 0.3s ease-out;
-}
-.card:hover:not(.score-kpi) {
-     box-shadow: 0 8px 16px rgba(0,0,0,.15);
-}
-
-.row{display:flex;gap:20px;flex-wrap:wrap;} 
-.col{flex:1 1 0;min-width:180px;}
-
-/* 調整 Label 字體大小與顏色層次 */
-label{display:block;margin:4px 0 6px 2px;font-size:13px;color:#495057;font-weight: 600;}
-
-/* 輸入框美化與聚焦效果 */
-select,textarea,input,button{width:100%;font:inherit;border:1px solid var(--border);border-radius:8px;padding:12px;background:#fff;box-sizing: border-box; transition: border-color 0.2s, box-shadow 0.2s;}
-select:focus, textarea:focus { 
-    border-color: var(--accent); 
-    box-shadow: 0 0 0 3px rgba(93, 153, 117, 0.2); 
-    outline: none;
-}
-
-select{appearance: none; background: #fff url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%2D%22292.4%22%3E%3Cpath%20fill%3D%22%236c757d%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13.3-6.4H18.8a17.6%2017.6%200%200%200-13.3%206.4%2017.6%2017.6%200%200%200%200%2023.7l126.6%20126.6c6.4%206.4%2017.6%206.4%2024.1%200l126.6-126.6a17.6%2017.6%200%200%200%200-23.7z%22%2F%3E%3C%2Fsvg%3E") no-repeat right 10px center; background-size: 10px;}
-
-textarea{min-height:120px;resize:vertical;}
-button{background:var(--accent);color:#fff;border:none;cursor:pointer;transition: background 0.2s, transform 0.1s;font-weight: 600; padding: 12px;}
-button:hover:not(:disabled){background: var(--accent-hover);}
-button:active:not(:disabled){transform: scale(0.99); background: var(--accent-hover);} /* 按鈕按下效果 */
-button:disabled{opacity:.6;cursor:not-allowed}
-
-/* KPI 區塊 - 抬升與互動反饋 */
-.kpi-box{
-    flex:1 1 20%;min-width:120px;text-align:center; cursor: pointer; 
-    transition: transform 0.2s, box-shadow 0.2s;
-    user-select: none; /* 防止文本被選中 */
-}
-.kpi-box:hover:not(.score-kpi) { 
-    transform: translateY(-5px); 
-    box-shadow: 0 10px 20px rgba(93, 153, 117, 0.15); /* 綠色柔和陰影 */
-}
-.kpi{font-size:32px;font-weight:700;margin-top:4px;}
-.small{color:var(--muted);font-size:12px;}
-.score-kpi{background: #e6f3eb; border: 2px solid var(--accent); cursor: default !important;}
-.score-kpi:hover { transform: none; }
-.score-kpi .kpi{font-size: 40px; color: var(--accent);}
-
-/* 分數動態效果 */
-@keyframes scorePop {
-    0% { transform: scale(0.8); opacity: 0; }
-    80% { transform: scale(1.1); opacity: 1; }
-    100% { transform: scale(1); }
-}
-.score-anim-pop {
-    animation: scorePop 0.4s ease-out;
-}
-
-/* 表格區塊 */
-.table{width:100%;border-collapse:separate;border-spacing:0 6px;font-size:14px;}
-.table th{color:#495057;text-align:left;padding:10px 8px;border-bottom:2px solid var(--border);font-weight: 600; background: #f0f0f0;}
-.table td{background:#ffffff;border:1px solid #e9ecef;padding:10px 8px;border-radius:6px;word-break: break-word; box-shadow: 0 1px 3px rgba(0,0,0,0.02);}
-.table-filter-active { background-color: #e4eef6; } /* 過濾後的行高亮 */
-
-/* Tag 標籤 */
-.tag{border-radius:4px;padding:3px 8px;display:inline-block;font-size:12px;font-weight: 600;}
-.tag.fit{background:#e5f6e8;color:var(--success);}
-.tag.adv1{background:#ffedd9;color:#d97706;}
-.tag.adv2{background:#fdd;color:var(--danger);}
-.tag.unseen{background:#e9e9e9;color:var(--muted);}
-
-/* AI Feedback 區塊 */
-.feedback-box{background: #e6f3eb; border-color: var(--accent); margin-top: 15px;}
-.feedback-box h3{color: var(--accent); margin: 0 0 10px; font-size: 18px; border-bottom: 2px solid var(--accent); padding-bottom: 4px;}
-
-/* 確保語言選擇器在右上角並緊湊 */
-#lang-selector-wrap {
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: 10px;
-}
-#lang-selector {
-    width: auto;
-    max-width: 150px;
-    padding: 6px 10px;
-    font-size: 14px;
-}
-
-/* Loading 狀態 */
-#loading-overlay{position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); display:none; justify-content:center; align-items:center; z-index:100;}
-.spinner{border:4px solid rgba(0,0,0,.1); border-left-color:var(--accent); border-radius:50%; width:30px; height:30px; animation:spin 1s linear infinite;}
-#loading-text{margin-left:15px; font-weight:600; color:var(--accent);}
-@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
-
-/* Translated Text Section */
-#translated-text-wrap h3 { font-size: 14px; color: #495057; margin-bottom: 5px; }
-#analysis-text-content { color: var(--accent); }
-
-/* 讓表格行變色 */
-.risk-row-adv2 { background-color: #fff8f8; }
-.risk-row-adv1 { background-color: #fffcf8; }
-
-</style>
-</head>
-<body class="body-loaded">
-
-<div id="loading-overlay">
-    <div class="spinner"></div>
-    <div id="loading-text"></div>
-</div>
-
-<div class="wrap">
-    <!-- 語言選擇器 - 確保在右上角 -->
-    <div id="lang-selector-wrap">
-        <select id="lang-selector" onchange="i18n.setLanguage(this.value)">
-            <option value="zh-TW" selected>繁體中文</option>
-            <option value="en">English</option>
-            <option value="zh-CN">简体中文</option>
-            <option value="ja">日本語</option>
-        </select>
-    </div>
-
-    <h1 id="app-title">中小學自然科命題用詞AI檢核系統</h1>
-
-    <div class="card">
-        <!-- 命題條件輸入 -->
-        <div class="row">
-            <div class="col">
-                <label id="label-stage">學習階段</label>
-                <select id="stage">
-                    <option value="" selected disabled data-i18n="select_stage_placeholder">請選擇</option>
-                    <option value="高中" data-i18n="stage_highschool" disabled>高中 [建置中]</option>
-                    <option value="國中" data-i18n="stage_juniorhigh">國中</option>
-                    <option value="國小" data-i18n="stage_elementary">國小</option>
-                </select>
-            </div>
-            <div class="col">
-                <label id="label-grades">年級</label>
-                <select id="grades" disabled>
-                    <option value="" selected data-i18n="select_grade_placeholder">請先選擇學習階段</option>
-                </select>
-            </div>
-            <div class="col">
-                <label id="label-semester">學期</label>
-                <select id="semester">
-                    <option value="" selected data-i18n="semester_any">不限</option>
-                    <option value="上" data-i18n="semester_up">上</option>
-                    <option value="下" data-i18n="semester_down">下</option>
-                </select>
-            </div>
-            <div class="col">
-                <label id="label-version">版本</label>
-                <select id="version">
-                    <option value="" selected data-i18n="version_any">不限</option>
-                </select>
-            </div>
-        </div>
-
-        <!-- 詞性篩選 -->
-        <div class="row" style="margin-top: 20px;">
-            <div class="col" style="flex: 1 1 100%;">
-                <label id="label-posfilter">計算適切性詞性範圍（請勾選）</label>
-                <div style="display:flex; gap: 15px; flex-wrap: wrap;">
-                    <label style="display:inline-flex; align-items:center;">
-                        <input type="checkbox" name="pos" value="N" checked style="width: auto; margin-right: 5px;"> <span data-i18n="pos_n">名詞 (N)</span>
-                    </label>
-                    <label style="display:inline-flex; align-items:center;">
-                        <input type="checkbox" name="pos" value="V" checked style="width: auto; margin-right: 5px;"> <span data-i18n="pos_v">動詞 (V)</span>
-                    </label>
-                    <label style="display:inline-flex; align-items:center;">
-                        <input type="checkbox" name="pos" value="A" style="width: auto; margin-right: 5px;"> <span data-i18n="pos_a">形容詞 (A)</span>
-                    </label>
-                    <label style="display:inline-flex; align-items:center;">
-                        <input type="checkbox" name="pos" value="D" style="width: auto; margin-right: 5px;"> <span data-i18n="pos_d">副詞 (D)</span>
-                    </label>
-                </div>
-            </div>
-        </div>
-
-        <!-- 文本輸入 -->
-        <div class="row" style="margin-top: 20px;">
-            <div class="col" style="flex:1 1 100%">
-                <label id="label-text">貼上命題文本（題幹＋選項）</label>
-                <textarea id="text" data-i18n="text_placeholder" placeholder="請將題幹與所有選項貼在此處"></textarea>
-            </div>
-        </div>
-
-        <!-- 執行按鈕 -->
-        <div class="row" style="margin-top: 15px;">
-            <div class="col">
-                <button id="runBtn" data-i18n="btn_run">開始檢測</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 狀態/錯誤訊息 -->
-    <div id="status-message" class="card" style="display:none; color: var(--danger);"></div>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>命題用語檢核 | Science Learning Hub</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- 原始文本與翻譯對照 - 放在結果區頂部以方便對照 -->
-    <div id="translated-text-wrap" class="card" style="display:none;">
-        <h3 id="original-text-title">原始命題文本</h3>
-        <p id="original-text-content" style="white-space: pre-wrap; margin-bottom: 15px; font-size: 14px; color: var(--muted);"></p>
-        <h3 id="translated-text-title">分析所使用的翻譯文本 (繁體中文)</h3>
-        <p id="analysis-text-content" style="white-space: pre-wrap; font-weight: 600; color: var(--accent-hover); font-size: 16px;"></p>
-    </div>
-
-    <!-- KPI 摘要 -->
-    <div id="summary" class="row"></div>
-    
-    <!-- AI 回饋 -->
-    <div id="geminiFeedbackWrap"></div>
-
-    <!-- 風險詞清單 -->
-    <div id="risks"></div>
-    
-    <!-- 詞彙檢測表 -->
-    <div id="tableWrap"></div>
-    
-</div>
-
-<script>
-// ====== 1. i18n 語言翻譯字典 (從 code.gs loadInitialData 載入) ======
-const i18n = {
-    currentLang: 'zh-TW',
-    dictionary: {}, 
-    
-    // 設置語言並更新介面
-    setLanguage(lang) {
-        this.currentLang = lang;
-        localStorage.setItem('appLang', lang); 
-        document.documentElement.lang = lang;
-
-        const dict = this.dictionary[lang] || this.dictionary['zh-TW'];
-        
-        // 1. 處理所有 data-i18n 屬性
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-            const key = el.getAttribute('data-i18n');
-            if (dict[key]) {
-                if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-                    el.placeholder = dict[key];
-                } else if (el.tagName === 'OPTION') {
-                    el.textContent = dict[key];
-                } else {
-                    el.textContent = dict[key];
-                }
-            }
-        });
-
-        // 2. 處理所有 ID 標籤 (Label, Title, Button)
-        const idMap = {
-            'app-title': 'title', 'label-stage': 'stage', 'label-grades': 'grades', 
-            'label-semester': 'semester', 'label-version': 'version', 'label-posfilter': 'posfilter',
-            'label-text': 'text_input_label', 'runBtn': 'btn_run', 
-            // Result Titles
-            'original-text-title': 'original_text_title', 'translated-text-title': 'translated_text_title',
-            'risks-title': 'risks_title', 'table-title': 'table_title', 
-            'feedback-title': 'ai_feedback_title'
-        };
-        Object.entries(idMap).forEach(([id, key]) => {
-            const el = document.getElementById(id);
-            if (el && dict[key]) el.textContent = dict[key];
-        });
-        
-        // 3. 特殊處理 (更新頁面內容)
-        if (window.appRenderer) window.appRenderer.renderSummary(window.__lastSummary);
-        if (window.appRenderer) window.appRenderer.renderRisks(window.__lastRisks);
-        if (window.appRenderer) window.appRenderer.renderTable(window.__lastTable);
-        if (window.appRenderer) window.appRenderer.renderGeminiFeedback(window.__lastFeedback);
-    }
-};
-
-// ====== 2. 應用程式核心邏輯與渲染 ======
-(function(){
-    let OPTIONS_DATA = {}; 
-    let currentFilter = null; // 儲存當前表格過濾狀態 (e.g., 'adv2')
-
-    // Helper 函式：生成 tag 樣式
-    function tag(state){
-        var m = {fit:'符合', adv1:'超前1', adv2:'超前≥2', unseen:'未見'};
-        const lang = i18n.currentLang;
-        const D = i18n.dictionary[lang];
-        if(D) {
-            if (state === 'fit') m[state] = D.tag_fit;
-            else if (state === 'adv1') m[state] = D.tag_adv1;
-            else if (state === 'adv2') m[state] = D.tag_adv2;
-            else if (state === 'unseen') m[state] = D.tag_unseen;
-        }
-        return `<span class="tag ${state}">${m[state]||state}</span>`;
-    }
-    
-    // 數據過濾功能 (UX 優化：點擊 KPI 過濾表格)
-    function applyTableFilter(filterState) {
-        const tableBody = document.querySelector('#tableWrap tbody');
-        if (!tableBody) return;
-
-        // 切換過濾狀態
-        if (currentFilter === filterState) {
-            currentFilter = null; // 關閉過濾
-        } else {
-            currentFilter = filterState; // 設置新過濾
-        }
-        
-        // 更新 KPI 樣式 (解除或設置高亮)
-        document.querySelectorAll('.kpi-box').forEach(box => {
-            box.classList.remove('active-filter');
-            if (box.dataset.filter === currentFilter) {
-                box.classList.add('active-filter');
-            }
-        });
-
-        const rows = tableBody.querySelectorAll('tr');
-        rows.forEach(row => {
-            const rowState = row.dataset.state;
-            if (currentFilter === null || rowState === currentFilter) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
-        });
-        
-        // 重新渲染完整表格以更新樣式（如果不使用此行，需要在 applyTableFilter 中手動管理 row 的樣式）
-        // 為保持效率，我們只更新顯示狀態，不重新渲染。
-
-    }
-
-    // Renderer 物件
-    const Renderer = {
-        tag: tag,
-        dict: () => i18n.dictionary[i18n.currentLang] || i18n.dictionary['zh-TW'],
-        applyTableFilter: applyTableFilter, // 暴露給外部使用
-
-        renderSummary(s){
-            if (!s) return;
-            window.__lastSummary = s;
-            const D = this.dict();
-            const el = document.getElementById('summary');
-            
-            // 定義 KPI 順序和 Key
-            const kpiItems = [
-                { id: 'finalScore', labelKey: 'score_label', unit: '', className: 'score-kpi', filter: null },
-                { id: 'coverage', labelKey: 'coverage_label', unit: '%', className: '', filter: null },
-                { id: 'adv1', labelKey: 'adv1_label', unit: '', className: '', filter: 'adv1' },
-                { id: 'adv2', labelKey: 'adv2_label', unit: '', className: '', filter: 'adv2' },
-                { id: 'unseen', labelKey: 'unseen_label', unit: '', className: '', filter: 'unseen' },
-            ];
-            
-            el.innerHTML = kpiItems.map(item => `
-                <div class="col card kpi-box ${item.className}" data-filter="${item.filter}" 
-                     onclick="${item.filter ? `window.appRenderer.applyTableFilter('${item.filter}')` : ''}">
-                    <div class="small">${D[item.labelKey] || item.labelKey}</div>
-                    <div class="kpi ${item.id === 'finalScore' ? 'score-anim-pop' : ''}">${s[item.id]??0}${item.unit}</div>
-                </div>
-            `).join('');
-        },
-
-        renderRisks(list){
-            if(!list || !list.length){ document.getElementById('risks').innerHTML=''; return; }
-            window.__lastRisks = list;
-            const D = this.dict();
-            const el = document.getElementById('risks');
-            
-            el.innerHTML = `<div class="card"><b id="risks-title">${D.risks_title || '高風險詞清單（前10）'}</b><hr/>` +
-                list.map(r => `
-                    <div style="margin:6px 0">
-                        <div><span class="feedback-term-note">${r.term}</span> ${this.tag(r.state)} (${D.frequency_unit || 'x'}${r.frequency})</div>
-                        <div class="small">${D.first_introduced_label || '最早出現'}：${r.first || D.unlabeled_sem}</div>
-                        <div style="margin-top:4px;">${r.feedback||''}</div>
-                    </div>
-                `).join('') + '</div>';
-        },
-
-        renderTable(rows){
-            if(!rows || !rows.length){ document.getElementById('tableWrap').innerHTML=''; return; }
-            window.__lastTable = rows;
-            const D = this.dict();
-            const el = document.getElementById('tableWrap');
-
-            const tableRows = rows.map(r => {
-                const rowClass = r.state === 'adv2' ? 'risk-row-adv2' : r.state === 'adv1' ? 'risk-row-adv1' : '';
-                return `
-                    <tr class="${rowClass}" data-state="${r.state}">
-                        <td>${r.term}</td>
-                        <td>${r.posMajor}</td>
-                        <td>${r.frequency}</td>
-                        <td>${r.first || D.unlabeled_sem}</td>
-                        <td>${this.tag(r.state)}</td>
-                    </tr>
-                `;
-            }).join('');
-            
-            el.innerHTML = `
-                <div class="card"><b id="table-title">${D.table_title || '詞彙檢測表'} (${D.total_terms_label}: ${rows.length})</b>
-                <table class="table">
-                <thead><tr>
-                    <th>${D.table_header_term || '詞彙'}</th>
-                    <th>${D.table_header_pos || '詞性'}</th>
-                    <th>${D.table_header_freq || '頻率 (x)'}</th>
-                    <th>${D.table_header_first || '最早出現'}</th>
-                    <th>${D.table_header_state || '狀態'}</th>
-                </tr></thead>
-                <tbody>${tableRows}</tbody></table></div>`;
-
-            // 重新應用過濾 (如果存在)
-            if (currentFilter) {
-                this.applyTableFilter(currentFilter);
-            }
-        },
-        
-        renderGeminiFeedback(fb){
-            const el = document.getElementById('geminiFeedbackWrap');
-            el.innerHTML = '';
-            if(!fb || !fb.overall){ return; }
-            window.__lastFeedback = fb;
-            const D = this.dict();
-
-            let html = `<div class="card feedback-box"><h3 id="feedback-title">💡 ${D.ai_feedback_title || 'AI 命題審查回饋'}</h3>`;
-            
-            // 原始文本和翻譯文本
-            document.getElementById('original-text-content').textContent = window.__originalText;
-            document.getElementById('analysis-text-content').textContent = fb.translatedText;
-            document.getElementById('translated-text-wrap').style.display = (window.__originalText !== fb.translatedText) ? 'block' : 'none';
-
-            // 1. 整體評語
-            html += `<p style="font-size: 16px;"><strong>${D.overall_comment_label || '整體評語'}：</strong> ${fb.overall || D.no_comment_text}</p><hr>`;
-
-            // 2. 優點與風險
-            html += `<div class="row">`;
-            html += `<div class="col" style="min-width: unset; flex: 1;"><strong>${D.strengths_label || '優點'}：</strong><ul>`;
-            (fb.strengths || []).forEach(s => { html += `<li>${s}</li>`; });
-            html += '</ul></div>';
-            
-            html += `<div class="col" style="min-width: unset; flex: 1;"><strong>${D.risks_label || '風險'}：</strong><ul>`;
-            (fb.risks || []).forEach(r => { html += `<li>${r}</li>`; });
-            html += '</ul></div>';
-            html += '</div>';
-
-            // 3. 修正策略
-            if (fb.suggestions && fb.suggestions.length) {
-                html += `<hr><strong>${D.suggestions_label || '修正策略建議'}：</strong><ul>`;
-                (fb.suggestions || []).forEach(s => { html += `<li>${s}</li>`; });
-                html += '</ul>';
-            }
-
-            // 4. 詞彙註釋表
-            if (fb.termNotes && fb.termNotes.length) {
-                html += `<hr><strong>${D.term_notes_label || '高風險詞彙修正建議'}：</strong>`;
-                html += `<table class="term-note-table" style="width: 100%;"><thead><tr>
-                    <th style="width: 25%;">${D.table_header_term || '詞彙'}</th>
-                    <th style="width: 35%;">${D.issue_label || '問題點'}</th>
-                    <th style="width: 40%;">${D.fix_label || '可接受改寫'}</th>
-                </tr></thead><tbody>`;
-                (fb.termNotes || []).forEach(n => {
-                    html += `<tr><td>${n.term}</td><td>${n.issue || D.none_text}</td><td>${n.fix || D.none_text}</td></tr>`;
-                });
-                html += '</tbody></table>';
-            }
-
-            html += '</div>';
-            el.innerHTML = html;
-        }
-    };
-    window.appRenderer = Renderer;
-
-    // ====== 3. 事件處理與連動邏輯 ======
-    
-    // 依學習階段刷新年級和版本
-    function refreshByStage(){
-        const stage = document.getElementById('stage').value || '';
-        const verSel = document.getElementById('version');
-        const grdSel = document.getElementById('grades');
-        const D = Renderer.dict();
-
-        // 刷新年級
-        grdSel.innerHTML = '';
-        const gs = OPTIONS_DATA[stage] ? OPTIONS_DATA[stage].grades : [];
-        if (gs.length){
-            const tip = document.createElement('option');
-            tip.value = ''; tip.textContent = D.select_grade_placeholder || '請選擇年級';
-            grdSel.appendChild(tip);
-            gs.forEach(g=>{
-                const opt = document.createElement('option');
-                opt.value = String(g.v); opt.textContent = g.t;
-                grdSel.appendChild(opt);
-            });
-            grdSel.disabled = false;
-        } else {
-            const opt = document.createElement('option');
-            opt.value = ''; opt.textContent = D.none_text || '不限';
-            grdSel.appendChild(opt);
-            grdSel.disabled = true;
-        }
-        
-        // 刷新版本
-        verSel.innerHTML = '';
-        const vs = OPTIONS_DATA[stage] ? OPTIONS_DATA[stage].versions : [];
-        vs.forEach(v=>{
-            const opt = document.createElement('option');
-            opt.value = v; 
-            opt.textContent = (v === '不限') ? (D.version_any || '不限') : v;
-            verSel.appendChild(opt);
-        });
-        verSel.disabled = false;
-        verSel.value = '不限'; 
-    }
-    
-    function setLoading(on, messageKey='loading_analysis'){
-        const btn = document.getElementById('runBtn');
-        const loadingOverlay = document.getElementById('loading-overlay');
-        const loadingText = document.getElementById('loading-text');
-        const D = Renderer.dict();
-        
-        btn.disabled = !!on;
-        btn.textContent = on ? (D.loading_analysis || '分析中...') : (D.btn_run || '開始檢測');
-        loadingOverlay.style.display = on ? 'flex' : 'none';
-        loadingText.textContent = D[messageKey] || 'AI 正在分析命題，請稍候...';
-    }
-
-    function run(){
-        const stage = document.getElementById('stage').value || '';
-        const grades = document.getElementById('grades').value || ''; 
-        const semester = document.getElementById('semester').value || '';
-        const version = document.getElementById('version').value || '';
-        const text = document.getElementById('text').value || '';
-        const lang = i18n.currentLang;
-        
-        const D = Renderer.dict();
-        
-        if (!stage || !grades || !text) {
-            document.getElementById('status-message').textContent = D.error_missing_fields || '錯誤：請選擇學習階段、年級並貼上命題文本。';
-            document.getElementById('status-message').style.display = 'block';
-            return;
-        }
-        document.getElementById('status-message').style.display = 'none';
-
-        window.__originalText = text;
-        
-        const posFilter = Array.from(document.querySelectorAll('input[name="pos"]:checked'))
-                           .map(input => input.value);
-
-        setLoading(true);
-        // 重置過濾狀態
-        currentFilter = null;
-        
-        // 清空舊結果
-        document.getElementById('translated-text-wrap').style.display = 'none';
-        document.getElementById('summary').innerHTML = '';
-        document.getElementById('risks').innerHTML = '';
-        document.getElementById('tableWrap').innerHTML = '';
-        document.getElementById('geminiFeedbackWrap').innerHTML = '';
-        
-        google.script.run
-            .withSuccessHandler(function(data){
-                setLoading(false);
-                if(data && data.error){ 
-                    // 錯誤代碼映射
-                    let errMsg = D[data.error] || data.error;
-                    document.getElementById('status-message').textContent = D.error_server_failed + ': ' + errMsg;
-                    document.getElementById('status-message').style.display = 'block';
-                    return; 
-                }
-                
-                Renderer.renderSummary(data.summary || {});
-                Renderer.renderRisks(data.risks || []);
-                Renderer.renderTable(data.table || []);
-                Renderer.renderGeminiFeedback(data.gptFeedback);
-
-                window.__lastSummary = data.summary;
-                window.__lastRisks = data.risks;
-                window.__lastTable = data.table;
-                window.__lastFeedback = data.gptFeedback;
-            })
-            .withFailureHandler(function(err){
-                setLoading(false);
-                document.getElementById('status-message').textContent = D.error_server_call_failed + ': ' + err;
-                document.getElementById('status-message').style.display = 'block';
-            })
-            .runCheck({ text, grades, semester, stage, version, posFilter, lang });
-    }
-    
-    // ====== 4. 初始化與事件綁定 ======
-    
-    document.addEventListener('DOMContentLoaded', function(){
-        google.script.run
-            .withSuccessHandler(function(data){
-                // 載入 i18n 字典
-                i18n.dictionary = {
-                    ...data.i18n, 
-                    'zh-TW': {
-                        ...data.i18n['zh-TW'],
-                        coverage_label: '用詞適切性', adv1_label: '超前 1 學期', adv2_label: '超前 ≥ 2 學期', unseen_label: '未見於教材',
-                        total_terms_label: '唯一詞彙數', first_introduced_label: '最早出現', frequency_unit: 'x',
-                        table_header_term: '詞彙', table_header_pos: '詞性', table_header_freq: '頻率', table_header_first: '最早出現', table_header_state: '狀態',
-                        unlabeled_sem: '（未標）', none_text: '無',
-                        error_missing_fields: '錯誤：請選擇學習階段、年級並貼上命題文本。',
-                        error_server_failed: '伺服端處理失敗', error_server_call_failed: '呼叫伺服端失敗',
-                        loading_analysis: 'AI 正在分析命題，請稍候...', ai_feedback_title: 'AI 命題審查回饋',
-                        overall_comment_label: '整體評語', strengths_label: '優點', risks_label: '風險', suggestions_label: '修正策略建議',
-                        term_notes_label: '高風險詞彙修正建議', issue_label: '問題點', fix_label: '可接受改寫',
-                        tag_fit: '符合', tag_adv1: '超前1', tag_adv2: '超前≥2', tag_unseen: '未見',
-                        original_text_title: '原始命題文本', translated_text_title: '分析所使用的翻譯文本 (繁體中文)',
-                        risks_title: '高風險詞清單（前10）', table_title: '詞彙檢測表',
-                        pos_help_title: '詞性篩選說明：', pos_help_trigger: '[?]',
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        teacher: { light: '#bbf7d0', DEFAULT: '#22c55e', dark: '#15803d' },
+                        glass: {
+                            100: 'rgba(255, 255, 255, 0.1)',
+                            200: 'rgba(255, 255, 255, 0.2)',
+                            700: 'rgba(255, 255, 255, 0.7)',
+                            900: 'rgba(255, 255, 255, 0.9)',
+                        }
                     },
-                };
-
-                OPTIONS_DATA = data.options;
-                
-                const storedLang = localStorage.getItem('appLang') || 'zh-TW';
-                document.getElementById('lang-selector').value = storedLang;
-                i18n.setLanguage(storedLang);
-                
-                refreshByStage(); 
-                
-                // 設置 body 類，觸發淡入效果
-                document.body.classList.add('body-loaded');
-
-            }).loadInitialData();
-            
-        // 綁定事件
-        document.getElementById('stage').addEventListener('change', refreshByStage);
-        document.getElementById('runBtn').addEventListener('click', run);
+                    fontFamily: {
+                        sans: ['ui-sans-serif', 'system-ui', '-apple-system', "Segoe UI", 'Roboto', "Helvetica Neue", 'Arial', 'sans-serif'],
+                    },
+                    animation: {
+                        "spin-slow": "spin 10s linear infinite",
+                        "gradient-x": "gradient-x 15s ease infinite",
+                        "fade-in-up": "fadeInUp 0.5s ease-out forwards",
+                    },
+                    keyframes: {
+                        "gradient-x": {
+                            "0%, 100%": { "background-size": "200% 200%", "background-position": "left center" },
+                            "50%": { "background-size": "200% 200%", "background-position": "right center" }
+                        },
+                        "fadeInUp": {
+                            "0%": { opacity: "0", transform: "translateY(10px)" },
+                            "100%": { opacity: "1", transform: "translateY(0)" }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 玻璃擬態與背景樣式 (與 Teacher.html 一致) */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px 0 rgba(31, 135, 38, 0.1);
+        }
         
-    });
-})();
-</script>
+        #canvas-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -10; overflow: hidden;
+            background: linear-gradient(-45deg, #f0fdf4, #ecfdf5, #f0f9ff, #f8fafc);
+            background-size: 400% 400%;
+            animation: gradientBG 20s ease infinite;
+        }
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; }
+        }
+
+        /* 輸入框聚焦特效 */
+        .input-focus:focus {
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.3);
+            border-color: #22c55e;
+        }
+
+        /* 標籤樣式 */
+        .tag-fit { @apply bg-green-100 text-green-700 border border-green-200; }
+        .tag-adv1 { @apply bg-yellow-100 text-yellow-700 border border-yellow-200; }
+        .tag-adv2 { @apply bg-red-100 text-red-700 border border-red-200; }
+        .tag-unseen { @apply bg-gray-100 text-gray-600 border border-gray-200; }
+
+        /* 載入動畫 */
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 3px solid #22c55e;
+            width: 20px;
+            height: 20px;
+            -webkit-animation: spin 1s linear infinite; /* Safari */
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="min-h-screen font-sans flex flex-col text-slate-800 relative overflow-x-hidden selection:bg-green-200 selection:text-green-900">
+
+    <!-- 背景動態層 -->
+    <div id="canvas-container">
+        <canvas id="network-canvas"></canvas>
+    </div>
+
+    <!-- 頂部導航列 -->
+    <nav class="glass-panel sticky top-0 z-50 border-b-0">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="window.location.href='teacher.html'">
+                <div class="bg-green-100 p-2 rounded-xl text-green-600 shadow-sm transition hover:scale-105">
+                    <i class="fa-solid fa-arrow-left text-lg"></i>
+                </div>
+                <span class="text-xl font-bold tracking-tight text-slate-800">返回教學中心</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="bg-green-50 text-green-700 px-4 py-1.5 rounded-full text-sm font-bold border border-green-200 shadow-sm">
+                    <i class="fa-solid fa-check-double mr-2"></i>命題檢核系統
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主內容區 -->
+    <main class="flex-1 overflow-y-auto p-6 md:p-10 relative z-10">
+        <div class="max-w-7xl mx-auto animate-fade-in-up">
+            
+            <!-- 標題區 -->
+            <div class="text-center mb-10">
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 to-teal-600 mb-2 filter drop-shadow-sm">
+                    中小學自然科命題用詞 AI 檢核
+                </h1>
+                <p class="text-slate-500">透過 AI 分析試題詞彙，確保命題符合學生認知發展階段</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                <!-- 左側：設定與輸入區 -->
+                <div class="lg:col-span-4 space-y-6">
+                    <!-- 參數設定卡片 -->
+                    <div class="glass-panel p-6 rounded-3xl">
+                        <h2 class="text-lg font-bold text-slate-700 mb-4 flex items-center">
+                            <i class="fa-solid fa-sliders mr-2 text-green-600"></i> 參數設定
+                        </h2>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-bold text-slate-600 mb-1">學習階段 <span class="text-red-500">*</span></label>
+                                <select id="stage" class="w-full p-3 rounded-xl border border-slate-200 bg-white/80 input-focus outline-none transition" onchange="updateGrades()">
+                                    <option value="" disabled selected>請選擇階段</option>
+                                    <option value="國小">國小 (Elementary)</option>
+                                    <option value="國中">國中 (Junior High)</option>
+                                    <option value="高中" disabled>高中 (Senior High) - 建置中</option>
+                                </select>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm font-bold text-slate-600 mb-1">年級</label>
+                                    <select id="grades" class="w-full p-3 rounded-xl border border-slate-200 bg-white/80 input-focus outline-none transition disabled:bg-slate-100 disabled:text-slate-400" disabled>
+                                        <option value="" selected>不限</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-bold text-slate-600 mb-1">學期</label>
+                                    <select id="semester" class="w-full p-3 rounded-xl border border-slate-200 bg-white/80 input-focus outline-none transition">
+                                        <option value="" selected>不限</option>
+                                        <option value="上">上學期</option>
+                                        <option value="下">下學期</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-bold text-slate-600 mb-1">教科書版本</label>
+                                <select id="version" class="w-full p-3 rounded-xl border border-slate-200 bg-white/80 input-focus outline-none transition">
+                                    <option value="" selected>不限</option>
+                                    <option value="康軒">康軒</option>
+                                    <option value="翰林">翰林</option>
+                                    <option value="南一">南一</option>
+                                </select>
+                            </div>
+
+                            <div class="pt-2">
+                                <label class="block text-sm font-bold text-slate-600 mb-2">檢測詞性 (多選)</label>
+                                <div class="flex flex-wrap gap-2">
+                                    <label class="cursor-pointer select-none bg-white border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-green-50 transition flex items-center">
+                                        <input type="checkbox" name="pos" value="N" checked class="accent-green-600 mr-2"> 名詞 (N)
+                                    </label>
+                                    <label class="cursor-pointer select-none bg-white border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-green-50 transition flex items-center">
+                                        <input type="checkbox" name="pos" value="V" checked class="accent-green-600 mr-2"> 動詞 (V)
+                                    </label>
+                                    <label class="cursor-pointer select-none bg-white border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-green-50 transition flex items-center">
+                                        <input type="checkbox" name="pos" value="A" class="accent-green-600 mr-2"> 形容詞 (A)
+                                    </label>
+                                    <label class="cursor-pointer select-none bg-white border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-green-50 transition flex items-center">
+                                        <input type="checkbox" name="pos" value="D" class="accent-green-600 mr-2"> 副詞 (D)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 執行按鈕 -->
+                    <button id="runBtn" onclick="runCheck()" class="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-4 rounded-2xl hover:shadow-lg hover:shadow-green-500/30 transition font-bold text-lg transform active:scale-95 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <span>開始檢測</span>
+                    </button>
+                </div>
+
+                <!-- 右側：文本輸入與結果 -->
+                <div class="lg:col-span-8 space-y-6">
+                    
+                    <!-- 文本輸入區 -->
+                    <div class="glass-panel p-6 rounded-3xl relative group">
+                        <label class="block font-bold mb-3 text-slate-700 flex justify-between items-center">
+                            <span class="flex items-center gap-2"><i class="fa-regular fa-file-lines"></i> 試題文本</span>
+                            <span class="text-xs font-normal text-slate-400 bg-white px-2 py-1 rounded-md border border-slate-100">建議包含題幹與選項</span>
+                        </label>
+                        <textarea id="text" class="w-full h-64 p-5 border border-white/60 rounded-2xl input-focus transition resize-none bg-white/50 text-slate-700 leading-relaxed text-lg placeholder-slate-400 scrollbar-thin" placeholder="在此貼上命題內容...
+例如：
+1. 下列關於光合作用的敘述，何者正確？
+(A) 主要在根部進行
+(B) 產物包含葡萄糖"></textarea>
+                        <!-- 裝飾光暈 -->
+                        <div class="absolute -bottom-4 -right-4 w-20 h-20 bg-green-400/20 rounded-full blur-2xl -z-10"></div>
+                    </div>
+
+                    <!-- 結果顯示區 (預設隱藏) -->
+                    <div id="result-area" class="hidden space-y-6 animate-fade-in-up">
+                        
+                        <!-- KPI 摘要卡片 -->
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm text-center">
+                                <div class="text-xs text-slate-500 mb-1">總詞彙數</div>
+                                <div class="text-2xl font-black text-slate-800" id="kpi-total">0</div>
+                            </div>
+                            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm text-center">
+                                <div class="text-xs text-slate-500 mb-1">適切性</div>
+                                <div class="text-2xl font-black text-green-600" id="kpi-coverage">0%</div>
+                            </div>
+                            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm text-center">
+                                <div class="text-xs text-slate-500 mb-1">超前詞彙</div>
+                                <div class="text-2xl font-black text-yellow-600" id="kpi-adv">0</div>
+                            </div>
+                            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm text-center">
+                                <div class="text-xs text-slate-500 mb-1">未見詞彙</div>
+                                <div class="text-2xl font-black text-red-500" id="kpi-unseen">0</div>
+                            </div>
+                        </div>
+
+                        <!-- AI 回饋區 -->
+                        <div class="glass-panel p-6 rounded-3xl border-l-8 border-green-500">
+                            <h3 class="font-bold text-green-800 text-lg mb-3 flex items-center">
+                                <i class="fa-solid fa-robot mr-2"></i> AI 審查建議
+                            </h3>
+                            <div id="ai-feedback-content" class="text-slate-700 leading-relaxed space-y-2 text-sm">
+                                <!-- JS 填入內容 -->
+                            </div>
+                        </div>
+
+                        <!-- 詳細表格 -->
+                        <div class="glass-panel p-6 rounded-3xl overflow-hidden">
+                            <h3 class="font-bold text-slate-700 mb-4">詞彙詳細分析</h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="text-slate-500 text-sm border-b border-slate-200/60">
+                                            <th class="pb-3 pl-2 font-medium">詞彙</th>
+                                            <th class="pb-3 font-medium">詞性</th>
+                                            <th class="pb-3 font-medium">首次出現</th>
+                                            <th class="pb-3 font-medium">狀態</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="table-body" class="text-slate-700 text-sm">
+                                        <!-- JS 填入內容 -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 提示訊息 (Toast) -->
+    <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full shadow-xl transition-all duration-300 opacity-0 translate-y-10 z-50 flex items-center gap-3 pointer-events-none">
+        <i class="fa-solid fa-circle-info text-yellow-400"></i>
+        <span id="toast-msg">提示訊息</span>
+    </div>
+
+    <script>
+        // 1. 連動邏輯：學習階段 -> 年級
+        function updateGrades() {
+            const stage = document.getElementById('stage').value;
+            const gradeSelect = document.getElementById('grades');
+            const versionSelect = document.getElementById('version');
+            
+            // 清空並重置年級
+            gradeSelect.innerHTML = '<option value="" selected>不限</option>';
+            
+            if (stage === '國小') {
+                const grades = ['一年級', '二年級', '三年級', '四年級', '五年級', '六年級'];
+                grades.forEach(g => {
+                    const opt = document.createElement('option');
+                    opt.value = g;
+                    opt.text = g;
+                    gradeSelect.appendChild(opt);
+                });
+                gradeSelect.disabled = false;
+            } else if (stage === '國中') {
+                const grades = ['七年級', '八年級', '九年級'];
+                grades.forEach(g => {
+                    const opt = document.createElement('option');
+                    opt.value = g;
+                    opt.text = g;
+                    gradeSelect.appendChild(opt);
+                });
+                gradeSelect.disabled = false;
+            } else {
+                gradeSelect.disabled = true;
+            }
+            
+            // 版本選單重置
+            versionSelect.value = "";
+        }
+
+        // 2. 顯示 Toast 提示
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.classList.remove('opacity-0', 'translate-y-10');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-10');
+            }, 3000);
+        }
+
+        // 3. 執行檢測 (前端模擬邏輯 + 介面互動)
+        function runCheck() {
+            const stage = document.getElementById('stage').value;
+            const text = document.getElementById('text').value.trim();
+            const btn = document.getElementById('runBtn');
+
+            // 防呆檢查
+            if (!stage) {
+                showToast('請選擇學習階段！');
+                document.getElementById('stage').focus();
+                return;
+            }
+            if (!text) {
+                showToast('請輸入命題文本內容！');
+                document.getElementById('text').focus();
+                return;
+            }
+
+            // Loading 狀態
+            const originalBtnContent = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<div class="loader mr-2"></div> 分析中...';
+            
+            // 隱藏舊結果
+            document.getElementById('result-area').classList.add('hidden');
+
+            // 模擬後端延遲 (實際應呼叫 google.script.run)
+            setTimeout(() => {
+                // 恢復按鈕
+                btn.disabled = false;
+                btn.innerHTML = originalBtnContent;
+
+                // 顯示結果 (這裡使用假資料模擬，您之後需接上 google.script.run 的 successHandler)
+                renderMockResults(text);
+                
+                // 滾動到結果區
+                document.getElementById('result-area').classList.remove('hidden');
+                document.getElementById('result-area').scrollIntoView({ behavior: 'smooth' });
+
+            }, 1500);
+        }
+
+        // 4. 渲染模擬結果 (當沒有後端時的展示)
+        function renderMockResults(inputText) {
+            // KPI
+            document.getElementById('kpi-total').innerText = inputText.length > 10 ? Math.floor(Math.random() * 20 + 10) : 0;
+            document.getElementById('kpi-coverage').innerText = '85%';
+            document.getElementById('kpi-adv').innerText = '3';
+            document.getElementById('kpi-unseen').innerText = '1';
+
+            // AI Feedback
+            const feedbackHtml = `
+                <p><span class="font-bold text-green-700">優點：</span> 題幹敘述清晰，主要概念符合所選年級之認知發展。</p>
+                <p class="mt-2"><span class="font-bold text-yellow-600">建議：</span> 詞彙「<span class="bg-yellow-100 px-1 rounded">葉綠體</span>」在該年級尚未正式教授，建議加註說明或改為「植物綠色部分」。</p>
+            `;
+            document.getElementById('ai-feedback-content').innerHTML = feedbackHtml;
+
+            // Table
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = `
+                <tr class="border-b border-slate-100 hover:bg-green-50/50 transition">
+                    <td class="py-3 pl-2 font-medium">光合作用</td>
+                    <td class="py-3 text-slate-500">N</td>
+                    <td class="py-3 text-slate-500">國小五年級</td>
+                    <td class="py-3"><span class="tag-fit px-2 py-0.5 rounded text-xs font-bold">符合</span></td>
+                </tr>
+                <tr class="border-b border-slate-100 hover:bg-green-50/50 transition">
+                    <td class="py-3 pl-2 font-medium">葉綠體</td>
+                    <td class="py-3 text-slate-500">N</td>
+                    <td class="py-3 text-slate-500">國中七年級</td>
+                    <td class="py-3"><span class="tag-adv2 px-2 py-0.5 rounded text-xs font-bold">超前</span></td>
+                </tr>
+                 <tr class="border-b border-slate-100 hover:bg-green-50/50 transition">
+                    <td class="py-3 pl-2 font-medium">葡萄糖</td>
+                    <td class="py-3 text-slate-500">N</td>
+                    <td class="py-3 text-slate-500">--</td>
+                    <td class="py-3"><span class="tag-unseen px-2 py-0.5 rounded text-xs font-bold">未見</span></td>
+                </tr>
+            `;
+        }
+
+        // 5. Canvas 動畫 (綠色系)
+        (function() {
+            const canvas = document.getElementById('network-canvas');
+            const ctx = canvas.getContext('2d');
+            let width, height, orbits = [], centerX, centerY;
+
+            function resize() {
+                width = window.innerWidth; height = window.innerHeight;
+                canvas.width = width; canvas.height = height;
+                centerX = width / 2; centerY = height / 2;
+                initOrbits();
+            }
+
+            class Orbit {
+                constructor(rx, ry, angle, color, speed) {
+                    this.rx = rx; this.ry = ry; this.tilt = angle; this.rotation = 0;
+                    this.speed = speed * 0.5; this.color = color;
+                    this.ea = Math.random() * Math.PI * 2; this.es = 0.002; 
+                }
+                draw() {
+                    ctx.save(); ctx.translate(centerX, centerY); ctx.rotate(this.tilt);
+                    ctx.beginPath(); ctx.ellipse(0, 0, this.rx, this.ry, this.rotation, 0, Math.PI * 2);
+                    ctx.strokeStyle = this.color; ctx.lineWidth = 1; ctx.stroke();
+                    const ex = this.rx * Math.cos(this.ea), ey = this.ry * Math.sin(this.ea);
+                    ctx.beginPath(); ctx.arc(ex, ey, 3, 0, Math.PI*2); ctx.fillStyle = this.color; ctx.fill();
+                    ctx.restore();
+                }
+                update() { this.rotation += this.speed; this.ea += this.es; }
+            }
+
+            function initOrbits() {
+                orbits = []; 
+                const br = width < height ? width * 0.25 : height * 0.3;
+                orbits.push(new Orbit(br, br * 0.4, Math.PI / 4, 'rgba(34, 197, 94, 0.3)', 0.001));
+                orbits.push(new Orbit(br, br * 0.4, -Math.PI / 4, 'rgba(16, 185, 129, 0.3)', -0.001));
+                orbits.push(new Orbit(br * 1.2, br * 1.2, 0, 'rgba(6, 95, 70, 0.1)', 0.0005));
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, width, height);
+                orbits.forEach(o => { o.update(); o.draw(); });
+                
+                // Nucleus
+                ctx.beginPath(); ctx.arc(centerX, centerY, 5, 0, Math.PI*2); 
+                ctx.fillStyle = 'rgba(34, 197, 94, 0.8)'; ctx.shadowBlur = 15; ctx.shadowColor = '#22c55e'; ctx.fill();
+                
+                requestAnimationFrame(animate);
+            }
+            
+            window.addEventListener('resize', resize);
+            resize(); animate();
+        })();
+    </script>
 </body>
 </html>
