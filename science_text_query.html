@@ -1,1 +1,471 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>科學文本查詢 | Science Learning Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        researcher: { light: '#e9d5ff', DEFAULT: '#a855f7', dark: '#7e22ce' },
+                        glass: { 100: 'rgba(255, 255, 255, 0.1)', 200: 'rgba(255, 255, 255, 0.2)', 700: 'rgba(255, 255, 255, 0.7)', 900: 'rgba(255, 255, 255, 0.9)' }
+                    },
+                    fontFamily: { sans: ['ui-sans-serif', 'system-ui', '-apple-system', "Segoe UI", 'Roboto', "Helvetica Neue", 'Arial', 'sans-serif'] },
+                    animation: { "fade-in-up": "fadeInUp 0.6s ease-out forwards", "pulse-slow": "pulse 3s infinite" },
+                    keyframes: { fadeInUp: { "0%": { opacity: "0", transform: "translateY(20px)" }, "100%": { opacity: "1", transform: "translateY(0)" } } }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-panel { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.6); box-shadow: 0 8px 32px 0 rgba(126, 34, 206, 0.08); }
+        .input-area:focus { outline: none; border-color: #a855f7; box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.15); }
+        #canvas-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -10; overflow: hidden; background: linear-gradient(135deg, #fdfbff 0%, #f5f3ff 100%); }
+        .title-3d { background: linear-gradient(135deg, #581c87 0%, #7e22ce 50%, #a855f7 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(1px 1px 0px rgba(168, 85, 247, 0.4)) drop-shadow(3px 3px 0px rgba(88, 28, 135, 0.1)); }
+        
+        /* 表格樣式優化 */
+        .table-container { overflow-x: auto; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        table { width: 100%; border-collapse: collapse; white-space: nowrap; }
+        th { background-color: #f3e8ff; color: #6b21a8; font-weight: 700; padding: 12px 16px; text-align: left; font-size: 0.875rem; border-bottom: 2px solid #e9d5ff; }
+        td { padding: 12px 16px; border-bottom: 1px solid #f3f4f6; color: #374151; font-size: 0.9rem; }
+        tr:hover td { background-color: #faf5ff; }
+        .td-content { white-space: normal; min-width: 300px; max-width: 500px; line-height: 1.6; }
+        
+        /* 語音按鈕動畫 */
+        .mic-active { animation: pulse-red 1.5s infinite; color: #ef4444 !important; border-color: #ef4444 !important; background-color: #fef2f2 !important; }
+        @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
 
+        /* 載入中遮罩 */
+        .loading-overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.7); backdrop-filter: blur(2px); display: flex; align-items: center; justify-content: center; z-index: 50; border-radius: 1.5rem; }
+    </style>
+</head>
+<body class="min-h-screen font-sans flex flex-col text-slate-700 relative overflow-x-hidden selection:bg-purple-200 selection:text-purple-900">
+
+    <div id="canvas-container"><canvas id="network-canvas"></canvas></div>
+
+    <!-- 導航列 -->
+    <nav class="glass-panel sticky top-0 z-50 border-b-0">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3 cursor-pointer group" onclick="window.location.href='researcher.html'">
+                <div class="bg-purple-100 p-2 rounded-xl text-purple-600 shadow-sm transition group-hover:scale-105 group-hover:bg-purple-200">
+                    <i class="fa-solid fa-arrow-left text-lg"></i>
+                </div>
+                <span class="text-xl font-bold tracking-tight text-slate-800 group-hover:text-purple-700 transition" data-i18n="back_researcher">返回研究中心</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                 <select id="language-selector" onchange="changeLanguage()" class="glass-panel rounded-xl py-2 px-4 text-sm font-medium outline-none focus:ring-2 focus:ring-purple-400/50 cursor-pointer text-slate-700 border border-purple-200 hover:bg-white/90 transition">
+                    <option value="zh-TW">繁體中文</option>
+                    <option value="en">English</option>
+                    <option value="ja">日本語</option>
+                    <option value="zh-CN">简体中文</option>
+                </select>
+                <span class="bg-purple-50 text-purple-700 px-4 py-1.5 rounded-full text-sm font-bold border border-purple-200 shadow-sm flex items-center gap-2">
+                    <i class="fa-solid fa-magnifying-glass"></i> <span data-i18n="tool_name">科學文本查詢</span>
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主內容區 -->
+    <main class="flex-1 p-6 md:p-10 relative z-10">
+        <div class="max-w-7xl mx-auto animate-fade-in-up">
+            
+            <!-- 標題 -->
+            <div class="text-center mb-10">
+                <h1 class="text-4xl md:text-5xl font-black title-3d mb-3 tracking-tight" data-i18n="page_title">科學文本語料庫查詢</h1>
+                <p class="text-slate-500 text-lg font-medium" data-i18n="page_subtitle">Search Scientific Text Corpus & Analysis</p>
+            </div>
+
+            <!-- 查詢面板 -->
+            <div class="glass-panel p-8 rounded-[2rem] mb-8 border border-white/60 relative">
+                <div id="search-loading" class="loading-overlay hidden"><div class="text-purple-600 font-bold text-lg"><i class="fa-solid fa-circle-notch fa-spin mr-2"></i> <span data-i18n="msg_searching">查詢中...</span></div></div>
+
+                <!-- 搜尋欄 -->
+                <div class="mb-8">
+                    <label class="block text-sm font-bold text-slate-600 mb-2 ml-1" data-i18n="label_search_term">請輸入查詢詞彙或句子</label>
+                    <div class="relative group">
+                        <textarea id="inputText" class="input-area w-full h-24 p-5 pr-14 rounded-2xl border border-slate-200 bg-white/80 text-slate-700 text-lg leading-relaxed resize-none shadow-inner transition" placeholder="例：摩擦力、光合作用、全球暖化..."></textarea>
+                        
+                        <!-- 語音按鈕 (內嵌於輸入框右下) -->
+                        <button id="voiceBtn" class="absolute bottom-3 right-3 w-10 h-10 rounded-xl bg-slate-100 text-slate-500 hover:bg-purple-100 hover:text-purple-600 transition flex items-center justify-center shadow-sm border border-slate-200" title="語音輸入">
+                            <i class="fa-solid fa-microphone"></i>
+                        </button>
+                    </div>
+                    <p id="voiceHint" class="text-xs text-slate-400 mt-2 text-right h-4 transition-all"></p>
+                </div>
+
+                <!-- 過濾器控制列 -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 bg-purple-50/50 p-5 rounded-2xl border border-purple-100">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1 uppercase" data-i18n="label_stage">學習階段</label>
+                        <select id="stageFilter" class="w-full p-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 focus:ring-2 focus:ring-purple-400 outline-none">
+                            <option value="全部" data-i18n="opt_all">全部</option>
+                            <option value="國小" data-i18n="opt_elem" selected>國小</option>
+                            <option value="國中" data-i18n="opt_junior">國中</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1 uppercase" data-i18n="label_page_size">每頁顯示</label>
+                        <select id="pageSizeSelect" class="w-full p-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 focus:ring-2 focus:ring-purple-400 outline-none">
+                            <option value="20">20 筆</option>
+                            <option value="50">50 筆</option>
+                            <option value="100">100 筆</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1 uppercase" data-i18n="label_context">上下文範圍</label>
+                        <select id="contextRangeSelect" class="w-full p-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 focus:ring-2 focus:ring-purple-400 outline-none">
+                            <option value="0" data-i18n="opt_ctx_0">本句</option>
+                            <option value="1" data-i18n="opt_ctx_1">前後 1 句</option>
+                            <option value="2" data-i18n="opt_ctx_2">前後 2 句</option>
+                            <option value="3" data-i18n="opt_ctx_3">前後 3 句</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button id="searchBtn" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-2.5 rounded-xl font-bold shadow-md hover:shadow-lg hover:shadow-purple-500/30 active:scale-95 transition">
+                            <i class="fa-solid fa-magnifying-glass mr-2"></i> <span data-i18n="btn_search">查詢</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 狀態訊息 -->
+                <div id="statusMsg" class="text-center text-sm font-medium min-h-[20px]"></div>
+            </div>
+
+            <!-- 查詢結果區 -->
+            <div id="result-panel" class="hidden">
+                
+                <!-- 洞察卡片 (最早出現) -->
+                <div id="earliestInfo" class="glass-panel p-6 rounded-2xl border-l-8 border-purple-500 mb-6 flex items-start gap-4 hidden">
+                    <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0 text-purple-600 text-xl">
+                        <i class="fa-solid fa-lightbulb"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-bold text-purple-800 mb-1" data-i18n="title_earliest">詞彙最早出現位置</h3>
+                        <div id="earliestInfoContent" class="text-slate-600 leading-relaxed text-sm"></div>
+                    </div>
+                </div>
+
+                <!-- 圖表區 -->
+                <div class="glass-panel p-6 rounded-3xl mb-8 border border-white/60">
+                    <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line text-purple-500"></i> <span data-i18n="title_chart">各版本年級分佈</span>
+                    </h3>
+                    <div class="h-[300px] w-full relative">
+                        <canvas id="gradeChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 表格區 -->
+                <div class="glass-panel p-6 rounded-3xl border border-white/60 overflow-hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold text-slate-700 flex items-center gap-2">
+                            <i class="fa-solid fa-list-ul text-purple-500"></i> <span data-i18n="title_list">檢索結果列表</span>
+                        </h3>
+                        <div id="pagerInfo" class="text-xs text-slate-500 font-bold bg-slate-100 px-3 py-1 rounded-full">0 / 0</div>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table id="resultTable">
+                            <thead>
+                                <tr>
+                                    <th data-i18n="th_no">#</th>
+                                    <th data-i18n="th_term">查詢詞</th>
+                                    <th data-i18n="th_stage">階段</th>
+                                    <th data-i18n="th_pub">出版社</th>
+                                    <th data-i18n="th_grade">年級</th>
+                                    <th data-i18n="th_sem">學期</th>
+                                    <th data-i18n="th_vol">冊別</th>
+                                    <th data-i18n="th_unit">課別</th>
+                                    <th data-i18n="th_content">內容</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultBody" class="bg-white"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- 分頁控制 -->
+                    <div class="flex justify-center items-center gap-4 mt-6">
+                        <button id="prevPageBtn" class="w-10 h-10 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-purple-50 hover:text-purple-600 hover:border-purple-200 transition shadow-sm disabled:opacity-40 disabled:cursor-not-allowed">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <div class="flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-xl border border-slate-200">
+                            <span class="text-sm text-slate-500" data-i18n="label_goto">跳至</span>
+                            <input type="number" id="gotoPageInput" min="1" value="1" class="w-12 text-center bg-white border border-slate-200 rounded-md py-1 text-sm outline-none focus:border-purple-400">
+                            <span class="text-sm text-slate-500" data-i18n="label_page">頁</span>
+                            <button id="gotoPageBtn" class="text-xs bg-purple-600 text-white px-2 py-1 rounded hover:bg-purple-700 transition">GO</button>
+                        </div>
+                        <button id="nextPageBtn" class="w-10 h-10 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-purple-50 hover:text-purple-600 hover:border-purple-200 transition shadow-sm disabled:opacity-40 disabled:cursor-not-allowed">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-slate-800/90 backdrop-blur text-white px-6 py-3 rounded-full shadow-2xl transition-all duration-300 opacity-0 translate-y-10 z-50 flex items-center gap-3 pointer-events-none border border-slate-700/50">
+        <i class="fa-solid fa-circle-info text-purple-400"></i>
+        <span id="toast-msg" class="font-medium text-sm"></span>
+    </div>
+
+    <script>
+        // *** 多語系設定 ***
+        const translations = {
+            "zh-TW": {
+                "back_researcher": "返回研究中心", "tool_name": "科學文本查詢",
+                "page_title": "科學文本語料庫查詢", "page_subtitle": "Search Scientific Text Corpus & Analysis",
+                "msg_searching": "查詢中...", "label_search_term": "請輸入查詢詞彙或句子",
+                "label_stage": "學習階段", "opt_all": "全部", "opt_elem": "國小", "opt_junior": "國中",
+                "label_page_size": "每頁顯示", "label_context": "上下文範圍",
+                "opt_ctx_0": "本句", "opt_ctx_1": "前後 1 句", "opt_ctx_2": "前後 2 句", "opt_ctx_3": "前後 3 句",
+                "btn_search": "查詢", "title_earliest": "詞彙最早出現位置", "msg_no_earliest": "尚未在教材中出現",
+                "title_chart": "各版本年級分佈", "title_list": "檢索結果列表",
+                "th_no": "#", "th_term": "查詢詞", "th_stage": "階段", "th_pub": "出版社",
+                "th_grade": "年級", "th_sem": "學期", "th_vol": "冊別", "th_unit": "課別", "th_content": "內容",
+                "label_goto": "跳至", "label_page": "頁",
+                "msg_no_data": "沒有找到相符資料。", "msg_total_prefix": "總共", "msg_total_suffix": "筆資料",
+                "mic_listening": "正在聆聽...", "mic_error": "無法開啟麥克風", "mic_not_support": "此瀏覽器不支援語音輸入"
+            },
+            "en": {
+                "back_researcher": "Back to Research Center", "tool_name": "Corpus Search",
+                "page_title": "Scientific Corpus Query", "page_subtitle": "Search Scientific Text Corpus & Analysis",
+                "msg_searching": "Searching...", "label_search_term": "Enter keyword or sentence",
+                "label_stage": "Stage", "opt_all": "All", "opt_elem": "Elementary", "opt_junior": "Junior High",
+                "label_page_size": "Page Size", "label_context": "Context Range",
+                "opt_ctx_0": "Current", "opt_ctx_1": "+/- 1 Sentence", "opt_ctx_2": "+/- 2 Sentences", "opt_ctx_3": "+/- 3 Sentences",
+                "btn_search": "Search", "title_earliest": "Earliest Appearance", "msg_no_earliest": "Not found in corpus",
+                "title_chart": "Distribution by Grade/Version", "title_list": "Search Results",
+                "th_no": "#", "th_term": "Term", "th_stage": "Stage", "th_pub": "Publisher",
+                "th_grade": "Grade", "th_sem": "Sem.", "th_vol": "Vol.", "th_unit": "Unit", "th_content": "Content",
+                "label_goto": "Go to", "label_page": "",
+                "msg_no_data": "No results found.", "msg_total_prefix": "Total", "msg_total_suffix": "records",
+                "mic_listening": "Listening...", "mic_error": "Mic Error", "mic_not_support": "Voice input not supported"
+            },
+            "ja": { /* ...可依需補完... */ }, "zh-CN": { /* ...可依需補完... */ }
+        };
+
+        function getMsg(key) {
+            const lang = document.getElementById("language-selector").value;
+            const dict = translations[lang] || translations['zh-TW'];
+            return dict[key] || translations['zh-TW'][key] || key;
+        }
+
+        function changeLanguage() {
+            const lang = document.getElementById("language-selector").value;
+            document.querySelectorAll("[data-i18n]").forEach(el => {
+                const key = el.getAttribute("data-i18n");
+                el.innerText = getMsg(key);
+            });
+            // Update placeholders if needed
+            if(lang === 'en') document.getElementById('inputText').placeholder = "E.g., Photosynthesis, Friction...";
+            else document.getElementById('inputText').placeholder = "例：摩擦力、光合作用、全球暖化...";
+        }
+
+        // *** Canvas 背景 ***
+        (function() {
+            const canvas = document.getElementById('network-canvas');
+            const ctx = canvas.getContext('2d');
+            let width, height, particles = [];
+            function resize() { width = window.innerWidth; height = window.innerHeight; canvas.width = width; canvas.height = height; initParticles(); }
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * width; this.y = Math.random() * height;
+                    this.vx = (Math.random() - 0.5) * 0.5; this.vy = (Math.random() - 0.5) * 0.5;
+                    this.size = Math.random() * 2 + 1;
+                    this.color = `rgba(168, 85, 247, ${Math.random() * 0.4})`;
+                }
+                update() { this.x+=this.vx; this.y+=this.vy; if(this.x<0||this.x>width)this.vx*=-1; if(this.y<0||this.y>height)this.vy*=-1; }
+                draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fillStyle=this.color; ctx.fill(); }
+            }
+            function initParticles() { particles=[]; for(let i=0;i<40;i++) particles.push(new Particle()); }
+            function animate() {
+                ctx.clearRect(0, 0, width, height);
+                particles.forEach(p => { p.update(); p.draw(); });
+                for(let i=0;i<particles.length;i++){
+                    for(let j=i;j<particles.length;j++){
+                        const dx = particles[i].x - particles[j].x; const dy = particles[i].y - particles[j].y;
+                        const dist = Math.sqrt(dx*dx+dy*dy);
+                        if(dist<150){ ctx.beginPath(); ctx.strokeStyle=`rgba(168,85,247,${0.1-dist/1500})`; ctx.lineWidth=0.5; ctx.moveTo(particles[i].x,particles[i].y); ctx.lineTo(particles[j].x,particles[j].y); ctx.stroke(); }
+                    }
+                }
+                requestAnimationFrame(animate);
+            }
+            window.addEventListener('resize', resize); resize(); animate();
+        })();
+
+        // *** 核心邏輯 ***
+        const $ = id => document.getElementById(id);
+        let currentQueryText = '', currentStageFilter = '國小', currentPageSize = 20, currentPage = 1, currentContextRange = 0, totalPagesCache = 1;
+        let gradeChartInstance = null;
+
+        // Enter 鍵查詢
+        $('inputText').addEventListener('keydown', (e) => {
+            if (e.isComposing || e.keyCode === 229) return;
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('searchBtn').click(); }
+        });
+
+        // 語音輸入
+        (function(){
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const voiceBtn = $('voiceBtn'), voiceHint = $('voiceHint'), inputEl = $('inputText');
+            if (!SpeechRecognition) { voiceBtn.style.display='none'; return; }
+            
+            const rec = new SpeechRecognition();
+            rec.lang = 'zh-TW'; rec.continuous = false; rec.interimResults = true;
+            let listening = false;
+
+            voiceBtn.addEventListener('click', () => {
+                if(!listening) { rec.start(); listening = true; voiceBtn.classList.add('mic-active'); voiceHint.innerText = getMsg('mic_listening'); }
+                else { rec.stop(); listening = false; voiceBtn.classList.remove('mic-active'); voiceHint.innerText = ''; }
+            });
+            rec.onresult = (e) => {
+                const transcript = Array.from(e.results).map(r => r[0].transcript).join('');
+                inputEl.value = transcript;
+            };
+            rec.onend = () => { listening = false; voiceBtn.classList.remove('mic-active'); voiceHint.innerText = ''; };
+        })();
+
+        $('searchBtn').addEventListener('click', () => {
+            currentQueryText = $('inputText').value;
+            currentStageFilter = $('stageFilter').value;
+            currentPageSize = Number($('pageSizeSelect').value);
+            currentContextRange = Number($('contextRangeSelect').value);
+            currentPage = 1;
+            runSearch();
+        });
+
+        $('gotoPageBtn').addEventListener('click', () => {
+            const wantPage = Number($('gotoPageInput').value);
+            if (wantPage >= 1 && wantPage <= totalPagesCache) { currentPage = wantPage; runSearch(); }
+        });
+        $('prevPageBtn').addEventListener('click', () => { if (currentPage > 1) { currentPage--; runSearch(); } });
+        $('nextPageBtn').addEventListener('click', () => { if (currentPage < totalPagesCache) { currentPage++; runSearch(); } });
+
+        function runSearch(){
+            if(!currentQueryText.trim()) { showToast(getMsg('msg_input_empty'), 'error'); return; }
+            
+            const loading = $('search-loading');
+            const statusMsg = $('statusMsg');
+            loading.classList.remove('hidden');
+            statusMsg.innerText = '';
+            $('result-panel').classList.add('hidden'); // Hide old results
+
+            google.script.run
+                .withSuccessHandler(showResults)
+                .withFailureHandler(err => { 
+                    loading.classList.add('hidden'); 
+                    statusMsg.innerHTML = `<span class="text-red-500">Error: ${err}</span>`; 
+                })
+                .searchTerms(currentQueryText, currentStageFilter, currentPageSize, currentPage, currentContextRange);
+        }
+
+        function showResults(payload){
+            $('search-loading').classList.add('hidden');
+            
+            if (!payload || !payload.rows || payload.rows.length === 0) {
+                $('statusMsg').innerText = getMsg('msg_no_data');
+                return;
+            }
+
+            $('result-panel').classList.remove('hidden');
+            setTimeout(() => { $('result-panel').scrollIntoView({behavior:'smooth', block:'start'}); }, 100);
+
+            const { rows, total, page, totalPages } = payload;
+            totalPagesCache = totalPages;
+            
+            $('statusMsg').innerHTML = `<span class="text-purple-600 font-bold">${getMsg('msg_total_prefix')} ${total} ${getMsg('msg_total_suffix')}</span>`;
+            $('pagerInfo').innerText = `${page} / ${totalPages}`;
+            $('gotoPageInput').max = totalPages; $('gotoPageInput').value = page;
+            $('prevPageBtn').disabled = page <= 1;
+            $('nextPageBtn').disabled = page >= totalPages;
+
+            // Insight Card
+            const infoBox = $('earliestInfo');
+            const contentBox = $('earliestInfoContent');
+            if(payload.earliest && payload.earliest.results.length > 0) {
+                infoBox.classList.remove('hidden');
+                let html = `<p class="mb-1"><strong class="text-purple-600">「${currentQueryText}」</strong> ${getMsg('title_earliest')}:</p>`;
+                payload.earliest.results.forEach(section => {
+                   const items = [...new Set((section.items||[]).map(x => `${x.publisher} ${x.grade}${x.semester} (Vol.${x.volume}) Unit ${x.unit}`))].join('、');
+                   html += `<div class="ml-2 mb-1"><span class="font-bold text-slate-700">${section.stage}:</span> ${items}</div>`;
+                });
+                contentBox.innerHTML = html;
+            } else {
+                infoBox.classList.add('hidden');
+            }
+
+            // Table
+            const tbody = $('resultBody');
+            tbody.innerHTML = rows.map((r, i) => `
+                <tr class="hover:bg-purple-50/50 transition">
+                    <td class="font-mono text-slate-400">${(page-1)*currentPageSize + i + 1}</td>
+                    <td class="font-bold text-purple-700">${r.term}</td>
+                    <td>${r.stage}</td>
+                    <td><span class="px-2 py-0.5 bg-slate-100 rounded text-xs">${r.publisher}</span></td>
+                    <td>${r.grade}</td>
+                    <td>${r.semester}</td>
+                    <td>${r.volume}</td>
+                    <td>${r.unit}</td>
+                    <td class="td-content">${r.sentenceHtml}</td>
+                </tr>
+            `).join('');
+
+            renderGradeChart(payload.counts);
+        }
+
+        function renderGradeChart(counts){
+            const canvas = $('gradeChart');
+            if (gradeChartInstance) { gradeChartInstance.destroy(); }
+            if (!counts) return;
+
+            const grades = ['3','4','5','6','7','8','9'];
+            const pubs = ['南一','康軒','翰林'];
+            const colors = { '南一': '#3b82f6', '康軒': '#f97316', '翰林': '#22c55e' }; // Blue, Orange, Green
+            
+            const datasets = pubs.map(p => ({
+                label: p,
+                data: grades.map(g => (counts[p]||{})[g] || 0),
+                borderColor: colors[p],
+                backgroundColor: colors[p]+'20', // 20% opacity
+                borderWidth: 3,
+                tension: 0.3,
+                pointRadius: 4,
+                pointBackgroundColor: '#fff',
+                pointBorderWidth: 2
+            }));
+
+            const ctx = canvas.getContext('2d');
+            gradeChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: { labels: grades.map(g=>g+'年級'), datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#f3f4f6' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function showToast(msg, type='normal') {
+            const toast = $('toast');
+            $('toast-msg').innerText = msg;
+            toast.querySelector('i').className = type === 'error' ? 'fa-solid fa-triangle-exclamation text-red-400' : 'fa-solid fa-check-circle text-green-400';
+            toast.classList.remove('opacity-0', 'translate-y-10');
+            setTimeout(() => { toast.classList.add('opacity-0', 'translate-y-10'); }, 3000);
+        }
+    </script>
+</body>
+</html>
