@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Science Learning Hub | 科學學習中心</title>
-    <!-- 引入 Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 引入 Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script>
@@ -19,37 +17,10 @@
                         researcher: { light: '#e9d5ff', DEFAULT: '#a855f7', dark: '#7e22ce' }
                     },
                     fontFamily: {
-                        serif: ['ui-serif', 'Georgia', 'Cambria', "Times New Roman", 'Times', 'serif'],
                         sans: ['ui-sans-serif', 'system-ui', '-apple-system', "Segoe UI", 'Roboto', "Helvetica Neue", 'Arial', 'sans-serif'],
                     },
-                    fontSize: {
-                        'sm': '1rem',
-                        'base': '1.125rem',
-                        'lg': '1.25rem',
-                        'xl': '1.5rem',
-                        '2xl': '1.75rem',
-                        '3xl': '2.25rem',
-                        '4xl': '3rem',
-                        '5xl': '3.75rem',
-                        '6xl': '4.5rem',
-                        '7xl': '6rem',
-                    },
-                    // 動畫設定
                     animation: {
-                        "spin-slow": "spin 10s linear infinite", // 保留原子旋轉
-                        "gradient-x": "gradient-x 15s ease infinite",
-                    },
-                    keyframes: {
-                        "gradient-x": {
-                            "0%, 100%": {
-                                "background-size": "200% 200%",
-                                "background-position": "left center"
-                            },
-                            "50%": {
-                                "background-size": "200% 200%",
-                                "background-position": "right center"
-                            }
-                        }
+                        "spin-slow": "spin 10s linear infinite",
                     }
                 }
             }
@@ -60,52 +31,28 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .hidden-section { display: none; }
         
-        /* 按鈕樣式 */
-        .btn-student { @apply bg-student hover:bg-student-dark text-white font-bold; }
-        .btn-teacher { @apply bg-teacher hover:bg-teacher-dark text-white font-bold; }
-        .btn-researcher { @apply bg-researcher hover:bg-researcher-dark text-white font-bold; }
-
-        /* 密碼小眼睛樣式 */
-        .password-toggle {
-            cursor: pointer;
-            color: #9ca3af;
-            z-index: 10;
-            transition: color 0.2s;
-            font-size: 1.2rem; 
-        }
-        .password-toggle:hover { color: #4b5563; }
-        
-        /* 輸入框字體加大 */
+        /* 按鈕與輸入框優化 */
         input, select, button { font-size: 1.125rem !important; }
+        .password-toggle { cursor: pointer; color: #9ca3af; z-index: 10; transition: color 0.2s; font-size: 1.2rem; }
+        .password-toggle:hover { color: #4b5563; }
 
-        /* Canvas 背景設定 */
+        /* Canvas 背景 */
         #canvas-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -10;
-            overflow: hidden;
-            /* 背景漸層流動 */
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -10; overflow: hidden;
             background: linear-gradient(-45deg, #f8fafc, #eff6ff, #f3e8ff, #f0fdf4);
             background-size: 400% 400%;
             animation: gradientBG 20s ease infinite;
         }
-
         @keyframes gradientBG {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
 
-        /* 3D 文字特效樣式 */
+        /* 3D 文字特效 */
         .title-3d {
             background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #7c3aed 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            /* 使用 drop-shadow 濾鏡堆疊創造立體感 */
+            -webkit-background-clip: text; background-clip: text; color: transparent;
             filter: drop-shadow(1px 1px 0px rgba(59, 130, 246, 0.5)) 
                     drop-shadow(3px 3px 0px rgba(30, 58, 138, 0.3))
                     drop-shadow(6px 6px 6px rgba(0, 0, 0, 0.2));
@@ -120,16 +67,13 @@
 </head>
 <body class="min-h-screen font-sans flex flex-col text-gray-800 relative overflow-x-hidden selection:bg-blue-200">
 
-    <!-- *** 新增：動態背景層 (Canvas + Gradient) *** -->
     <div id="canvas-container">
         <canvas id="network-canvas"></canvas>
     </div>
 
-    <!-- 導航列 (加入 backdrop-blur 讓背景若隱若現) -->
     <nav class="bg-white/80 backdrop-blur-md shadow-md p-5 sticky top-0 z-50 border-b border-white/40">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div class="flex items-center space-x-4 cursor-pointer" onclick="goHome()">
-                <!-- 保留這個轉圈圈設計 -->
                 <i class="fa-solid fa-atom text-blue-600 text-4xl animate-spin-slow"></i>
                 <span class="text-3xl font-bold text-gray-800 tracking-tight" data-i18n="site_title_nav">Science Learning Hub</span>
             </div>
@@ -139,7 +83,14 @@
                     <option value="en">English</option>
                     <option value="ja">日本語</option>
                     <option value="zh-CN">简体中文</option>
+                    <option value="es">Español (西語)</option>
+                    <option value="pt">Português (葡語)</option>
+                    <option value="id">Bahasa Indonesia (印尼)</option>
+                    <option value="th">ไทย (泰語)</option>
+                    <option value="vi">Tiếng Việt (越南)</option>
+                    <option value="ms">Bahasa Melayu (馬來)</option>
                 </select>
+                
                 <div id="user-info-display" class="hidden font-medium text-gray-600 bg-gray-100 px-5 py-2 rounded-full text-lg"></div>
                 <button id="logout-btn" onclick="logout()" class="hidden text-red-500 hover:text-red-700 font-medium text-lg" data-i18n="logout">登出</button>
                 <button id="nav-login-btn" onclick="showLoginModal()" class="bg-blue-600 text-white px-8 py-2 rounded-full hover:bg-blue-700 font-bold shadow-lg shadow-blue-500/30 transition text-lg transform hover:-translate-y-0.5" data-i18n="btn_login">登入</button>
@@ -147,22 +98,16 @@
         </div>
     </nav>
 
-    <!-- 主內容 -->
     <main class="max-w-7xl mx-auto p-8 flex-grow w-full relative z-10">
         
-        <!-- 1. 首頁 (Home) -->
         <div id="section-home" class="fade-in py-16">
             <div class="text-center mb-20 relative">
                 <h2 class="text-3xl md:text-4xl font-medium text-gray-500 mb-4 tracking-wide" data-i18n="welcome_prefix">歡迎來到</h2>
-                
-                <!-- 修改：應用新的 title-3d 樣式 -->
                 <h1 class="title-3d text-6xl md:text-7xl font-black tracking-tighter mb-8 font-sans pb-4" data-i18n="site_title_hero">Science Learning Hub</h1>
-                
                 <p class="text-xl text-gray-600 max-w-2xl mx-auto" data-i18n="select_role">請選擇您的身份以進入專屬學習空間</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-7xl mx-auto px-4">
-                <!-- 學生入口 (加入玻璃擬態與懸浮光影) -->
                 <div onclick="preSelectRole('student')" class="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl overflow-hidden cursor-pointer transform transition duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/20 border-b-8 border-student group ring-1 ring-white/50">
                     <div class="h-60 bg-student-light/50 flex items-center justify-center group-hover:bg-blue-200 transition relative overflow-hidden">
                         <div class="absolute inset-0 bg-gradient-to-tr from-blue-400/20 to-transparent"></div>
@@ -173,7 +118,6 @@
                         <p class="text-gray-600 text-lg" data-i18n="desc_student">探索科學文本、重點整理與測驗回饋</p>
                     </div>
                 </div>
-                <!-- 教師入口 -->
                 <div onclick="preSelectRole('teacher')" class="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl overflow-hidden cursor-pointer transform transition duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-green-500/20 border-b-8 border-teacher group ring-1 ring-white/50">
                     <div class="h-60 bg-teacher-light/50 flex items-center justify-center group-hover:bg-green-200 transition relative overflow-hidden">
                          <div class="absolute inset-0 bg-gradient-to-tr from-green-400/20 to-transparent"></div>
@@ -184,7 +128,6 @@
                         <p class="text-gray-600 text-lg" data-i18n="desc_teacher">備課資源、命題檢核與學習診斷</p>
                     </div>
                 </div>
-                <!-- 研究員入口 -->
                 <div onclick="preSelectRole('researcher')" class="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl overflow-hidden cursor-pointer transform transition duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-purple-500/20 border-b-8 border-researcher group ring-1 ring-white/50">
                     <div class="h-60 bg-researcher-light/50 flex items-center justify-center group-hover:bg-purple-200 transition relative overflow-hidden">
                         <div class="absolute inset-0 bg-gradient-to-tr from-purple-400/20 to-transparent"></div>
@@ -198,23 +141,16 @@
             </div>
         </div>
 
-        <!-- 2. 認證中心 (加入玻璃質感背景) -->
         <div id="section-auth" class="hidden-section fade-in max-w-2xl mx-auto bg-white/90 backdrop-blur-xl p-12 rounded-3xl shadow-2xl mt-12 border border-white/60 relative overflow-hidden">
-            <!-- 裝飾用背景光 -->
             <div class="absolute top-0 right-0 w-40 h-40 bg-blue-100 rounded-full blur-3xl -z-10 opacity-50"></div>
 
             <button onclick="goHome()" class="text-gray-400 hover:text-gray-600 mb-8 flex items-center gap-2 transition text-xl"><i class="fa-solid fa-arrow-left"></i> <span data-i18n="back">返回</span></button>
             
-            <!-- 分頁切換按鈕 -->
             <div class="flex mb-10 border-b-2 border-gray-200">
                 <button id="tab-login" onclick="switchAuthMode('login')" class="w-1/2 py-4 text-xl font-bold text-blue-600 border-b-4 border-blue-600 focus:outline-none transition-colors" data-i18n="tab_login">登入</button>
                 <button id="tab-register" onclick="switchAuthMode('register')" class="w-1/2 py-4 text-xl font-bold text-gray-400 hover:text-gray-600 focus:outline-none transition-colors" data-i18n="tab_register">註冊新帳號</button>
             </div>
 
-            <!-- 標題區域：顯示「學生登入」等動態標題 -->
-            <h2 id="login-title-text" class="text-3xl font-bold text-center text-gray-800 mb-8 hidden"></h2>
-
-            <!-- A. 登入表單 -->
             <form id="form-login" onsubmit="handleLogin(event)" class="space-y-8">
                 <div>
                     <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_email">Email</label>
@@ -230,23 +166,18 @@
                 <div class="flex justify-end">
                     <button type="button" onclick="showForgotPassword()" class="text-base text-blue-600 hover:text-blue-800 hover:underline transition" data-i18n="forgot_password">忘記密碼？</button>
                 </div>
-                
                 <button type="submit" id="btn-do-login" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-5 rounded-xl shadow-lg hover:shadow-blue-500/40 transition transform active:scale-95 text-xl flex items-center justify-center gap-3" data-i18n="btn_login_action">
-                    <!-- 按鈕內的文字與圖示 -->
                     <span>登入系統</span>
                 </button>
             </form>
 
-            <!-- B. 註冊表單 (保持不變，但確保點首頁是去登入) -->
             <form id="form-register" class="hidden-section space-y-6" onsubmit="handleRegister(event)">
                 <input type="hidden" id="input-role" value="student">
 
-                <!-- 情境A: 標題 -->
                 <div id="role-display-block" class="mb-8 text-center hidden">
                     <span class="bg-blue-50 text-blue-800 border border-blue-100 px-6 py-2 rounded-full text-xl font-bold" id="reg-role-display-text">註冊學生帳號</span>
                 </div>
 
-                <!-- 情境B: 下拉選單 -->
                 <div id="role-select-block" class="p-6 bg-blue-50 rounded-xl border border-blue-100 mb-6 hidden">
                     <label class="block text-blue-800 text-lg font-bold mb-3" data-i18n="label_select_role">註冊身分</label>
                     <select id="input-role-select" onchange="syncRoleFromSelector()" class="w-full px-4 py-3 rounded border border-blue-200 text-gray-700 bg-white focus:outline-none focus:border-blue-500 text-lg">
@@ -293,13 +224,11 @@
                     </select>
                 </div>
 
-                <!-- 學生專屬欄位 -->
                 <div id="fields-student" class="role-fields space-y-6 p-6 bg-gray-50/80 rounded-xl border border-gray-200">
                     <div><label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_school_student">就讀學校 (縣市+校名)</label><input type="text" id="input-school-student" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none text-lg" placeholder="例如：花蓮縣東華附小"></div>
                     <div><label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_grade_student">就讀年級</label><select id="input-grade-student" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none bg-white text-lg"><option value="E1">國小一年級</option><option value="E2">國小二年級</option><option value="E3">國小三年級</option><option value="E4">國小四年級</option><option value="E5">國小五年級</option><option value="E6">國小六年級</option><option value="J1">國中七年級</option><option value="J2">國中八年級</option><option value="J3">國中九年級</option><option value="S1">高中一年級</option><option value="S2">高中二年級</option><option value="S3">高中三年級</option></select></div>
                 </div>
 
-                <!-- 教師專屬欄位 -->
                 <div id="fields-teacher" class="role-fields hidden-section space-y-6 p-6 bg-gray-50/80 rounded-xl border border-gray-200">
                     <div><label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_school_teacher">服務學校 (縣市+校名)</label><input type="text" id="input-school-teacher" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none text-lg" placeholder="例如：花蓮縣花崗國中"></div>
                     <div class="grid grid-cols-2 gap-6">
@@ -312,7 +241,6 @@
                     </div>
                 </div>
 
-                <!-- 研究員專屬欄位 -->
                 <div id="fields-researcher" class="role-fields hidden-section space-y-6 p-6 bg-gray-50/80 rounded-xl border border-gray-200">
                     <div><label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_unit">服務單位</label><input type="text" id="input-unit" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none text-lg" placeholder="例如：國立東華大學"></div>
                     <div class="grid grid-cols-2 gap-6">
@@ -323,8 +251,6 @@
 
                 <button id="btn-do-register" type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-5 px-8 rounded-xl shadow-lg hover:shadow-green-500/40 transition transform active:scale-95 mt-8 text-xl" data-i18n="btn_register_action">註冊並登入</button>
             </form>
-            
-            <!-- 隱藏原有的文字提示，改用按鈕動畫 -->
         </div>
     </main>
 
@@ -334,605 +260,506 @@
             <p class="font-medium text-gray-700 text-lg">Institute of Science Education, National Dong-Hwa University</p>
             <p><a href="mailto:shiwen@gms.ndhu.edu.tw" class="text-blue-500 hover:text-blue-700 underline transition flex justify-center items-center gap-1"><i class="fa-regular fa-envelope"></i> shiwen@gms.ndhu.edu.tw</a></p>
         </div>
-        
     </footer>
 
     <script>
-        // *** Canvas 原子軌域動畫 (Atomic Orbitals Cloud Animation) ***
+        // *** 1. Canvas 動畫 (原子軌域) ***
         (function() {
             const canvas = document.getElementById('network-canvas');
             const ctx = canvas.getContext('2d');
             let width, height;
             let orbits = [];
-
-            // 軌道中心點 (跟隨滑鼠輕微移動)
-            let centerX, centerY;
-            let targetCenterX, targetCenterY;
-
+            let centerX, centerY, targetCenterX, targetCenterY;
             let mouse = { x: null, y: null };
 
-            window.addEventListener('mousemove', function(e) {
-                mouse.x = e.x;
-                mouse.y = e.y;
-            });
+            window.addEventListener('mousemove', function(e) { mouse.x = e.x; mouse.y = e.y; });
 
             function resize() {
-                width = window.innerWidth;
-                height = window.innerHeight;
-                canvas.width = width;
-                canvas.height = height;
-                centerX = width / 2;
-                centerY = height / 2;
-                targetCenterX = centerX;
-                targetCenterY = centerY;
+                width = window.innerWidth; height = window.innerHeight;
+                canvas.width = width; canvas.height = height;
+                centerX = width / 2; centerY = height / 2;
+                targetCenterX = centerX; targetCenterY = centerY;
                 initOrbits();
             }
 
             class Orbit {
                 constructor(radiusX, radiusY, angle, color, shadowColor, speed, particleColor) {
-                    this.radiusX = radiusX;
-                    this.radiusY = radiusY; 
-                    this.tilt = angle; 
-                    this.rotation = 0; 
-                    this.speed = speed * 0.5; // 軌道自轉速度更慢
-                    this.color = color; // 線條顏色 (幾乎透明)
-                    this.shadowColor = shadowColor; // 發光顏色 (主要視覺來源)
-                    
-                    // 電子/粒子參數
+                    this.radiusX = radiusX; this.radiusY = radiusY; this.tilt = angle;
+                    this.rotation = 0; this.speed = speed * 0.5;
+                    this.color = color; this.shadowColor = shadowColor;
                     this.electronAngle = Math.random() * Math.PI * 2;
-                    // 極緩慢的電子速度 (原 0.008 -> 0.0015)
-                    this.electronSpeed = 0.0015 + Math.random() * 0.001; 
+                    this.electronSpeed = 0.0015 + Math.random() * 0.001;
                     this.particleColor = particleColor || 'rgba(255, 255, 255, 0.8)';
                 }
-
                 draw(cx, cy) {
                     ctx.save();
-                    ctx.translate(cx, cy);
-                    ctx.rotate(this.tilt); 
-                    
-                    // 1. 繪製模糊軌域 (Blurred Orbital Cloud)
+                    ctx.translate(cx, cy); ctx.rotate(this.tilt);
+                    // 軌域雲
                     ctx.beginPath();
                     ctx.ellipse(0, 0, this.radiusX, this.radiusY, this.rotation, 0, Math.PI * 2);
-                    // 使用極高的 shadowBlur 來製造雲霧感
-                    ctx.shadowBlur = 80; // 增加模糊度 (原 30)
-                    ctx.shadowColor = this.shadowColor;
-                    // 線條本身幾乎透明，只靠陰影發光
-                    ctx.strokeStyle = this.color; 
-                    ctx.lineWidth = 8; // 增加線條寬度以增強模糊效果 (原 4)
-                    ctx.lineCap = 'round';
-                    ctx.stroke();
-                    // 重繪一次以增強發光中心
-                    ctx.lineWidth = 4; // (原 2)
-                    ctx.stroke();
-
-                    // 2. 繪製電子 (Electron)
+                    ctx.shadowBlur = 80; ctx.shadowColor = this.shadowColor;
+                    ctx.strokeStyle = this.color; ctx.lineWidth = 8; ctx.lineCap = 'round';
+                    ctx.stroke(); ctx.lineWidth = 4; ctx.stroke();
+                    // 電子
                     const t = this.electronAngle;
                     const electronX = this.radiusX * Math.cos(t);
                     const electronY = this.radiusY * Math.sin(t);
-                    
                     ctx.beginPath();
-                    ctx.arc(electronX, electronY, 4, 0, Math.PI*2); // 電子稍小一點
-                    ctx.fillStyle = this.particleColor;
-                    // 電子發光
-                    ctx.shadowBlur = 20; // (原 15)
-                    ctx.shadowColor = this.particleColor;
+                    ctx.arc(electronX, electronY, 4, 0, Math.PI*2);
+                    ctx.fillStyle = this.particleColor; ctx.shadowBlur = 20; ctx.shadowColor = this.particleColor;
                     ctx.fill();
-
                     ctx.restore();
                 }
-
-                update() {
-                    this.rotation += this.speed; 
-                    this.electronAngle += this.electronSpeed; 
-                }
+                update() { this.rotation += this.speed; this.electronAngle += this.electronSpeed; }
             }
 
             function drawNucleus(cx, cy) {
-                // 繪製中心的原子核 (更淡、更通透)
-                ctx.save();
-                ctx.translate(cx, cy);
-                
-                // 核心光暈 (透明度大幅降低)
+                ctx.save(); ctx.translate(cx, cy);
                 const gradient = ctx.createRadialGradient(0, 0, 5, 0, 0, 30);
-                gradient.addColorStop(0, 'rgba(59, 130, 246, 0.2)'); // 更淡 (原 0.4)
-                gradient.addColorStop(1, 'rgba(59, 130, 246, 0)');
-                
-                ctx.beginPath();
-                ctx.arc(0, 0, 30, 0, Math.PI * 2);
-                ctx.fillStyle = gradient;
-                ctx.fill();
-                
-                // 實體核心 (更小、半透明)
-                ctx.beginPath();
-                ctx.arc(0, 0, 6, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'; // 更淡的半透明白 (原 0.7)
-                ctx.shadowBlur = 25; // (原 20)
-                ctx.shadowColor = 'rgba(59, 130, 246, 0.3)'; // 更淡的發光 (原 0.5)
-                ctx.fill();
-                
-                ctx.restore();
+                gradient.addColorStop(0, 'rgba(59, 130, 246, 0.2)'); gradient.addColorStop(1, 'rgba(59, 130, 246, 0)');
+                ctx.beginPath(); ctx.arc(0, 0, 30, 0, Math.PI * 2); ctx.fillStyle = gradient; ctx.fill();
+                ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'; ctx.shadowBlur = 25; ctx.shadowColor = 'rgba(59, 130, 246, 0.3)';
+                ctx.fill(); ctx.restore();
             }
 
             function initOrbits() {
                 orbits = [];
-                // 建立 SPDF 軌域層次 - 減少數量，顏色更淡
                 const baseR = width < height ? width * 0.2 : height * 0.25;
-
-                // 1. S 軌域 (最外層大圓球，最淡，最慢，紫色系)
-                // radiusX, radiusY, angle, strokeColor, shadowColor, speed, particleColor
-                orbits.push(new Orbit(baseR * 2.2, baseR * 2.2, 0, 
-                    'rgba(139, 92, 246, 0.02)', 'rgba(167, 139, 250, 0.3)', 0.0005, 'rgba(196, 181, 253, 0.5)')); // 透明度降低
-
-                // 2. P 軌域 (中層交錯的啞鈴形/高離心率橢圓，藍色系) - 減少一個
-                const pStroke = 'rgba(59, 130, 246, 0.05)'; // 透明度降低
-                const pShadow = 'rgba(96, 165, 250, 0.4)'; // 透明度降低
-                const pParticle = 'rgba(147, 197, 253, 0.6)'; // 透明度降低
+                // S
+                orbits.push(new Orbit(baseR * 2.2, baseR * 2.2, 0, 'rgba(139, 92, 246, 0.02)', 'rgba(167, 139, 250, 0.3)', 0.0005, 'rgba(196, 181, 253, 0.5)'));
+                // P
+                const pStroke = 'rgba(59, 130, 246, 0.05)'; const pShadow = 'rgba(96, 165, 250, 0.4)'; const pParticle = 'rgba(147, 197, 253, 0.6)';
                 orbits.push(new Orbit(baseR * 1.3, baseR * 0.5, Math.PI / 6, pStroke, pShadow, 0.001, pParticle));
                 orbits.push(new Orbit(baseR * 1.3, baseR * 0.5, Math.PI * 5 / 6, pStroke, pShadow, -0.0012, pParticle));
-                // 移除第三個 P 軌域
-
-                // 3. D/F 軌域 (內層，綠色系) - 減少為一個
-                const dStroke = 'rgba(16, 185, 129, 0.08)'; // 透明度降低
-                const dShadow = 'rgba(52, 211, 153, 0.5)'; // 透明度降低
-                const dParticle = 'rgba(134, 239, 172, 0.7)'; // 透明度降低
-                // 僅保留一個 D/F 軌域
+                // D
+                const dStroke = 'rgba(16, 185, 129, 0.08)'; const dShadow = 'rgba(52, 211, 153, 0.5)'; const dParticle = 'rgba(134, 239, 172, 0.7)';
                 orbits.push(new Orbit(baseR * 0.9, baseR * 0.3, Math.PI / 4, dStroke, dShadow, 0.002, dParticle));
             }
 
             function animate() {
                 ctx.clearRect(0, 0, width, height);
-
-                // 計算中心點的視差移動 (Parallax)
-                if (mouse.x != null) {
-                    targetCenterX = (width / 2) + (mouse.x - width / 2) * 0.03; 
-                    targetCenterY = (height / 2) + (mouse.y - height / 2) * 0.03;
-                } else {
-                    targetCenterX = width / 2;
-                    targetCenterY = height / 2;
-                }
-
-                // 平滑移動 (Lerp)
-                centerX += (targetCenterX - centerX) * 0.05;
-                centerY += (targetCenterY - centerY) * 0.05;
-
-                // 先畫軌道
-                for (let orbit of orbits) {
-                    orbit.update();
-                    orbit.draw(centerX, centerY);
-                }
-                
-                // 最後畫原子核，確保在最上層
+                if (mouse.x != null) { targetCenterX = (width/2) + (mouse.x - width/2)*0.03; targetCenterY = (height/2) + (mouse.y - height/2)*0.03; }
+                else { targetCenterX = width/2; targetCenterY = height/2; }
+                centerX += (targetCenterX - centerX)*0.05; centerY += (targetCenterY - centerY)*0.05;
+                for (let orbit of orbits) { orbit.update(); orbit.draw(centerX, centerY); }
                 drawNucleus(centerX, centerY);
-
                 requestAnimationFrame(animate);
             }
-
-            window.addEventListener('resize', resize);
-            resize();
-            animate();
+            window.addEventListener('resize', resize); resize(); animate();
         })();
 
-        // *** 重要：後端 GAS 網址 ***
-        // 註：由於您使用 fetch(GAS_URL) 方式，此處應為部署的 Web App URL
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbzcDKkz8Tilzb3qbx0_fDR7QoG4-c2JCtsa4p9V8_1gBjZaEMlvQHd72OD0kZq_jW8H/exec"; 
-        
-        // 輔助函式：取得應用程式的基礎 URL (不包含參數)
-        function getBaseUrl() {
-            // 使用 window.location.href 獲取當前 URL，並移除所有參數
-            return window.location.href.split('?')[0]; 
-        }
-
+        // *** 2. GAS 連線與全域變數 ***
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbzcDKkz8Tilzb3qbx0_fDR7QoG4-c2JCtsa4p9V8_1gBjZaEMlvQHd72OD0kZq_jW8H/exec";
         let currentUser = null;
-        let targetRole = null; // 紀錄使用者點選的卡片角色
+        let targetRole = null;
 
-        // 語言字典 (保持不變)
+        // *** 3. 多國語言字典 (10種語言) ***
         const translations = {
             "zh-TW": {
-                "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub", "welcome_prefix": "歡迎來到",
-                "logout": "登出", "btn_login": "登入", "back": "返回", 
-                "tab_login": "登入", "tab_register": "註冊新帳號", "btn_login_action": "登入系統", "btn_register_action": "註冊並登入",
-                "select_role": "請選擇您的身份以進入專屬學習空間",
-                "label_select_role": "註冊身分", "role_student": "學生", "role_teacher": "教師", "role_researcher": "研究員",
-                "reg_title_student": "學生帳號註冊", "reg_title_teacher": "教師帳號註冊", "reg_title_researcher": "研究員帳號註冊",
-                "desc_student": "探索科學文本、重點整理與測驗回饋", "desc_teacher": "備課資源、命題檢核與學習診斷", "desc_researcher": "高階文本分析與系統語言研究",
-                "label_name": "姓名", "label_gender": "性別", "gender_male": "男", "gender_female": "女", "gender_other": "其他",
-                "label_email": "Email", "label_email_account": "Email (帳號)", "label_password": "密碼", "label_confirm_password": "確認密碼",
-                "msg_loading": "正在連接資料庫...",
+                "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub", 
+                "welcome_prefix": "歡迎來到", "select_role": "請選擇您的身份以進入專屬學習空間",
+                "role_student": "我是學生", "desc_student": "探索科學文本、重點整理與測驗回饋",
+                "role_teacher": "我是教師", "desc_teacher": "備課資源、命題檢核與學習診斷",
+                "role_researcher": "我是研究員", "desc_researcher": "高階文本分析與系統語言研究",
+                "back": "返回", "tab_login": "登入", "tab_register": "註冊新帳號",
+                "label_email": "Email", "label_password": "密碼", "forgot_password": "忘記密碼？",
+                "btn_login": "登入", "btn_login_action": "登入系統", "logout": "登出",
+                "label_select_role": "註冊身分", "label_email_account": "Email (帳號)", 
+                "label_name": "姓名", "label_confirm_password": "確認密碼",
+                "label_gender": "性別", "gender_male": "男", "gender_female": "女", "gender_other": "其他",
                 "label_school_student": "就讀學校 (縣市+校名)", "label_grade_student": "就讀年級",
-                "label_school_teacher": "服務學校 (縣市+校名)", "label_position": "職稱", "label_teaching_grade": "教學年級", "label_subject": "教學科目", "label_seniority": "教學年資",
+                "label_school_teacher": "服務學校 (縣市+校名)", "label_position": "職稱", "label_teaching_grade": "教學年級", 
+                "label_subject": "教學科目", "label_seniority": "教學年資",
                 "label_unit": "服務單位", "label_research_title": "職稱", "label_field": "研究領域",
-                "forgot_password": "忘記密碼？", "forgot_password_title": "重設密碼", "forgot_password_desc": "請輸入您註冊時的 Email，系統將發送驗證信給您。",
-                "btn_send_verify": "發送驗證信", "back_to_login": "返回登入"
+                "btn_register_action": "註冊並登入", "reg_title_prefix": "註冊", "reg_title_suffix": "帳號"
             },
             "en": {
-                "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub", "welcome_prefix": "Welcome to",
-                "logout": "Logout", "btn_login": "Login", "back": "Back", "tab_login": "Login", "tab_register": "Sign Up",
-                "btn_login_action": "Login", "btn_register_action": "Register & Login", "select_role": "Please select your role to continue",
-                "label_select_role": "Role", "role_student": "Student", "role_teacher": "Teacher", "role_researcher": "Researcher",
-                "reg_title_student": "Student Registration", "reg_title_teacher": "Teacher Registration", "reg_title_researcher": "Researcher Registration",
-                "desc_student": "Explore texts, summaries, and AI feedback", "desc_teacher": "Resources, terminology check, and diagnosis", "desc_researcher": "Advanced analysis and linguistics",
-                "label_name": "Name", "label_gender": "Gender", "gender_male": "Male", "gender_female": "Female", "gender_other": "Other",
-                "label_email": "Email", "label_email_account": "Email (Account)", "label_password": "Password", "label_confirm_password": "Confirm Password",
-                "msg_loading": "Connecting...",
-                "label_school_student": "School Name (City+Name)", "label_grade_student": "Grade",
-                "label_school_teacher": "School Name (City+Name)", "label_position": "Title", "label_teaching_grade": "Teaching Grade", "label_subject": "Subject", "label_seniority": "Seniority",
-                "label_unit": "Institution", "label_research_title": "Title", "label_field": "Research Field",
-                "forgot_password": "Forgot Password?", "forgot_password_title": "Reset Password", "forgot_password_desc": "Enter your email to receive verification.",
-                "btn_send_verify": "Send Email", "back_to_login": "Back to Login"
+                "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub", 
+                "welcome_prefix": "Welcome to", "select_role": "Please select your role to enter the learning space",
+                "role_student": "Student", "desc_student": "Explore scientific texts, summaries, and quiz feedback",
+                "role_teacher": "Teacher", "desc_teacher": "Lesson resources, exam creation, and learning diagnosis",
+                "role_researcher": "Researcher", "desc_researcher": "Advanced text analysis and systemic linguistics",
+                "back": "Back", "tab_login": "Login", "tab_register": "Register",
+                "label_email": "Email", "label_password": "Password", "forgot_password": "Forgot Password?",
+                "btn_login": "Login", "btn_login_action": "Login", "logout": "Logout",
+                "label_select_role": "Register As", "label_email_account": "Email (Account)", 
+                "label_name": "Full Name", "label_confirm_password": "Confirm Password",
+                "label_gender": "Gender", "gender_male": "Male", "gender_female": "Female", "gender_other": "Other",
+                "label_school_student": "School Name", "label_grade_student": "Grade Level",
+                "label_school_teacher": "School Name", "label_position": "Position", "label_teaching_grade": "Teaching Grade", 
+                "label_subject": "Subject", "label_seniority": "Years of Experience",
+                "label_unit": "Affiliation/Unit", "label_research_title": "Job Title", "label_field": "Research Field",
+                "btn_register_action": "Register & Login", "reg_title_prefix": "Register", "reg_title_suffix": "Account"
             },
             "ja": {
-                "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub", "welcome_prefix": "ようこそ",
-                "logout": "ログアウト", "btn_login": "ログイン", "back": "戻る", "tab_login": "ログイン", "tab_register": "新規登録",
-                "btn_login_action": "ログイン", "btn_register_action": "登録してログイン", "select_role": "役割を選択して進んでください",
-                "label_select_role": "役割", "role_student": "学生", "role_teacher": "教師", "role_researcher": "研究員",
-                "reg_title_student": "学生登録", "reg_title_teacher": "教師登録", "reg_title_researcher": "研究員登録",
-                "desc_student": "科学テキスト、要約、AIフィードバック", "desc_teacher": "授業準備、用語チェック、学習診断", "desc_researcher": "高度なテキスト分析と言語研究",
-                "label_name": "氏名", "label_gender": "性別", "gender_male": "男性", "gender_female": "女性", "gender_other": "その他",
-                "label_email": "メールアドレス", "label_email_account": "メールアドレス (ID)", "label_password": "パスワード", "label_confirm_password": "パスワード確認",
-                "msg_loading": "接続中...",
-                "label_school_student": "学校名 (県市+校名)", "label_grade_student": "学年",
-                "label_school_teacher": "勤務校 (県市+校名)", "label_position": "職名", "label_teaching_grade": "担当学年", "label_subject": "担当科目", "label_seniority": "教職経験年数",
+                "site_title_nav": "サイエンス・ラーニング・ハブ", "site_title_hero": "Science Learning Hub", 
+                "welcome_prefix": "ようこそ", "select_role": "役割を選択して学習スペースに入ってください",
+                "role_student": "学生・生徒", "desc_student": "科学テキストの探索、要約、クイズフィードバック",
+                "role_teacher": "先生・教員", "desc_teacher": "授業リソース、試験作成、学習診断",
+                "role_researcher": "研究者", "desc_researcher": "高度なテキスト分析とシステム言語学研究",
+                "back": "戻る", "tab_login": "ログイン", "tab_register": "新規登録",
+                "label_email": "メールアドレス", "label_password": "パスワード", "forgot_password": "パスワードをお忘れですか？",
+                "btn_login": "ログイン", "btn_login_action": "システムにログイン", "logout": "ログアウト",
+                "label_select_role": "登録区分", "label_email_account": "メール (アカウント)", 
+                "label_name": "氏名", "label_confirm_password": "パスワード確認",
+                "label_gender": "性別", "gender_male": "男性", "gender_female": "女性", "gender_other": "その他",
+                "label_school_student": "学校名", "label_grade_student": "学年",
+                "label_school_teacher": "勤務校", "label_position": "職位", "label_teaching_grade": "担当学年", 
+                "label_subject": "担当教科", "label_seniority": "教職経験年数",
                 "label_unit": "所属機関", "label_research_title": "職名", "label_field": "研究分野",
-                "forgot_password": "パスワードをお忘れですか？", "forgot_password_title": "パスワードリセット", "forgot_password_desc": "登録メールアドレスを入力してください。",
-                "btn_send_verify": "送信", "back_to_login": "ログインへ戻る"
+                "btn_register_action": "登録してログイン", "reg_title_prefix": "新規", "reg_title_suffix": "登録"
             },
             "zh-CN": {
-                "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub", "welcome_prefix": "欢迎来到",
-                "logout": "登出", "btn_login": "登录", "back": "返回", "tab_login": "登录", "tab_register": "注册新账号",
-                "btn_login_action": "登录系统", "btn_register_action": "注册并登录", "select_role": "请选择您的身份以进入专属学习空间",
-                "label_select_role": "注册身份", "role_student": "学生", "role_teacher": "教师", "role_researcher": "研究员",
-                "reg_title_student": "学生账号注册", "reg_title_teacher": "教师账号注册", "reg_title_researcher": "研究员账号注册",
-                "desc_student": "探索科学文本、重点整理与测验反馈", "desc_teacher": "备课资源、命题检核与学习诊断", "desc_researcher": "高阶文本分析与系统语言研究",
-                "label_name": "姓名", "label_gender": "性别", "gender_male": "男", "gender_female": "女", "gender_other": "其他",
-                "label_email": "电子邮箱", "label_email_account": "电子邮箱 (账号)", "label_password": "密码", "label_confirm_password": "确认密码",
-                "msg_loading": "正在连接数据库...",
-                "label_school_student": "就读学校 (县市+校名)", "label_grade_student": "就读年级",
-                "label_school_teacher": "服务学校 (县市+校名)", "label_position": "职称", "label_teaching_grade": "教学年级", "label_subject": "教学科目", "label_seniority": "教学年资",
+                "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub", 
+                "welcome_prefix": "欢迎来到", "select_role": "请选择您的身份以进入专属学习空间",
+                "role_student": "我是学生", "desc_student": "探索科学文本、重点整理与测验反馈",
+                "role_teacher": "我是教师", "desc_teacher": "备课资源、命题检核与学习诊断",
+                "role_researcher": "我是研究员", "desc_researcher": "高阶文本分析与系统语言研究",
+                "back": "返回", "tab_login": "登录", "tab_register": "注册新账号",
+                "label_email": "Email", "label_password": "密码", "forgot_password": "忘记密码？",
+                "btn_login": "登录", "btn_login_action": "登录系统", "logout": "登出",
+                "label_select_role": "注册身份", "label_email_account": "Email (账号)", 
+                "label_name": "姓名", "label_confirm_password": "确认密码",
+                "label_gender": "性别", "gender_male": "男", "gender_female": "女", "gender_other": "其他",
+                "label_school_student": "就读学校", "label_grade_student": "就读年级",
+                "label_school_teacher": "服务学校", "label_position": "职称", "label_teaching_grade": "教学年级", 
+                "label_subject": "教学科目", "label_seniority": "教学年资",
                 "label_unit": "服务单位", "label_research_title": "职称", "label_field": "研究领域",
-                "forgot_password": "忘记密码？", "forgot_password_title": "重设密码", "forgot_password_desc": "请输入注册时的邮箱。",
-                "btn_send_verify": "发送验证信", "back_to_login": "返回登录"
+                "btn_register_action": "注册并登录", "reg_title_prefix": "注册", "reg_title_suffix": "账号"
+            },
+            "es": {
+                "site_title_nav": "Centro de Aprendizaje de Ciencias", "site_title_hero": "Science Learning Hub",
+                "welcome_prefix": "Bienvenido a", "select_role": "Por favor, selecciona tu rol para entrar",
+                "role_student": "Estudiante", "desc_student": "Textos científicos, resúmenes y cuestionarios",
+                "role_teacher": "Profesor", "desc_teacher": "Recursos, exámenes y diagnóstico de aprendizaje",
+                "role_researcher": "Investigador", "desc_researcher": "Análisis de texto avanzado y lingüística",
+                "back": "Volver", "tab_login": "Iniciar Sesión", "tab_register": "Registrarse",
+                "label_email": "Correo", "label_password": "Contraseña", "forgot_password": "¿Olvidaste tu contraseña?",
+                "btn_login": "Entrar", "btn_login_action": "Iniciar Sesión", "logout": "Salir",
+                "label_select_role": "Registrarse como", "label_email_account": "Correo (Usuario)",
+                "label_name": "Nombre Completo", "label_confirm_password": "Confirmar Contraseña",
+                "label_gender": "Género", "gender_male": "Masculino", "gender_female": "Femenino", "gender_other": "Otro",
+                "label_school_student": "Escuela", "label_grade_student": "Grado",
+                "label_school_teacher": "Escuela", "label_position": "Cargo", "label_teaching_grade": "Grado de Enseñanza",
+                "label_subject": "Asignatura", "label_seniority": "Años de Experiencia",
+                "label_unit": "Institución", "label_research_title": "Título", "label_field": "Campo de Estudio",
+                "btn_register_action": "Registrar y Entrar", "reg_title_prefix": "Cuenta de", "reg_title_suffix": ""
+            },
+            "pt": {
+                "site_title_nav": "Centro de Aprendizagem de Ciências", "site_title_hero": "Science Learning Hub",
+                "welcome_prefix": "Bem-vindo ao", "select_role": "Selecione seu perfil para entrar",
+                "role_student": "Estudante", "desc_student": "Textos científicos, resumos e feedback",
+                "role_teacher": "Professor", "desc_teacher": "Recursos, exames e diagnóstico de aprendizagem",
+                "role_researcher": "Pesquisador", "desc_researcher": "Análise de texto avançada e linguística",
+                "back": "Voltar", "tab_login": "Entrar", "tab_register": "Cadastrar",
+                "label_email": "Email", "label_password": "Senha", "forgot_password": "Esqueceu a senha?",
+                "btn_login": "Entrar", "btn_login_action": "Entrar no Sistema", "logout": "Sair",
+                "label_select_role": "Cadastrar como", "label_email_account": "Email (Conta)",
+                "label_name": "Nome Completo", "label_confirm_password": "Confirmar Senha",
+                "label_gender": "Gênero", "gender_male": "Masculino", "gender_female": "Feminino", "gender_other": "Outro",
+                "label_school_student": "Escola", "label_grade_student": "Série/Ano",
+                "label_school_teacher": "Escola", "label_position": "Cargo", "label_teaching_grade": "Série de Ensino",
+                "label_subject": "Disciplina", "label_seniority": "Tempo de Serviço",
+                "label_unit": "Instituição", "label_research_title": "Título", "label_field": "Campo de Pesquisa",
+                "btn_register_action": "Cadastrar e Entrar", "reg_title_prefix": "Conta de", "reg_title_suffix": ""
+            },
+            "id": {
+                "site_title_nav": "Pusat Pembelajaran Sains", "site_title_hero": "Science Learning Hub",
+                "welcome_prefix": "Selamat Datang di", "select_role": "Silakan pilih peran Anda untuk masuk",
+                "role_student": "Siswa", "desc_student": "Eksplorasi teks ilmiah, ringkasan, dan kuis",
+                "role_teacher": "Guru", "desc_teacher": "Sumber belajar, ujian, dan diagnosis",
+                "role_researcher": "Peneliti", "desc_researcher": "Analisis teks tingkat lanjut dan linguistik",
+                "back": "Kembali", "tab_login": "Masuk", "tab_register": "Daftar",
+                "label_email": "Email", "label_password": "Kata Sandi", "forgot_password": "Lupa Kata Sandi?",
+                "btn_login": "Masuk", "btn_login_action": "Masuk Sistem", "logout": "Keluar",
+                "label_select_role": "Daftar Sebagai", "label_email_account": "Email (Akun)",
+                "label_name": "Nama Lengkap", "label_confirm_password": "Konfirmasi Kata Sandi",
+                "label_gender": "Jenis Kelamin", "gender_male": "Pria", "gender_female": "Wanita", "gender_other": "Lainnya",
+                "label_school_student": "Sekolah", "label_grade_student": "Kelas",
+                "label_school_teacher": "Sekolah", "label_position": "Jabatan", "label_teaching_grade": "Mengajar Kelas",
+                "label_subject": "Mata Pelajaran", "label_seniority": "Lama Mengajar",
+                "label_unit": "Institusi", "label_research_title": "Gelar", "label_field": "Bidang Penelitian",
+                "btn_register_action": "Daftar & Masuk", "reg_title_prefix": "Akun", "reg_title_suffix": ""
+            },
+            "th": {
+                "site_title_nav": "ศูนย์การเรียนรู้วิทยาศาสตร์", "site_title_hero": "Science Learning Hub",
+                "welcome_prefix": "ยินดีต้อนรับสู่", "select_role": "โปรดเลือกบทบาทของคุณเพื่อเข้าสู่ระบบ",
+                "role_student": "นักเรียน", "desc_student": "สำรวจบทความวิทยาศาสตร์ สรุป และแบบทดสอบ",
+                "role_teacher": "ครู", "desc_teacher": "ทรัพยากรการสอน การสอบ และการวินิจฉัยการเรียนรู้",
+                "role_researcher": "นักวิจัย", "desc_researcher": "การวิเคราะห์ข้อความขั้นสูงและภาษาศาสตร์",
+                "back": "กลับ", "tab_login": "เข้าสู่ระบบ", "tab_register": "ลงทะเบียน",
+                "label_email": "อีเมล", "label_password": "รหัสผ่าน", "forgot_password": "ลืมรหัสผ่าน?",
+                "btn_login": "เข้าสู่ระบบ", "btn_login_action": "เข้าสู่ระบบ", "logout": "ออกจากระบบ",
+                "label_select_role": "ลงทะเบียนเป็น", "label_email_account": "อีเมล (บัญชีผู้ใช้)",
+                "label_name": "ชื่อ-นามสกุล", "label_confirm_password": "ยืนยันรหัสผ่าน",
+                "label_gender": "เพศ", "gender_male": "ชาย", "gender_female": "หญิง", "gender_other": "อื่นๆ",
+                "label_school_student": "โรงเรียน", "label_grade_student": "ระดับชั้น",
+                "label_school_teacher": "โรงเรียน", "label_position": "ตำแหน่ง", "label_teaching_grade": "ระดับชั้นที่สอน",
+                "label_subject": "วิชา", "label_seniority": "ประสบการณ์สอน",
+                "label_unit": "หน่วยงาน", "label_research_title": "ตำแหน่งทางวิชาการ", "label_field": "สาขาวิจัย",
+                "btn_register_action": "ลงทะเบียนและเข้าสู่ระบบ", "reg_title_prefix": "บัญชี", "reg_title_suffix": ""
+            },
+            "vi": {
+                "site_title_nav": "Trung tâm Học tập Khoa học", "site_title_hero": "Science Learning Hub",
+                "welcome_prefix": "Chào mừng đến với", "select_role": "Vui lòng chọn vai trò của bạn",
+                "role_student": "Học sinh", "desc_student": "Khám phá văn bản khoa học và phản hồi bài kiểm tra",
+                "role_teacher": "Giáo viên", "desc_teacher": "Tài nguyên bài học, đề thi và chẩn đoán",
+                "role_researcher": "Nhà nghiên cứu", "desc_researcher": "Phân tích văn bản nâng cao và ngôn ngữ học",
+                "back": "Quay lại", "tab_login": "Đăng nhập", "tab_register": "Đăng ký",
+                "label_email": "Email", "label_password": "Mật khẩu", "forgot_password": "Quên mật khẩu?",
+                "btn_login": "Đăng nhập", "btn_login_action": "Đăng nhập hệ thống", "logout": "Đăng xuất",
+                "label_select_role": "Đăng ký với tư cách", "label_email_account": "Email (Tài khoản)",
+                "label_name": "Họ và tên", "label_confirm_password": "Xác nhận mật khẩu",
+                "label_gender": "Giới tính", "gender_male": "Nam", "gender_female": "Nữ", "gender_other": "Khác",
+                "label_school_student": "Trường học", "label_grade_student": "Khối lớp",
+                "label_school_teacher": "Trường công tác", "label_position": "Chức vụ", "label_teaching_grade": "Khối lớp dạy",
+                "label_subject": "Môn học", "label_seniority": "Thâm niên",
+                "label_unit": "Đơn vị công tác", "label_research_title": "Chức danh", "label_field": "Lĩnh vực nghiên cứu",
+                "btn_register_action": "Đăng ký & Đăng nhập", "reg_title_prefix": "Tài khoản", "reg_title_suffix": ""
+            },
+            "ms": {
+                "site_title_nav": "Pusat Pembelajaran Sains", "site_title_hero": "Science Learning Hub",
+                "welcome_prefix": "Selamat Datang ke", "select_role": "Sila pilih peranan anda untuk masuk",
+                "role_student": "Pelajar", "desc_student": "Terokai teks sains, ringkasan dan kuiz",
+                "role_teacher": "Guru", "desc_teacher": "Sumber pelajaran, peperiksaan dan diagnosis",
+                "role_researcher": "Penyelidik", "desc_researcher": "Analisis teks lanjutan dan linguistik",
+                "back": "Kembali", "tab_login": "Log Masuk", "tab_register": "Daftar",
+                "label_email": "E-mel", "label_password": "Kata Laluan", "forgot_password": "Lupa Kata Laluan?",
+                "btn_login": "Log Masuk", "btn_login_action": "Log Masuk Sistem", "logout": "Log Keluar",
+                "label_select_role": "Daftar Sebagai", "label_email_account": "E-mel (Akaun)",
+                "label_name": "Nama Penuh", "label_confirm_password": "Sahkan Kata Laluan",
+                "label_gender": "Jantina", "gender_male": "Lelaki", "gender_female": "Perempuan", "gender_other": "Lain-lain",
+                "label_school_student": "Sekolah", "label_grade_student": "Darjah/Tingkatan",
+                "label_school_teacher": "Sekolah", "label_position": "Jawatan", "label_teaching_grade": "Mengajar Darjah",
+                "label_subject": "Subjek", "label_seniority": "Pengalaman Mengajar",
+                "label_unit": "Institusi", "label_research_title": "Gelaran", "label_field": "Bidang Penyelidikan",
+                "btn_register_action": "Daftar & Masuk", "reg_title_prefix": "Akaun", "reg_title_suffix": ""
             }
         };
 
+        // *** 4. 多國語言邏輯 ***
         function changeLanguage() {
-            const lang = document.getElementById("language-selector").value;
-            const elements = document.querySelectorAll("[data-i18n]");
+            const lang = document.getElementById('language-selector').value;
+            localStorage.setItem('slh_lang', lang);
+            document.documentElement.lang = lang;
+
+            const elements = document.querySelectorAll('[data-i18n]');
             elements.forEach(el => {
-                const key = el.getAttribute("data-i18n");
+                const key = el.getAttribute('data-i18n');
                 if (translations[lang] && translations[lang][key]) {
-                    const tagName = el.tagName.toLowerCase();
-                    if(tagName === 'input' || tagName === 'textarea') el.placeholder = translations[lang][key];
-                    else el.innerText = translations[lang][key];
+                    if (el.tagName === 'INPUT' && (el.type === 'submit' || el.type === 'button')) {
+                        el.value = translations[lang][key];
+                    } else {
+                        // 如果有 icon，只更新文字 span
+                        if (el.children.length > 0 && el.querySelector('span')) {
+                            el.querySelector('span').textContent = translations[lang][key];
+                        } else {
+                            el.textContent = translations[lang][key];
+                        }
+                    }
                 }
             });
-            const role = document.getElementById("input-role").value;
-            if(role) updateRoleDisplay(role);
+
+            const currentRole = document.getElementById('input-role').value;
+            if (currentRole) updateRegisterTitle(currentRole, lang);
         }
 
+        function getRoleName(role, lang) {
+            const key = 'role_' + role;
+            return translations[lang][key] || role;
+        }
+
+        function updateRegisterTitle(role, langCode) {
+            const lang = langCode || document.getElementById('language-selector').value;
+            const roleName = getRoleName(role, lang);
+            const prefix = translations[lang]['reg_title_prefix'] || "";
+            const suffix = translations[lang]['reg_title_suffix'] || "";
+            const space = (['en', 'es', 'pt', 'id', 'ms', 'vi', 'th'].includes(lang)) ? " " : "";
+            document.getElementById('reg-role-display-text').textContent = `${prefix}${space}${roleName}${space}${suffix}`.trim();
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedLang = localStorage.getItem('slh_lang') || 'zh-TW';
+            const selector = document.getElementById('language-selector');
+            if(selector) { selector.value = savedLang; changeLanguage(); }
+        });
+
+        // *** 5. UI 互動邏輯 ***
         function togglePassword(inputId, icon) {
             const input = document.getElementById(inputId);
             if (input.type === "password") {
-                input.type = "text";
-                icon.classList.remove("fa-eye");
-                icon.classList.add("fa-eye-slash");
+                input.type = "text"; icon.classList.replace("fa-eye", "fa-eye-slash");
             } else {
-                input.type = "password";
-                icon.classList.remove("fa-eye-slash");
-                icon.classList.add("fa-eye");
+                input.type = "password"; icon.classList.replace("fa-eye-slash", "fa-eye");
+            }
+        }
+
+        function goHome() {
+            document.getElementById('section-home').classList.remove('hidden-section');
+            document.getElementById('section-auth').classList.add('hidden-section');
+            document.getElementById('section-auth').classList.remove('fade-in');
+            document.getElementById('nav-login-btn').classList.remove('hidden'); 
+            targetRole = null;
+        }
+
+        function showLoginModal() {
+            preSelectRole(null);
+            switchAuthMode('login');
+        }
+
+        function preSelectRole(role) {
+            targetRole = role;
+            document.getElementById('section-home').classList.add('hidden-section');
+            const authSection = document.getElementById('section-auth');
+            authSection.classList.remove('hidden-section');
+            authSection.classList.add('fade-in');
+            document.getElementById('nav-login-btn').classList.add('hidden');
+
+            if (role) {
+                switchAuthMode('login'); // 預設先看登入
+                document.getElementById('input-role-select').value = role;
+                document.getElementById('input-role').value = role;
+                updateRegisterTitle(role);
+                showRoleFields(role);
+            } else {
+                switchAuthMode('login');
             }
         }
 
         function switchAuthMode(mode) {
-            // Helper to safe toggle
-            const safeAdd = (id, cls) => { const el = document.getElementById(id); if(el) el.classList.add(cls); };
-            const safeRemove = (id, cls) => { const el = document.getElementById(id); if(el) el.classList.remove(cls); };
+            const btnLogin = document.getElementById('tab-login');
+            const btnRegister = document.getElementById('tab-register');
+            const formLogin = document.getElementById('form-login');
+            const formRegister = document.getElementById('form-register');
+            const roleDisplay = document.getElementById('role-display-block');
+            const roleSelect = document.getElementById('role-select-block');
 
-            safeAdd("form-login", "hidden-section");
-            safeAdd("form-register", "hidden-section");
-            safeAdd("form-forgot-password", "hidden-section");
-            
-            const tabLogin = document.getElementById("tab-login");
-            const tabRegister = document.getElementById("tab-register");
-
-            if(mode === 'login') {
-                safeRemove("form-login", "hidden-section");
-                if(tabLogin) tabLogin.className = "w-1/2 py-4 text-xl font-bold text-blue-600 border-b-4 border-blue-600 focus:outline-none transition-colors";
-                if(tabRegister) tabRegister.className = "w-1/2 py-4 text-xl font-bold text-gray-400 hover:text-gray-600 focus:outline-none transition-colors";
+            if (mode === 'login') {
+                btnLogin.classList.add('text-blue-600', 'border-blue-600'); btnLogin.classList.remove('text-gray-400');
+                btnRegister.classList.remove('text-blue-600', 'border-blue-600'); btnRegister.classList.add('text-gray-400');
+                formLogin.classList.remove('hidden-section'); formRegister.classList.add('hidden-section');
+                roleDisplay.classList.add('hidden'); roleSelect.classList.add('hidden');
             } else {
-                safeRemove("form-register", "hidden-section");
-                if(tabLogin) tabLogin.className = "w-1/2 py-4 text-xl font-bold text-gray-400 hover:text-gray-600 focus:outline-none transition-colors";
-                if(tabRegister) tabRegister.className = "w-1/2 py-4 text-xl font-bold text-blue-600 border-b-4 border-blue-600 focus:outline-none transition-colors";
+                btnRegister.classList.add('text-blue-600', 'border-blue-600'); btnRegister.classList.remove('text-gray-400');
+                btnLogin.classList.remove('text-blue-600', 'border-blue-600'); btnLogin.classList.add('text-gray-400');
+                formLogin.classList.add('hidden-section'); formRegister.classList.remove('hidden-section');
+
+                if (targetRole) {
+                    roleDisplay.classList.remove('hidden'); roleSelect.classList.add('hidden');
+                    showRoleFields(targetRole); updateRegisterTitle(targetRole);
+                } else {
+                    roleDisplay.classList.add('hidden'); roleSelect.classList.remove('hidden');
+                    syncRoleFromSelector();
+                }
             }
-        }
-
-        function showForgotPassword() {
-            document.getElementById("form-login").classList.add("hidden-section");
-            document.getElementById("form-forgot-password").classList.remove("hidden-section");
-        }
-
-        // 點擊首頁卡片：直接到登入頁面，並記錄角色
-        function preSelectRole(role) {
-            targetRole = role; // 記住想去的角色
-            
-            // 更新登入標題，增加提示感
-            const lang = document.getElementById("language-selector").value;
-            const roleName = translations[lang]["role_" + role];
-            
-            // 設定註冊時的角色 (以防使用者之後切換到註冊 Tab)
-            document.getElementById("input-role").value = role; 
-            document.getElementById("role-select-block").classList.add("hidden"); 
-            document.getElementById("role-display-block").classList.remove("hidden"); 
-            updateRoleDisplay(role);
-            updateRegisterFields(role);
-
-            // 直接顯示登入頁面
-            showAuthSection('login');
-        }
-
-        // 點擊右上角登入
-        function showLoginModal() {
-            targetRole = null; // 沒有預設目標
-            document.getElementById("input-role").value = 'student';
-            document.getElementById("role-select-block").classList.remove("hidden");
-            document.getElementById("role-display-block").classList.add("hidden");
-            document.getElementById("input-role-select").value = 'student';
-            updateRegisterFields('student');
-            showAuthSection('login');
-            
-            // 保險：強制移除隱藏 class，確保顯示
-            const formLogin = document.getElementById("form-login");
-            if(formLogin) formLogin.classList.remove("hidden-section");
-        }
-
-        function showAuthSection(mode) {
-            document.getElementById("section-home").classList.add("hidden-section");
-            document.getElementById("section-auth").classList.remove("hidden-section");
-            switchAuthMode(mode);
-        }
-
-        function updateRoleDisplay(role) {
-            const lang = document.getElementById("language-selector").value;
-            const titleKey = "reg_title_" + role;
-            const titleText = translations[lang][titleKey] || translations["zh-TW"][titleKey];
-            document.getElementById("reg-role-display-text").innerText = titleText;
         }
 
         function syncRoleFromSelector() {
-            const role = document.getElementById("input-role-select").value;
-            document.getElementById("input-role").value = role;
-            updateRegisterFields(role);
+            const role = document.getElementById('input-role-select').value;
+            document.getElementById('input-role').value = role;
+            showRoleFields(role);
+            updateRegisterTitle(role);
         }
 
-        function updateRegisterFields(role) {
-            document.querySelectorAll(".role-fields").forEach(el => el.classList.add("hidden-section"));
-            document.getElementById("fields-" + role).classList.remove("hidden-section");
+        function showRoleFields(role) {
+            document.querySelectorAll('.role-fields').forEach(el => el.classList.add('hidden-section'));
+            const target = document.getElementById('fields-' + role);
+            if (target) target.classList.remove('hidden-section');
         }
 
-        function goHome() {
-            document.querySelectorAll("main > div").forEach(el => el.classList.add("hidden-section"));
-            document.getElementById("section-home").classList.remove("hidden-section");
-            document.getElementById("form-login").reset();
-            document.getElementById("form-register").reset();
-            document.getElementById("form-forgot-password").reset();
+        function showForgotPassword() {
+            alert("請聯繫管理員重設密碼：\nshiwen@gms.ndhu.edu.tw");
         }
 
-        function logout() {
-            if(confirm("確定要登出嗎？")) {
-                sessionStorage.removeItem("currentUser");
-                goHome();
-                window.location.reload();
-            }
-        }
-
-        function handleLogin(event) {
-            event.preventDefault();
-            // 修正：使用 trim() 去除多餘空白
-            const email = document.getElementById("login-email").value.trim();
-            const password = document.getElementById("login-password").value.trim();
-            const btn = document.getElementById("btn-do-login");
-
-            const originalBtnText = btn.innerText;
-            btn.disabled = true; 
-            btn.classList.add("opacity-50"); 
-            
-            // 顯示 Loading 動畫取代文字
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> 登入中...';
-
-            // ★ 萬用帳號 Logic (Updated to test@abc.com)
-            if (email === 'test@abc.com' && password === 'test') {
-                // Simulate a slight network delay for realism
-                setTimeout(() => {
-                    // 使用者在首頁點選的身份 (targetRole)，如果沒點選(從右上角登入)則預設 student
-                    const finalRole = targetRole || 'student'; 
-                    alert("測試帳號登入成功！\n識別身份: " + finalRole);
-                    finalizeLogin({ name: "測試人員", role: finalRole, email: "test@abc.com" });
-                }, 500);
-                return;
-            }
-
-            const payload = { type: "login", email: email, password: password };
-
-            fetch(GAS_URL, {
-                method: "POST",
-                redirect: "follow",
-                headers: { "Content-Type": "text/plain;charset=utf-8" }, 
-                body: JSON.stringify(payload)
-            })
-            .then(response => response.json())
-            .then(data => {
-                btn.disabled = false; 
-                btn.classList.remove("opacity-50"); 
-                btn.innerText = originalBtnText;
-
-                if (data.result === "success") {
-                    finalizeLogin(data.user);
-                } else {
-                    // *** 容錯處理：如果後端報錯，強制切換演示模式 ***
-                    // 包括 Exception (後端錯誤), System Error (權限錯誤), openById (試算表錯誤)
-                    if(data.message && (data.message.includes("Exception") || data.message.includes("System Error") || data.message.includes("openById"))) {
-                        console.warn("後端錯誤，啟動容錯模式:", data.message);
-                        // 為了不讓使用者卡住，自動進入
-                        alert("系統偵測到後端連接異常 (權限或ID問題)，將自動以【演示模式】登入，讓您預覽頁面功能。");
-                        
-                        // 使用目標角色或預設角色
-                        let mockRole = targetRole || 'student';
-                        finalizeLogin({ 
-                            name: "演示用戶", 
-                            role: mockRole, 
-                            email: email 
-                        });
-                    } else {
-                        alert("登入失敗: " + data.message);
-                    }
-                }
-            })
-            .catch(err => {
-                console.warn("Login fetch warning:", err);
-                // 網絡錯誤時的容錯
-                alert("網路連線異常，將自動以【演示模式】登入。");
-                let mockRole = targetRole || 'student';
-                finalizeLogin({ name: "演示用戶", role: mockRole });
-                
-                btn.disabled = false; 
-                btn.classList.remove("opacity-50");
-                btn.innerText = originalBtnText;
-            });
-        }
-
-        function handleRegister(event) {
-            event.preventDefault();
-            const role = document.getElementById("input-role").value;
-            const name = document.getElementById("input-name").value;
-            const gender = document.getElementById("input-gender").value;
-            const email = document.getElementById("reg-email").value;
-            const password = document.getElementById("reg-password").value;
-            const confirmPassword = document.getElementById("reg-password-confirm").value;
-            const lang = document.getElementById("language-selector").value;
-
-            if (password !== confirmPassword) {
-                alert("兩次輸入的密碼不一致，請重新確認！");
-                return;
-            }
-
-            let specificData = {};
-            if (role === 'student') {
-                specificData.orgName = document.getElementById("input-school-student").value;
-                specificData.gradeLevel = document.getElementById("input-grade-student").value;
-            } else if (role === 'teacher') {
-                specificData.orgName = document.getElementById("input-school-teacher").value;
-                specificData.position = document.getElementById("input-position").value;
-                specificData.gradeLevel = document.getElementById("input-teaching-grade").value;
-                specificData.subject = document.getElementById("input-subject").value;
-                specificData.seniority = document.getElementById("input-seniority").value;
-            } else if (role === 'researcher') {
-                specificData.orgName = document.getElementById("input-unit").value;
-                specificData.position = document.getElementById("input-research-title").value;
-                specificData.researchField = document.getElementById("input-field").value;
-            }
-
-            const btn = document.getElementById("btn-do-register");
-            const originalBtnText = btn.innerText;
-            btn.disabled = true; 
-            btn.classList.add("opacity-50"); 
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> 註冊中...';
+        // *** 6. API 通訊 (Fetch GAS) ***
+        function handleLogin(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-do-login');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...'; btn.disabled = true;
 
             const payload = {
-                type: "register",
-                role: role, name: name, gender: gender, email: email, password: password, language: lang,
-                ...specificData
+                method: "login",
+                email: document.getElementById('login-email').value,
+                password: document.getElementById('login-password').value
             };
 
-             fetch(GAS_URL, {
-                method: "POST",
-                redirect: "follow",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify(payload)
-            })
-            .then(response => response.json())
+            fetch(GAS_URL, { method: "POST", body: JSON.stringify(payload) })
+            .then(r => r.json())
             .then(data => {
-                btn.disabled = false; 
-                btn.classList.remove("opacity-50");
-                btn.innerText = originalBtnText;
-                
-                if (data.result === "error" && data.message.includes("已經註冊過")) {
-                    if(confirm(data.message + "\n是否直接前往登入頁面？")) {
-                        showLoginModal();
-                        document.getElementById('login-email').value = email;
-                    }
-                } else if (data.result === "success") {
-                    alert("註冊成功！");
-                    finalizeLogin(data.user);
-                } else {
-                    // 註冊失敗時也可以考慮容錯，但通常保留錯誤訊息較好
-                    alert("註冊失敗: " + data.message);
-                }
+                btn.innerHTML = originalText; btn.disabled = false;
+                if (data.status === "success") loginSuccess(data.user);
+                else alert("登入失敗: " + data.message);
             })
             .catch(err => {
-                console.error(err);
-                // 註冊失敗通常是真的失敗，不宜自動跳轉
-                alert("連線錯誤，請稍後再試");
-                btn.disabled = false; 
-                btn.classList.remove("opacity-50");
-                btn.innerText = originalBtnText;
+                console.error(err); btn.innerHTML = originalText; btn.disabled = false;
+                alert("系統錯誤，請稍後再試。");
             });
         }
 
-        function handleForgotPassword(event) {
-            event.preventDefault();
-            const email = document.getElementById("forgot-email").value;
-            const btn = document.getElementById("btn-do-forgot");
-            const originalText = btn.innerText;
+        function handleRegister(e) {
+            e.preventDefault();
+            const p1 = document.getElementById('reg-password').value;
+            const p2 = document.getElementById('reg-password-confirm').value;
+            if (p1 !== p2) { alert("兩次密碼輸入不一致！"); return; }
 
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> 發送中...';
-            btn.disabled = true; 
-            btn.classList.add("opacity-50"); 
+            const btn = document.getElementById('btn-do-register');
+            const originalText = btn.textContent;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...'; btn.disabled = true;
 
-            const payload = { type: "forgot_password", email: email };
+            const role = document.getElementById('input-role').value;
+            const payload = {
+                method: "register", role: role,
+                email: document.getElementById('reg-email').value,
+                password: p1,
+                name: document.getElementById('input-name').value,
+                gender: document.getElementById('input-gender').value
+            };
 
-            fetch(GAS_URL, {
-                method: "POST",
-                redirect: "follow",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify(payload)
-            })
-            .then(response => response.json())
-            .then(data => {
-                btn.disabled = false; 
-                btn.classList.remove("opacity-50"); 
-                btn.innerText = originalText;
-                
-                if (data.result === "success") {
-                    alert(data.message);
-                    showLoginModal();
-                } else {
-                    alert("發送失敗: " + data.message);
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                alert("連線錯誤，請稍後再試");
-                btn.disabled = false; 
-                btn.classList.remove("opacity-50"); 
-                btn.innerText = originalText;
-            });
-        }
-
-        // ★ 修正：使用 Apps Script 動態路由跳轉
-        function finalizeLogin(user) {
-            sessionStorage.setItem("currentUser", JSON.stringify(user));
-            // 強制轉小寫並去除空白，避免資料庫存的 "Teacher " 或 "Student" (大寫S) 造成誤判
-            const role = user.role ? String(user.role).trim().toLowerCase() : 'student';
-
-            // 1. 確保角色名稱與 HTML 檔案名稱一致
-            if (role === 'teacher') {
-                window.location.href = 'teacher.html';
+            if (role === 'student') {
+                payload.school = document.getElementById('input-school-student').value;
+                payload.grade = document.getElementById('input-grade-student').value;
+            } else if (role === 'teacher') {
+                payload.school = document.getElementById('input-school-teacher').value;
+                payload.position = document.getElementById('input-position').value;
+                payload.teachingGrade = document.getElementById('input-teaching-grade').value;
+                payload.subject = document.getElementById('input-subject').value;
+                payload.seniority = document.getElementById('input-seniority').value;
             } else if (role === 'researcher') {
-                window.location.href = 'researcher.html';
-            } else {
-                // 預設為學生
-                window.location.href = 'student.html';
+                payload.unit = document.getElementById('input-unit').value;
+                payload.jobTitle = document.getElementById('input-research-title').value;
+                payload.field = document.getElementById('input-field').value;
             }
+
+            fetch(GAS_URL, { method: "POST", body: JSON.stringify(payload) })
+            .then(r => r.json())
+            .then(data => {
+                btn.innerHTML = originalText; btn.disabled = false;
+                if (data.status === "success") { alert("註冊成功！"); loginSuccess(data.user); }
+                else alert("註冊失敗: " + data.message);
+            })
+            .catch(err => {
+                console.error(err); btn.innerHTML = originalText; btn.disabled = false;
+                alert("系統錯誤，請稍後再試。");
+            });
         }
+
+        function loginSuccess(user) {
+            currentUser = user;
+            document.getElementById('nav-login-btn').classList.add('hidden');
+            document.getElementById('logout-btn').classList.remove('hidden');
+            const info = document.getElementById('user-info-display');
+            info.classList.remove('hidden');
+            info.textContent = `${translations[document.getElementById('language-selector').value]['welcome_prefix'] || 'Hello'}, ${user.name}`;
+            
+            document.getElementById('section-auth').classList.add('hidden-section');
+            document.getElementById('section-home').classList.remove('hidden-section');
+            document.getElementById('section-home').classList.add('fade-in');
+            alert("登入成功！");
+        }
+
+        function logout() { currentUser = null; location.reload(); }
     </script>
 </body>
 </html>
