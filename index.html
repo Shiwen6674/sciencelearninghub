@@ -157,7 +157,7 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-7xl mx-auto px-4">
-                <!-- 學生入口 -->
+                <!-- 學生入口 (加入玻璃擬態與懸浮光影) -->
                 <div onclick="preSelectRole('student')" class="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl overflow-hidden cursor-pointer transform transition duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/20 border-b-8 border-student group ring-1 ring-white/50">
                     <div class="h-60 bg-student-light/50 flex items-center justify-center group-hover:bg-blue-200 transition relative overflow-hidden">
                         <div class="absolute inset-0 bg-gradient-to-tr from-blue-400/20 to-transparent"></div>
@@ -193,19 +193,23 @@
             </div>
         </div>
 
-        <!-- 2. 認證中心 -->
+        <!-- 2. 認證中心 (加入玻璃質感背景) -->
         <div id="section-auth" class="hidden-section fade-in max-w-2xl mx-auto bg-white/90 backdrop-blur-xl p-12 rounded-3xl shadow-2xl mt-12 border border-white/60 relative overflow-hidden">
+            <!-- 裝飾用背景光 -->
             <div class="absolute top-0 right-0 w-40 h-40 bg-blue-100 rounded-full blur-3xl -z-10 opacity-50"></div>
 
             <button onclick="goHome()" class="text-gray-400 hover:text-gray-600 mb-8 flex items-center gap-2 transition text-xl"><i class="fa-solid fa-arrow-left"></i> <span data-i18n="back">返回</span></button>
             
+            <!-- 分頁切換按鈕 -->
             <div class="flex mb-10 border-b-2 border-gray-200">
                 <button id="tab-login" onclick="switchAuthMode('login')" class="w-1/2 py-4 text-xl font-bold text-blue-600 border-b-4 border-blue-600 focus:outline-none transition-colors" data-i18n="tab_login">登入</button>
                 <button id="tab-register" onclick="switchAuthMode('register')" class="w-1/2 py-4 text-xl font-bold text-gray-400 hover:text-gray-600 focus:outline-none transition-colors" data-i18n="tab_register">註冊新帳號</button>
             </div>
 
+            <!-- 標題區域：顯示「學生登入」等動態標題 -->
             <h2 id="login-title-text" class="text-3xl font-bold text-center text-gray-800 mb-8 hidden"></h2>
 
+            <!-- A. 登入表單 -->
             <form id="form-login" onsubmit="handleLogin(event)" class="space-y-8">
                 <div>
                     <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_email">Email</label>
@@ -221,16 +225,23 @@
                 <div class="flex justify-end">
                     <button type="button" onclick="showForgotPassword()" class="text-base text-blue-600 hover:text-blue-800 hover:underline transition" data-i18n="forgot_password">忘記密碼？</button>
                 </div>
+                
                 <button type="submit" id="btn-do-login" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-5 rounded-xl shadow-lg hover:shadow-blue-500/40 transition transform active:scale-95 text-xl flex items-center justify-center gap-3" data-i18n="btn_login_action">
+                    <!-- 按鈕內的文字與圖示 -->
                     <span>登入系統</span>
                 </button>
             </form>
 
+            <!-- B. 註冊表單 (保持不變，但確保點首頁是去登入) -->
             <form id="form-register" class="hidden-section space-y-6" onsubmit="handleRegister(event)">
                 <input type="hidden" id="input-role" value="student">
+
+                <!-- 情境A: 標題 -->
                 <div id="role-display-block" class="mb-8 text-center hidden">
                     <span class="bg-blue-50 text-blue-800 border border-blue-100 px-6 py-2 rounded-full text-xl font-bold" id="reg-role-display-text">註冊學生帳號</span>
                 </div>
+
+                <!-- 情境B: 下拉選單 -->
                 <div id="role-select-block" class="p-6 bg-blue-50 rounded-xl border border-blue-100 mb-6 hidden">
                     <label class="block text-blue-800 text-lg font-bold mb-3" data-i18n="label_select_role">註冊身分</label>
                     <select id="input-role-select" onchange="syncRoleFromSelector()" class="w-full px-4 py-3 rounded border border-blue-200 text-gray-700 bg-white focus:outline-none focus:border-blue-500 text-lg">
@@ -239,14 +250,35 @@
                         <option value="researcher" data-i18n="role_researcher">我是研究員</option>
                     </select>
                 </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div><label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_email_account">Email (帳號)</label><input type="email" id="reg-email" required class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none text-lg" placeholder="name@example.com"></div>
-                    <div><label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_password">設定密碼</label><div class="relative"><input type="password" id="reg-password" required class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none pr-12 text-lg" placeholder="******"><i class="fa-solid fa-eye password-toggle absolute right-4 top-1/2 -translate-y-1/2" onclick="togglePassword('reg-password', this)"></i></div></div>
+                    <div>
+                        <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_email_account">Email (帳號)</label>
+                        <input type="email" id="reg-email" required class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none text-lg" placeholder="name@example.com">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_password">設定密碼</label>
+                        <div class="relative">
+                            <input type="password" id="reg-password" required class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none pr-12 text-lg" placeholder="******">
+                            <i class="fa-solid fa-eye password-toggle absolute right-4 top-1/2 -translate-y-1/2" onclick="togglePassword('reg-password', this)"></i>
+                        </div>
+                    </div>
                 </div>
+                
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div><label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_name">姓名</label><input type="text" id="input-name" required class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none text-lg"></div>
-                    <div><label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_confirm_password">確認密碼</label><div class="relative"><input type="password" id="reg-password-confirm" required class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none pr-12 text-lg" placeholder="******"><i class="fa-solid fa-eye password-toggle absolute right-4 top-1/2 -translate-y-1/2" onclick="togglePassword('reg-password-confirm', this)"></i></div></div>
+                    <div>
+                        <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_name">姓名</label>
+                        <input type="text" id="input-name" required class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none text-lg">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_confirm_password">確認密碼</label>
+                        <div class="relative">
+                            <input type="password" id="reg-password-confirm" required class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none pr-12 text-lg" placeholder="******">
+                            <i class="fa-solid fa-eye password-toggle absolute right-4 top-1/2 -translate-y-1/2" onclick="togglePassword('reg-password-confirm', this)"></i>
+                        </div>
+                    </div>
                 </div>
+
                 <div class="mb-6">
                     <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_gender">性別</label>
                     <select id="input-gender" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none bg-white text-lg">
@@ -255,26 +287,28 @@
                         <option value="other" data-i18n="gender_other">其他</option>
                     </select>
                 </div>
-                <!-- 學生專屬 -->
+
+                <!-- 學生專屬欄位 -->
                 <div id="fields-student" class="role-fields space-y-6 p-6 bg-gray-50/80 rounded-xl border border-gray-200">
                     <div>
                         <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_country">國家/地區</label>
                         <select id="input-country-student" onchange="updateGrades('student')" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none bg-white text-lg"></select>
                     </div>
-                    <div><label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_school_student">就讀學校</label><input type="text" id="input-school-student" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none text-lg"></div>
+                    <div><label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_school_student">就讀學校 (縣市+校名)</label><input type="text" id="input-school-student" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none text-lg" placeholder="例如：花蓮縣東華附小"></div>
                     <div><label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_grade_student">就讀年級</label><select id="input-grade-student" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none bg-white text-lg"></select></div>
                     <div class="grid grid-cols-2 gap-6">
                         <div><label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_class">班級</label><input type="text" id="input-class" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none text-lg" placeholder="例如: 601"></div>
                         <div><label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_student_id">學號</label><input type="text" id="input-student-id" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none text-lg" placeholder="自填"></div>
                     </div>
                 </div>
-                <!-- 教師專屬 -->
+
+                <!-- 教師專屬欄位 -->
                 <div id="fields-teacher" class="role-fields hidden-section space-y-6 p-6 bg-gray-50/80 rounded-xl border border-gray-200">
                      <div>
                         <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_country">國家/地區</label>
                         <select id="input-country-teacher" onchange="updateGrades('teacher')" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none bg-white text-lg"></select>
                     </div>
-                    <div><label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_school_teacher">服務學校</label><input type="text" id="input-school-teacher" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none text-lg" placeholder="例如：花蓮縣花崗國中"></div>
+                    <div><label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_school_teacher">服務學校 (縣市+校名)</label><input type="text" id="input-school-teacher" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none text-lg" placeholder="例如：花蓮縣花崗國中"></div>
                     <div class="grid grid-cols-2 gap-6">
                         <div>
                             <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_position">職稱</label>
@@ -298,7 +332,8 @@
                         </div>
                     </div>
                 </div>
-                <!-- 研究員專屬 -->
+
+                <!-- 研究員專屬欄位 -->
                 <div id="fields-researcher" class="role-fields hidden-section space-y-6 p-6 bg-gray-50/80 rounded-xl border border-gray-200">
                     <div>
                         <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_country">國家/地區</label>
@@ -310,16 +345,25 @@
                         <div><label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_field">研究領域</label><input type="text" id="input-field" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none text-lg" placeholder="例如：科學教育"></div>
                     </div>
                 </div>
-                <button id="btn-do-register" type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-5 px-8 rounded-xl shadow-lg hover:shadow-green-500/40 transition transform active:scale-95 mt-8 text-xl" data-i18n="btn_register_action">註冊並登入</button>
+
+                <button id="btn-do-register" type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-5 px-8 rounded-xl shadow-lg transition transform active:scale-95 mt-8 text-xl" data-i18n="btn_register_action">註冊並登入</button>
             </form>
 
+            <!-- C. 忘記密碼表單 -->
             <form id="form-forgot-password" class="hidden-section space-y-8" onsubmit="handleForgotPassword(event)">
                 <h3 class="text-3xl font-bold text-gray-800 text-center mb-6" data-i18n="forgot_password_title">重設密碼</h3>
                 <p class="text-gray-600 text-lg text-center mb-8" data-i18n="forgot_password_desc">請輸入您註冊時的 Email，系統將發送驗證信給您。</p>
-                <div><label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_email">Email</label><input type="email" id="forgot-email" required class="w-full px-5 py-4 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition text-lg bg-gray-100" placeholder="name@example.com"></div>
+                <div>
+                    <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_email">Email</label>
+                    <input type="email" id="forgot-email" required class="w-full px-5 py-4 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition text-lg" placeholder="name@example.com">
+                </div>
                 <button type="submit" id="btn-do-forgot" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg transition transform active:scale-95 text-xl" data-i18n="btn_send_verify">發送驗證信</button>
-                <div class="text-center mt-6"><button type="button" onclick="showLoginModal()" class="text-gray-500 hover:text-gray-700 underline text-base transition" data-i18n="back_to_login">返回登入</button></div>
+                <div class="text-center mt-6">
+                    <button type="button" onclick="showLoginModal()" class="text-gray-500 hover:text-gray-700 underline text-base transition" data-i18n="back_to_login">返回登入</button>
+                </div>
             </form>
+            
+            <!-- 隱藏原有的文字提示，改用按鈕動畫 -->
         </div>
     </main>
 
@@ -443,8 +487,8 @@
                 "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub", 
                 "welcome_prefix": "欢迎来到", "select_role": "请选择您的身份以进入专属学习空间",
                 "role_student": "我是学生", "desc_student": "探索科学文本、重点整理与测验反馈", "role_teacher": "我是教师", "desc_teacher": "备课资源、命题检核与学习诊断", "role_researcher": "我是研究员", "desc_researcher": "高阶文本分析与系统语言研究",
-                "back": "返回", "tab_login": "登录", "tab_register": "注册新账号", "label_email": "Email", "label_password": "密码", "forgot_password": "忘记密码？", "btn_login": "登录", "btn_login_action": "登录系统", "logout": "登出",
-                "label_select_role": "注册身份", "label_email_account": "Email (账号)", "label_name": "姓名", "label_confirm_password": "确认密码",
+                "back": "返回", "tab_login": "登录", "tab_register": "注册新账号", "label_email": "电子邮箱", "label_password": "密码", "forgot_password": "忘记密码？", "btn_login": "登录", "btn_login_action": "登录系统", "logout": "登出",
+                "label_select_role": "注册身份", "label_email_account": "电子邮箱 (账号)", "label_name": "姓名", "label_confirm_password": "确认密码",
                 "label_gender": "性别", "gender_male": "男", "gender_female": "女", "gender_other": "其他",
                 "label_country": "国家/地区", "label_school_student": "就读学校 (县市+校名)", "label_grade_student": "就读年级", "label_class": "班级", "label_student_id": "学号",
                 "label_school_teacher": "服务学校 (县市+校名)", "label_position": "职称", "label_teaching_grade": "教学年级", "label_subject": "教学科目", "label_seniority": "教学年资",
