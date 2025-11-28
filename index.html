@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Science Learning Hub | 科學學習中心</title>
+    <!-- 引入 Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script>
@@ -17,10 +19,24 @@
                         researcher: { light: '#e9d5ff', DEFAULT: '#a855f7', dark: '#7e22ce' }
                     },
                     fontFamily: {
+                        serif: ['ui-serif', 'Georgia', 'Cambria', "Times New Roman", 'Times', 'serif'],
                         sans: ['ui-sans-serif', 'system-ui', '-apple-system', "Segoe UI", 'Roboto', "Helvetica Neue", 'Arial', 'sans-serif'],
                     },
                     animation: {
                         "spin-slow": "spin 10s linear infinite",
+                        "gradient-x": "gradient-x 15s ease infinite",
+                    },
+                    keyframes: {
+                        "gradient-x": {
+                            "0%, 100%": {
+                                "background-size": "200% 200%",
+                                "background-position": "left center"
+                            },
+                            "50%": {
+                                "background-size": "200% 200%",
+                                "background-position": "right center"
+                            }
+                        }
                     }
                 }
             }
@@ -31,25 +47,52 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .hidden-section { display: none; }
         
-        input, select, button { font-size: 1.125rem !important; }
-        .password-toggle { cursor: pointer; color: #9ca3af; z-index: 10; transition: color 0.2s; font-size: 1.2rem; }
-        .password-toggle:hover { color: #4b5563; }
+        /* 按鈕樣式 */
+        .btn-student { @apply bg-student hover:bg-student-dark text-white font-bold; }
+        .btn-teacher { @apply bg-teacher hover:bg-teacher-dark text-white font-bold; }
+        .btn-researcher { @apply bg-researcher hover:bg-researcher-dark text-white font-bold; }
 
+        /* 密碼小眼睛樣式 */
+        .password-toggle {
+            cursor: pointer;
+            color: #9ca3af;
+            z-index: 10;
+            transition: color 0.2s;
+            font-size: 1.2rem; 
+        }
+        .password-toggle:hover { color: #4b5563; }
+        
+        /* 輸入框字體加大 */
+        input, select, button { font-size: 1.125rem !important; }
+
+        /* Canvas 背景設定 */
         #canvas-container {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -10; overflow: hidden;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -10;
+            overflow: hidden;
+            /* 背景漸層流動 */
             background: linear-gradient(-45deg, #f8fafc, #eff6ff, #f3e8ff, #f0fdf4);
             background-size: 400% 400%;
             animation: gradientBG 20s ease infinite;
         }
+
         @keyframes gradientBG {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
 
+        /* 3D 文字特效樣式 */
         .title-3d {
             background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #7c3aed 100%);
-            -webkit-background-clip: text; background-clip: text; color: transparent;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            /* 使用 drop-shadow 濾鏡堆疊創造立體感 */
             filter: drop-shadow(1px 1px 0px rgba(59, 130, 246, 0.5)) 
                     drop-shadow(3px 3px 0px rgba(30, 58, 138, 0.3))
                     drop-shadow(6px 6px 6px rgba(0, 0, 0, 0.2));
@@ -64,13 +107,16 @@
 </head>
 <body class="min-h-screen font-sans flex flex-col text-gray-800 relative overflow-x-hidden selection:bg-blue-200">
 
+    <!-- *** 新增：動態背景層 (Canvas + Gradient) *** -->
     <div id="canvas-container">
         <canvas id="network-canvas"></canvas>
     </div>
 
+    <!-- 導航列 (加入 backdrop-blur 讓背景若隱若現) -->
     <nav class="bg-white/80 backdrop-blur-md shadow-md p-5 sticky top-0 z-50 border-b border-white/40">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div class="flex items-center space-x-4 cursor-pointer" onclick="goHome()">
+                <!-- 保留這個轉圈圈設計 -->
                 <i class="fa-solid fa-atom text-blue-600 text-4xl animate-spin-slow"></i>
                 <span class="text-3xl font-bold text-gray-800 tracking-tight" data-i18n="site_title_nav">Science Learning Hub</span>
             </div>
@@ -89,7 +135,6 @@
                     <option value="hi">हिन्दी</option>
                     <option value="ms">Bahasa Melayu</option>
                 </select>
-                
                 <div id="user-info-display" class="hidden font-medium text-gray-600 bg-gray-100 px-5 py-2 rounded-full text-lg"></div>
                 <button id="logout-btn" onclick="logout()" class="hidden text-red-500 hover:text-red-700 font-medium text-lg" data-i18n="logout">登出</button>
                 <button id="nav-login-btn" onclick="showLoginModal()" class="bg-blue-600 text-white px-8 py-2 rounded-full hover:bg-blue-700 font-bold shadow-lg shadow-blue-500/30 transition text-lg transform hover:-translate-y-0.5" data-i18n="btn_login">登入</button>
@@ -97,16 +142,22 @@
         </div>
     </nav>
 
+    <!-- 主內容 -->
     <main class="max-w-7xl mx-auto p-8 flex-grow w-full relative z-10">
         
+        <!-- 1. 首頁 (Home) -->
         <div id="section-home" class="fade-in py-16">
             <div class="text-center mb-20 relative">
                 <h2 class="text-3xl md:text-4xl font-medium text-gray-500 mb-4 tracking-wide" data-i18n="welcome_prefix">歡迎來到</h2>
+                
+                <!-- 修改：應用新的 title-3d 樣式 -->
                 <h1 class="title-3d text-6xl md:text-7xl font-black tracking-tighter mb-8 font-sans pb-4" data-i18n="site_title_hero">Science Learning Hub</h1>
+                
                 <p class="text-xl text-gray-600 max-w-2xl mx-auto" data-i18n="select_role">請選擇您的身份以進入專屬學習空間</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-7xl mx-auto px-4">
+                <!-- 學生入口 -->
                 <div onclick="preSelectRole('student')" class="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl overflow-hidden cursor-pointer transform transition duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/20 border-b-8 border-student group ring-1 ring-white/50">
                     <div class="h-60 bg-student-light/50 flex items-center justify-center group-hover:bg-blue-200 transition relative overflow-hidden">
                         <div class="absolute inset-0 bg-gradient-to-tr from-blue-400/20 to-transparent"></div>
@@ -117,6 +168,7 @@
                         <p class="text-gray-600 text-lg" data-i18n="desc_student">探索科學文本、重點整理與測驗回饋</p>
                     </div>
                 </div>
+                <!-- 教師入口 -->
                 <div onclick="preSelectRole('teacher')" class="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl overflow-hidden cursor-pointer transform transition duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-green-500/20 border-b-8 border-teacher group ring-1 ring-white/50">
                     <div class="h-60 bg-teacher-light/50 flex items-center justify-center group-hover:bg-green-200 transition relative overflow-hidden">
                          <div class="absolute inset-0 bg-gradient-to-tr from-green-400/20 to-transparent"></div>
@@ -127,6 +179,7 @@
                         <p class="text-gray-600 text-lg" data-i18n="desc_teacher">備課資源、命題檢核與學習診斷</p>
                     </div>
                 </div>
+                <!-- 研究員入口 -->
                 <div onclick="preSelectRole('researcher')" class="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl overflow-hidden cursor-pointer transform transition duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-purple-500/20 border-b-8 border-researcher group ring-1 ring-white/50">
                     <div class="h-60 bg-researcher-light/50 flex items-center justify-center group-hover:bg-purple-200 transition relative overflow-hidden">
                         <div class="absolute inset-0 bg-gradient-to-tr from-purple-400/20 to-transparent"></div>
@@ -140,6 +193,7 @@
             </div>
         </div>
 
+        <!-- 2. 認證中心 -->
         <div id="section-auth" class="hidden-section fade-in max-w-2xl mx-auto bg-white/90 backdrop-blur-xl p-12 rounded-3xl shadow-2xl mt-12 border border-white/60 relative overflow-hidden">
             <div class="absolute top-0 right-0 w-40 h-40 bg-blue-100 rounded-full blur-3xl -z-10 opacity-50"></div>
 
@@ -149,6 +203,8 @@
                 <button id="tab-login" onclick="switchAuthMode('login')" class="w-1/2 py-4 text-xl font-bold text-blue-600 border-b-4 border-blue-600 focus:outline-none transition-colors" data-i18n="tab_login">登入</button>
                 <button id="tab-register" onclick="switchAuthMode('register')" class="w-1/2 py-4 text-xl font-bold text-gray-400 hover:text-gray-600 focus:outline-none transition-colors" data-i18n="tab_register">註冊新帳號</button>
             </div>
+
+            <h2 id="login-title-text" class="text-3xl font-bold text-center text-gray-800 mb-8 hidden"></h2>
 
             <form id="form-login" onsubmit="handleLogin(event)" class="space-y-8">
                 <div>
@@ -172,11 +228,9 @@
 
             <form id="form-register" class="hidden-section space-y-6" onsubmit="handleRegister(event)">
                 <input type="hidden" id="input-role" value="student">
-
                 <div id="role-display-block" class="mb-8 text-center hidden">
                     <span class="bg-blue-50 text-blue-800 border border-blue-100 px-6 py-2 rounded-full text-xl font-bold" id="reg-role-display-text">註冊學生帳號</span>
                 </div>
-
                 <div id="role-select-block" class="p-6 bg-blue-50 rounded-xl border border-blue-100 mb-6 hidden">
                     <label class="block text-blue-800 text-lg font-bold mb-3" data-i18n="label_select_role">註冊身分</label>
                     <select id="input-role-select" onchange="syncRoleFromSelector()" class="w-full px-4 py-3 rounded border border-blue-200 text-gray-700 bg-white focus:outline-none focus:border-blue-500 text-lg">
@@ -185,35 +239,14 @@
                         <option value="researcher" data-i18n="role_researcher">我是研究員</option>
                     </select>
                 </div>
-
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_email_account">Email (帳號)</label>
-                        <input type="email" id="reg-email" required class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none text-lg" placeholder="name@example.com">
-                    </div>
-                    <div>
-                        <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_password">設定密碼</label>
-                        <div class="relative">
-                            <input type="password" id="reg-password" required class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none pr-12 text-lg" placeholder="******">
-                            <i class="fa-solid fa-eye password-toggle absolute right-4 top-1/2 -translate-y-1/2" onclick="togglePassword('reg-password', this)"></i>
-                        </div>
-                    </div>
+                    <div><label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_email_account">Email (帳號)</label><input type="email" id="reg-email" required class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none text-lg" placeholder="name@example.com"></div>
+                    <div><label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_password">設定密碼</label><div class="relative"><input type="password" id="reg-password" required class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none pr-12 text-lg" placeholder="******"><i class="fa-solid fa-eye password-toggle absolute right-4 top-1/2 -translate-y-1/2" onclick="togglePassword('reg-password', this)"></i></div></div>
                 </div>
-                
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_name">姓名</label>
-                        <input type="text" id="input-name" required class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none text-lg">
-                    </div>
-                    <div>
-                        <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_confirm_password">確認密碼</label>
-                        <div class="relative">
-                            <input type="password" id="reg-password-confirm" required class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none pr-12 text-lg" placeholder="******">
-                            <i class="fa-solid fa-eye password-toggle absolute right-4 top-1/2 -translate-y-1/2" onclick="togglePassword('reg-password-confirm', this)"></i>
-                        </div>
-                    </div>
+                    <div><label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_name">姓名</label><input type="text" id="input-name" required class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none text-lg"></div>
+                    <div><label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_confirm_password">確認密碼</label><div class="relative"><input type="password" id="reg-password-confirm" required class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none pr-12 text-lg" placeholder="******"><i class="fa-solid fa-eye password-toggle absolute right-4 top-1/2 -translate-y-1/2" onclick="togglePassword('reg-password-confirm', this)"></i></div></div>
                 </div>
-
                 <div class="mb-6">
                     <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_gender">性別</label>
                     <select id="input-gender" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none bg-white text-lg">
@@ -222,108 +255,84 @@
                         <option value="other" data-i18n="gender_other">其他</option>
                     </select>
                 </div>
-
+                <!-- 學生專屬 -->
                 <div id="fields-student" class="role-fields space-y-6 p-6 bg-gray-50/80 rounded-xl border border-gray-200">
                     <div>
                         <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_country">國家/地區</label>
                         <select id="input-country-student" onchange="updateGrades('student')" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none bg-white text-lg"></select>
                     </div>
-
-                    <div>
-                        <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_school_student">就讀學校 (縣市+校名)</label>
-                        <input type="text" id="input-school-student" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none text-lg">
-                    </div>
-
-                    <div>
-                        <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_grade_student">就讀年級</label>
-                        <select id="input-grade-student" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none bg-white text-lg"></select>
-                    </div>
-
+                    <div><label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_school_student">就讀學校</label><input type="text" id="input-school-student" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none text-lg"></div>
+                    <div><label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_grade_student">就讀年級</label><select id="input-grade-student" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none bg-white text-lg"></select></div>
                     <div class="grid grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_class">班級</label>
-                            <input type="text" id="input-class" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none text-lg" placeholder="例如: 601">
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_student_id">學號</label>
-                            <input type="text" id="input-student-id" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none text-lg" placeholder="自填">
-                        </div>
+                        <div><label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_class">班級</label><input type="text" id="input-class" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none text-lg" placeholder="例如: 601"></div>
+                        <div><label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_student_id">學號</label><input type="text" id="input-student-id" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none text-lg" placeholder="自填"></div>
                     </div>
                 </div>
-
+                <!-- 教師專屬 -->
                 <div id="fields-teacher" class="role-fields hidden-section space-y-6 p-6 bg-gray-50/80 rounded-xl border border-gray-200">
                      <div>
                         <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_country">國家/地區</label>
                         <select id="input-country-teacher" onchange="updateGrades('teacher')" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none bg-white text-lg"></select>
                     </div>
-
-                    <div>
-                        <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_school_teacher">服務學校 (縣市+校名)</label>
-                        <input type="text" id="input-school-teacher" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none text-lg" placeholder="例如：花蓮縣花崗國中">
-                    </div>
+                    <div><label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_school_teacher">服務學校</label><input type="text" id="input-school-teacher" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none text-lg" placeholder="例如：花蓮縣花崗國中"></div>
                     <div class="grid grid-cols-2 gap-6">
                         <div>
                             <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_position">職稱</label>
                             <select id="input-position" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none bg-white text-lg">
-                                <option value="Principal" data-i18n="pos_principal">校長</option>
-                                <option value="Director" data-i18n="pos_director">主任</option>
-                                <option value="SectionChief" data-i18n="pos_section_chief">組長</option>
-                                <option value="HomeroomTeacher" data-i18n="pos_homeroom">導師</option>
+                                <option value="Principal" data-i18n="pos_principal">校長</option><option value="Director" data-i18n="pos_director">主任</option>
+                                <option value="SectionChief" data-i18n="pos_section_chief">組長</option><option value="HomeroomTeacher" data-i18n="pos_homeroom">導師</option>
                                 <option value="SubjectTeacher" data-i18n="pos_subject">科任</option>
                             </select>
                         </div>
-                        <div>
-                            <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_teaching_grade">教學年級</label>
-                            <select id="input-teaching-grade" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none bg-white text-lg"></select>
-                        </div>
+                        <div><label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_teaching_grade">教學年級</label><select id="input-teaching-grade" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none bg-white text-lg"></select></div>
                     </div>
                     <div class="grid grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_subject">教學科目</label>
-                            <input type="text" id="input-subject" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none text-lg" placeholder="例如: 自然">
-                        </div>
+                        <div><label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_subject">教學科目</label><input type="text" id="input-subject" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none text-lg" placeholder="例如: 自然"></div>
                         <div>
                             <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_seniority">教學年資</label>
                             <select id="input-seniority" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none bg-white text-lg">
-                                <option value="0-5" data-i18n="exp_0_5">5年以下</option>
-                                <option value="6-10" data-i18n="exp_6_10">6-10 年</option>
-                                <option value="11-15" data-i18n="exp_11_15">11-15 年</option>
-                                <option value="16-20" data-i18n="exp_16_20">16-20 年</option>
-                                <option value="21-25" data-i18n="exp_21_25">21-25 年</option>
-                                <option value="25+" data-i18n="exp_25_plus">25 年以上</option>
+                                <option value="0-5" data-i18n="exp_0_5">5年以下</option><option value="6-10" data-i18n="exp_6_10">6-10 年</option>
+                                <option value="11-15" data-i18n="exp_11_15">11-15 年</option><option value="16-20" data-i18n="exp_16_20">16-20 年</option>
+                                <option value="21-25" data-i18n="exp_21_25">21-25 年</option><option value="25+" data-i18n="exp_25_plus">25 年以上</option>
                             </select>
                         </div>
                     </div>
                 </div>
-
+                <!-- 研究員專屬 -->
                 <div id="fields-researcher" class="role-fields hidden-section space-y-6 p-6 bg-gray-50/80 rounded-xl border border-gray-200">
-                     <div>
+                    <div>
                         <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_country">國家/地區</label>
                         <select id="input-country-researcher" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none bg-white text-lg"></select>
                     </div>
-
                     <div><label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_unit">服務單位</label><input type="text" id="input-unit" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none text-lg" placeholder="例如：國立東華大學"></div>
                     <div class="grid grid-cols-2 gap-6">
                         <div><label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_research_title">職稱</label><input type="text" id="input-research-title" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none text-lg" placeholder="例如: 教授"></div>
                         <div><label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_field">研究領域</label><input type="text" id="input-field" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none text-lg" placeholder="例如：科學教育"></div>
                     </div>
                 </div>
-
                 <button id="btn-do-register" type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-5 px-8 rounded-xl shadow-lg hover:shadow-green-500/40 transition transform active:scale-95 mt-8 text-xl" data-i18n="btn_register_action">註冊並登入</button>
+            </form>
+
+            <form id="form-forgot-password" class="hidden-section space-y-8" onsubmit="handleForgotPassword(event)">
+                <h3 class="text-3xl font-bold text-gray-800 text-center mb-6" data-i18n="forgot_password_title">重設密碼</h3>
+                <p class="text-gray-600 text-lg text-center mb-8" data-i18n="forgot_password_desc">請輸入您註冊時的 Email，系統將發送驗證信給您。</p>
+                <div><label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_email">Email</label><input type="email" id="forgot-email" required class="w-full px-5 py-4 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition text-lg bg-gray-100" placeholder="name@example.com"></div>
+                <button type="submit" id="btn-do-forgot" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg transition transform active:scale-95 text-xl" data-i18n="btn_send_verify">發送驗證信</button>
+                <div class="text-center mt-6"><button type="button" onclick="showLoginModal()" class="text-gray-500 hover:text-gray-700 underline text-base transition" data-i18n="back_to_login">返回登入</button></div>
             </form>
         </div>
     </main>
 
     <footer class="text-center py-10 text-gray-500 text-base mt-12 border-t border-white/20 bg-white/60 backdrop-blur-md relative z-10">
-        <div class="flex flex-col gap-1 leading-tight">
-            <p>&copy; 2024 Science Learning Hub. AI-Powered Science Education.</p>
-            <p class="font-medium text-gray-700 text-lg">Institute of Science Education, National Dong-Hwa University, Taiwan</p>
+        <div class="flex flex-col gap-3">
+            <p>&copy; 2024 Science Learning Hub. AI-Powered Education.</p>
+            <p class="font-medium text-gray-700 text-lg">Institute of Science Education, National Dong-Hwa University</p>
             <p><a href="mailto:shiwen@gms.ndhu.edu.tw" class="text-blue-500 hover:text-blue-700 underline transition flex justify-center items-center gap-1"><i class="fa-regular fa-envelope"></i> shiwen@gms.ndhu.edu.tw</a></p>
         </div>
     </footer>
 
     <script>
-        // *** 1. Canvas 動畫 (不變) ***
+        // *** Canvas 原子軌域動畫 (Atomic Orbitals Cloud Animation) ***
         (function() {
             const canvas = document.getElementById('network-canvas');
             const ctx = canvas.getContext('2d');
@@ -333,19 +342,15 @@
             let mouse = { x: null, y: null };
             window.addEventListener('mousemove', function(e) { mouse.x = e.x; mouse.y = e.y; });
             function resize() { width = window.innerWidth; height = window.innerHeight; canvas.width = width; canvas.height = height; centerX = width / 2; centerY = height / 2; targetCenterX = centerX; targetCenterY = centerY; initOrbits(); }
-            class Orbit {
-                constructor(radiusX, radiusY, angle, color, shadowColor, speed, particleColor) { this.radiusX = radiusX; this.radiusY = radiusY; this.tilt = angle; this.rotation = 0; this.speed = speed * 0.5; this.color = color; this.shadowColor = shadowColor; this.electronAngle = Math.random() * Math.PI * 2; this.electronSpeed = 0.0015 + Math.random() * 0.001; this.particleColor = particleColor || 'rgba(255, 255, 255, 0.8)'; }
-                draw(cx, cy) { ctx.save(); ctx.translate(cx, cy); ctx.rotate(this.tilt); ctx.beginPath(); ctx.ellipse(0, 0, this.radiusX, this.radiusY, this.rotation, 0, Math.PI * 2); ctx.shadowBlur = 80; ctx.shadowColor = this.shadowColor; ctx.strokeStyle = this.color; ctx.lineWidth = 8; ctx.lineCap = 'round'; ctx.stroke(); ctx.lineWidth = 4; ctx.stroke(); const t = this.electronAngle; const electronX = this.radiusX * Math.cos(t); const electronY = this.radiusY * Math.sin(t); ctx.beginPath(); ctx.arc(electronX, electronY, 4, 0, Math.PI*2); ctx.fillStyle = this.particleColor; ctx.shadowBlur = 20; ctx.shadowColor = this.particleColor; ctx.fill(); ctx.restore(); }
-                update() { this.rotation += this.speed; this.electronAngle += this.electronSpeed; }
-            }
+            class Orbit { constructor(radiusX, radiusY, angle, color, shadowColor, speed, particleColor) { this.radiusX = radiusX; this.radiusY = radiusY; this.tilt = angle; this.rotation = 0; this.speed = speed * 0.5; this.color = color; this.shadowColor = shadowColor; this.electronAngle = Math.random() * Math.PI * 2; this.electronSpeed = 0.0015 + Math.random() * 0.001; this.particleColor = particleColor || 'rgba(255, 255, 255, 0.8)'; } draw(cx, cy) { ctx.save(); ctx.translate(cx, cy); ctx.rotate(this.tilt); ctx.beginPath(); ctx.ellipse(0, 0, this.radiusX, this.radiusY, this.rotation, 0, Math.PI * 2); ctx.shadowBlur = 80; ctx.shadowColor = this.shadowColor; ctx.strokeStyle = this.color; ctx.lineWidth = 8; ctx.lineCap = 'round'; ctx.stroke(); ctx.lineWidth = 4; ctx.stroke(); const t = this.electronAngle; const electronX = this.radiusX * Math.cos(t); const electronY = this.radiusY * Math.sin(t); ctx.beginPath(); ctx.arc(electronX, electronY, 4, 0, Math.PI*2); ctx.fillStyle = this.particleColor; ctx.shadowBlur = 20; ctx.shadowColor = this.particleColor; ctx.fill(); ctx.restore(); } update() { this.rotation += this.speed; this.electronAngle += this.electronSpeed; } }
             function drawNucleus(cx, cy) { ctx.save(); ctx.translate(cx, cy); const gradient = ctx.createRadialGradient(0, 0, 5, 0, 0, 30); gradient.addColorStop(0, 'rgba(59, 130, 246, 0.2)'); gradient.addColorStop(1, 'rgba(59, 130, 246, 0)'); ctx.beginPath(); ctx.arc(0, 0, 30, 0, Math.PI * 2); ctx.fillStyle = gradient; ctx.fill(); ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'; ctx.shadowBlur = 25; ctx.shadowColor = 'rgba(59, 130, 246, 0.3)'; ctx.fill(); ctx.restore(); }
             function initOrbits() { orbits = []; const baseR = width < height ? width * 0.2 : height * 0.25; orbits.push(new Orbit(baseR * 2.2, baseR * 2.2, 0, 'rgba(139, 92, 246, 0.02)', 'rgba(167, 139, 250, 0.3)', 0.0005, 'rgba(196, 181, 253, 0.5)')); const pStroke = 'rgba(59, 130, 246, 0.05)'; const pShadow = 'rgba(96, 165, 250, 0.4)'; const pParticle = 'rgba(147, 197, 253, 0.6)'; orbits.push(new Orbit(baseR * 1.3, baseR * 0.5, Math.PI / 6, pStroke, pShadow, 0.001, pParticle)); orbits.push(new Orbit(baseR * 1.3, baseR * 0.5, Math.PI * 5 / 6, pStroke, pShadow, -0.0012, pParticle)); const dStroke = 'rgba(16, 185, 129, 0.08)'; const dShadow = 'rgba(52, 211, 153, 0.5)'; const dParticle = 'rgba(134, 239, 172, 0.7)'; orbits.push(new Orbit(baseR * 0.9, baseR * 0.3, Math.PI / 4, dStroke, dShadow, 0.002, dParticle)); }
-            function animate() { ctx.clearRect(0, 0, width, height); if (mouse.x != null) { targetCenterX = (width/2) + (mouse.x - width/2)*0.03; targetCenterY = (height/2) + (mouse.y - height/2)*0.03; } else { targetCenterX = width/2; targetCenterY = height/2; } centerX += (targetCenterX - centerX)*0.05; centerY += (targetCenterY - centerY)*0.05; for (let orbit of orbits) { orbit.update(); orbit.draw(centerX, centerY); } drawNucleus(centerX, centerY); requestAnimationFrame(animate); }
+            function animate() { ctx.clearRect(0, 0, width, height); if (mouse.x != null) { targetCenterX = (width / 2) + (mouse.x - width / 2) * 0.03; targetCenterY = (height / 2) + (mouse.y - height / 2) * 0.03; } else { targetCenterX = width / 2; targetCenterY = height / 2; } centerX += (targetCenterX - centerX) * 0.05; centerY += (targetCenterY - centerY) * 0.05; for (let orbit of orbits) { orbit.update(); orbit.draw(centerX, centerY); } drawNucleus(centerX, centerY); requestAnimationFrame(animate); }
             window.addEventListener('resize', resize); resize(); animate();
         })();
 
-        // *** 資料設定 ***
-        
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbzcDKkz8Tilzb3qbx0_fDR7QoG4-c2JCtsa4p9V8_1gBjZaEMlvQHd72OD0kZq_jW8H/exec";
+
         const countryList = [
             { code: "TW", nameKey: "country_tw" }, { code: "CN", nameKey: "country_cn" }, { code: "HK", nameKey: "country_hk" }, { code: "MO", nameKey: "country_mo" },
             { code: "JP", nameKey: "country_jp" }, { code: "KR", nameKey: "country_kr" }, { code: "US", nameKey: "country_us" }, { code: "GB", nameKey: "country_gb" },
@@ -364,9 +369,7 @@
             "GB": [ {key: "grade_gb_Y", range: [1,13]} ],
             "OTHER": [ {key: "grade_intl_G", range: [1,12]} ]
         };
-        const defaultEduSystem = educationSystems["OTHER"];
 
-        // *** 12種語言字典 (繁中、英、日、韓、簡中、西、葡、印尼、泰、越、印度、馬來) ***
         const translations = {
             "zh-TW": {
                 "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub", 
@@ -383,7 +386,7 @@
                 "pos_principal": "校長", "pos_director": "主任", "pos_section_chief": "組長", "pos_homeroom": "導師", "pos_subject": "科任",
                 "exp_0_5": "5年以下", "exp_6_10": "6-10 年", "exp_11_15": "11-15 年", "exp_16_20": "16-20 年", "exp_21_25": "21-25 年", "exp_25_plus": "25 年以上",
                 "country_tw": "台灣", "country_cn": "中國", "country_hk": "香港", "country_mo": "澳門", "country_jp": "日本", "country_kr": "韓國", "country_us": "美國", "country_gb": "英國", "country_sg": "新加坡", "country_my": "馬來西亞", "country_vn": "越南", "country_id": "印尼", "country_th": "泰國", "country_in": "印度", "country_au": "澳洲", "country_ca": "加拿大", "country_other": "其他國家",
-                "grade_tw_E": "國小", "grade_tw_J": "國中", "grade_tw_S": "高中", "grade_jp_E": "小學", "grade_jp_J": "中學", "grade_jp_H": "高校"
+                "grade_tw_E": "國小", "grade_tw_J": "國中", "grade_tw_S": "高中", "grade_cn_P": "小學", "grade_cn_J": "初中", "grade_cn_S": "高中", "grade_hk_P": "小學", "grade_hk_S": "中學", "grade_jp_E": "小學", "grade_jp_J": "中學", "grade_jp_H": "高校", "grade_kr_E": "初等學校", "grade_kr_M": "中學校", "grade_kr_H": "高等學校", "grade_us_K": "幼兒園", "grade_us_G": "年級", "grade_gb_Y": "年級", "grade_intl_G": "年級"
             },
             "en": {
                 "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub", 
@@ -399,8 +402,8 @@
                 "ph_class": "e.g., 601", "ph_student_id": "Your ID", "ph_school_teacher": "e.g., Hualien Junior High", "ph_subject": "e.g., Science", "ph_unit": "e.g., National Dong-Hwa Univ.", "ph_research_title": "e.g., Professor", "ph_field": "e.g., Science Education",
                 "pos_principal": "Principal", "pos_director": "Director", "pos_section_chief": "Section Chief", "pos_homeroom": "Homeroom Teacher", "pos_subject": "Subject Teacher",
                 "exp_0_5": "< 5 Years", "exp_6_10": "6-10 Years", "exp_11_15": "11-15 Years", "exp_16_20": "16-20 Years", "exp_21_25": "21-25 Years", "exp_25_plus": "25+ Years",
-                "country_tw": "Taiwan", "country_jp": "Japan", "country_us": "USA", "country_other": "Other",
-                "grade_tw_E": "Elementary G", "grade_tw_J": "Junior High G", "grade_tw_S": "Senior High G", "grade_jp_E": "Elementary G", "grade_jp_J": "Junior High G", "grade_jp_H": "High School G"
+                "country_tw": "Taiwan", "country_cn": "China", "country_hk": "Hong Kong", "country_mo": "Macau", "country_jp": "Japan", "country_kr": "Korea", "country_us": "USA", "country_gb": "UK", "country_sg": "Singapore", "country_my": "Malaysia", "country_vn": "Vietnam", "country_id": "Indonesia", "country_th": "Thailand", "country_in": "India", "country_au": "Australia", "country_ca": "Canada", "country_other": "Other",
+                "grade_tw_E": "Elementary G", "grade_tw_J": "Junior High G", "grade_tw_S": "Senior High G", "grade_cn_P": "Primary G", "grade_cn_J": "Junior High G", "grade_cn_S": "Senior High G", "grade_hk_P": "Primary P", "grade_hk_S": "Secondary S", "grade_jp_E": "Elementary G", "grade_jp_J": "Junior High G", "grade_jp_H": "High School G", "grade_kr_E": "Elementary G", "grade_kr_M": "Middle School G", "grade_kr_H": "High School G", "grade_us_K": "Kindergarten", "grade_us_G": "Grade", "grade_gb_Y": "Year", "grade_intl_G": "Grade"
             },
             "ja": {
                 "site_title_nav": "サイエンス・ラーニング・ハブ", "site_title_hero": "Science Learning Hub",
@@ -416,10 +419,10 @@
                 "ph_class": "例：6年1組", "ph_student_id": "番号を入力", "ph_school_teacher": "例：花蓮中学校", "ph_subject": "例：理科", "ph_unit": "例：国立東華大学", "ph_research_title": "例：教授", "ph_field": "例：科学教育",
                 "pos_principal": "校長", "pos_director": "主任", "pos_section_chief": "組長/主事", "pos_homeroom": "担任", "pos_subject": "教科担当",
                 "exp_0_5": "5年以下", "exp_6_10": "6-10 年", "exp_11_15": "11-15 年", "exp_16_20": "16-20 年", "exp_21_25": "21-25 年", "exp_25_plus": "25年以上",
-                "country_tw": "台湾", "country_jp": "日本", "country_us": "米国", "country_other": "その他",
-                "grade_tw_E": "小学", "grade_tw_J": "中学", "grade_tw_S": "高校", "grade_jp_E": "小学", "grade_jp_J": "中学", "grade_jp_H": "高校"
+                "country_tw": "台湾", "country_cn": "中国", "country_hk": "香港", "country_mo": "マカオ", "country_jp": "日本", "country_kr": "韓国", "country_us": "米国", "country_gb": "英国", "country_sg": "シンガポール", "country_my": "マレーシア", "country_vn": "ベトナム", "country_id": "インドネシア", "country_th": "タイ", "country_in": "インド", "country_au": "オーストラリア", "country_ca": "カナダ", "country_other": "その他",
+                "grade_tw_E": "小学", "grade_tw_J": "中学", "grade_tw_S": "高校", "grade_cn_P": "小学", "grade_cn_J": "初級中学", "grade_cn_S": "高級中学", "grade_hk_P": "小学", "grade_hk_S": "中学", "grade_jp_E": "小学", "grade_jp_J": "中学", "grade_jp_H": "高校", "grade_kr_E": "初等", "grade_kr_M": "中等", "grade_kr_H": "高等", "grade_us_K": "幼稚園", "grade_us_G": "Grade", "grade_gb_Y": "Year", "grade_intl_G": "Grade"
             },
-            "ko": {
+             "ko": {
                 "site_title_nav": "사이언스 러닝 허브", "site_title_hero": "Science Learning Hub",
                 "welcome_prefix": "환영합니다", "select_role": "역할을 선택하세요",
                 "role_student": "학생", "desc_student": "과학 텍스트 및 퀴즈", "role_teacher": "교사", "desc_teacher": "수업 자료 및 진단", "role_researcher": "연구원", "desc_researcher": "텍스트 분석",
@@ -432,53 +435,55 @@
                 "default_school_name": "화롄 뉴턴 초등학교",
                 "ph_class": "예: 6-1", "ph_student_id": "학번 입력", "ph_school_teacher": "예: 화롄 중학교", "ph_subject": "예: 과학", "ph_unit": "예: 국립동화대학", "ph_research_title": "예: 교수", "ph_field": "예: 과학교육",
                 "pos_principal": "교장", "pos_director": "주임", "pos_section_chief": "부장", "pos_homeroom": "담임 교사", "pos_subject": "교과 전담",
-                "exp_0_5": "5년 미만", "exp_6_10": "6-10 년", "exp_25_plus": "25년 이상",
-                "country_tw": "대만", "country_jp": "일본", "country_kr": "한국", "country_us": "미국", "country_other": "기타",
-                "grade_tw_E": "초등", "grade_tw_J": "중등", "grade_tw_S": "고등", "grade_kr_E": "초등", "grade_kr_M": "중학", "grade_kr_H": "고등"
+                "exp_0_5": "5년 미만", "exp_6_10": "6-10 년", "exp_11_15": "11-15 년", "exp_16_20": "16-20 년", "exp_21_25": "21-25 년", "exp_25_plus": "25년 이상",
+                "country_tw": "대만", "country_cn": "중국", "country_hk": "홍콩", "country_mo": "마카오", "country_jp": "일본", "country_kr": "한국", "country_us": "미국", "country_gb": "영국", "country_sg": "싱가포르", "country_my": "말레이시아", "country_vn": "베트남", "country_id": "인도네시아", "country_th": "태국", "country_in": "인도", "country_au": "호주", "country_ca": "캐나다", "country_other": "기타",
+                "grade_tw_E": "초등", "grade_tw_J": "중등", "grade_tw_S": "고등", "grade_cn_P": "초등", "grade_cn_J": "초급중학", "grade_cn_S": "고급중학", "grade_hk_P": "초등", "grade_hk_S": "중등", "grade_jp_E": "초등", "grade_jp_J": "중학", "grade_jp_H": "고등", "grade_kr_E": "초등", "grade_kr_M": "중학", "grade_kr_H": "고등", "grade_us_K": "유치원", "grade_us_G": "학년", "grade_gb_Y": "Year", "grade_intl_G": "Grade"
+            },
+             "zh-CN": {
+                "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub", 
+                "welcome_prefix": "欢迎来到", "select_role": "请选择您的身份以进入专属学习空间",
+                "role_student": "我是学生", "desc_student": "探索科学文本、重点整理与测验回馈", "role_teacher": "我是教师", "desc_teacher": "备课资源、命题检核与学习诊断", "role_researcher": "我是研究员", "desc_researcher": "高阶文本分析与系统语言研究",
+                "back": "返回", "tab_login": "登录", "tab_register": "注册新账号", "label_email": "Email", "label_password": "密码", "forgot_password": "忘记密码？", "btn_login": "登录", "btn_login_action": "登录系统", "logout": "登出",
+                "label_select_role": "注册身份", "label_email_account": "Email (账号)", "label_name": "姓名", "label_confirm_password": "确认密码",
+                "label_gender": "性别", "gender_male": "男", "gender_female": "女", "gender_other": "其他",
+                "label_country": "国家/地区", "label_school_student": "就读学校 (县市+校名)", "label_grade_student": "就读年级", "label_class": "班级", "label_student_id": "学号",
+                "label_school_teacher": "服务学校 (县市+校名)", "label_position": "职称", "label_teaching_grade": "教学年级", "label_subject": "教学科目", "label_seniority": "教学年资",
+                "label_unit": "服务单位", "label_research_title": "职称", "label_field": "研究领域", "btn_register_action": "注册并登录",
+                "default_school_name": "花莲县牛顿国小",
+                "ph_class": "例如: 601", "ph_student_id": "自填", "ph_school_teacher": "例如：花莲县花岗国中", "ph_subject": "例如: 自然", "ph_unit": "例如：国立东华大学", "ph_research_title": "例如: 教授", "ph_field": "例如：科学教育",
+                "pos_principal": "校长", "pos_director": "主任", "pos_section_chief": "组长", "pos_homeroom": "导师", "pos_subject": "科任",
+                "exp_0_5": "5年以下", "exp_6_10": "6-10 年", "exp_11_15": "11-15 年", "exp_16_20": "16-20 年", "exp_21_25": "21-25 年", "exp_25_plus": "25 年以上",
+                "country_tw": "台湾", "country_cn": "中国", "country_hk": "香港", "country_mo": "澳门", "country_jp": "日本", "country_kr": "韩国", "country_us": "美国", "country_gb": "英国", "country_sg": "新加坡", "country_my": "马来西亚", "country_vn": "越南", "country_id": "印尼", "country_th": "泰国", "country_in": "印度", "country_au": "澳洲", "country_ca": "加拿大", "country_other": "其他国家",
+                "grade_tw_E": "国小", "grade_tw_J": "国中", "grade_tw_S": "高中", "grade_cn_P": "小学", "grade_cn_J": "初中", "grade_cn_S": "高中", "grade_hk_P": "小学", "grade_hk_S": "中学", "grade_jp_E": "小学", "grade_jp_J": "中学", "grade_jp_H": "高校", "grade_kr_E": "初等学校", "grade_kr_M": "中学校", "grade_kr_H": "高等学校", "grade_us_K": "幼儿园", "grade_us_G": "年级", "grade_gb_Y": "年级", "grade_intl_G": "年级"
             }
-            // 由於篇幅限制，其餘語言 (zh-CN, es, pt, id, th, vi, hi, ms) 先使用 fallback 機制，
-            // 實作時請務必按照上面 ja/ko 的格式補齊所有 key。
         };
-        // 快速補齊其他語言的基本 fallback (實際專案中請填入正確翻譯)
-        ["zh-CN", "es", "pt", "id", "th", "vi", "hi", "ms"].forEach(lang => {
-            if(!translations[lang]) translations[lang] = JSON.parse(JSON.stringify(translations['en'])); // Copy English structure
-            // 這裡只簡單覆蓋一些關鍵字以示區別，實際請填入正確翻譯
-            if(lang === 'zh-CN') { translations[lang] = JSON.parse(JSON.stringify(translations['zh-TW'])); translations[lang].default_school_name = "花莲县牛顿小学"; translations[lang].gender_male="男"; }
+        
+        // 簡單補齊其他語言的 Fallback (複製 English)
+        ["es", "pt", "id", "th", "vi", "hi", "ms"].forEach(lang => {
+            if(!translations[lang]) translations[lang] = JSON.parse(JSON.stringify(translations['en']));
         });
 
-
         function changeLanguage() {
-            const lang = document.getElementById('language-selector').value;
-            const t = translations[lang] || translations['en'];
-            
-            // 1. 更新靜態文字 (data-i18n)
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
+            const lang = document.getElementById("language-selector").value;
+            const t = translations[lang] || translations['en']; // Default fallback
+
+            document.querySelectorAll("[data-i18n]").forEach(el => {
+                const key = el.getAttribute("data-i18n");
                 if (t[key]) {
-                    if(el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-                        // 如果是 placeholder (雖然主要用下面的邏輯處理，但保留相容性)
-                    } else {
-                        el.textContent = t[key];
-                    }
+                    if(el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {} 
+                    else el.innerText = t[key];
                 }
             });
 
-            // 2. 更新輸入框 Placeholders
             const phMap = {
-                'input-class': 'ph_class',
-                'input-student-id': 'ph_student_id',
-                'input-school-teacher': 'ph_school_teacher',
-                'input-subject': 'ph_subject',
-                'input-unit': 'ph_unit',
-                'input-research-title': 'ph_research_title',
-                'input-field': 'ph_field'
+                'input-class': 'ph_class', 'input-student-id': 'ph_student_id', 'input-school-teacher': 'ph_school_teacher',
+                'input-subject': 'ph_subject', 'input-unit': 'ph_unit', 'input-research-title': 'ph_research_title', 'input-field': 'ph_field'
             };
             for (const [id, key] of Object.entries(phMap)) {
                 const el = document.getElementById(id);
                 if (el && t[key]) el.placeholder = t[key];
             }
 
-            // 3. 更新預設校名 (邏輯：如果當前值是空的，或者包含"Newton"/"牛頓"/"ニュートン"，就更新)
             const schoolInput = document.getElementById('input-school-student');
             const currentVal = schoolInput.value;
             const isDefaultish = !currentVal || currentVal.includes("Newton") || currentVal.includes("牛頓") || currentVal.includes("ニュートン") || currentVal.includes("뉴턴");
@@ -486,11 +491,11 @@
                 schoolInput.value = t['default_school_name'];
             }
 
-            // 4. 重新生成下拉選單 (國家與年級)
+            // Refresh dropdowns
             populateCountries('student', lang);
             populateCountries('teacher', lang);
             populateCountries('researcher', lang);
-            updateGrades('student', true); // true = 嘗試保留選擇的值
+            updateGrades('student', true);
             updateGrades('teacher', true);
         }
 
@@ -498,7 +503,7 @@
             const selectId = `input-country-${role}`;
             const select = document.getElementById(selectId);
             if(!select) return;
-            const currentVal = select.value || (role === 'student' ? 'TW' : 'TW'); // Default
+            const currentVal = select.value || 'TW'; 
             const t = translations[lang] || translations['en'];
 
             select.innerHTML = "";
@@ -522,52 +527,39 @@
             const lang = document.getElementById('language-selector').value;
             const t = translations[lang] || translations['en'];
             
-            // 取得該國學制，若無則用 OTHER
             const system = educationSystems[countryCode] || educationSystems["OTHER"];
             const currentGrade = gradeSelect.value;
             
             gradeSelect.innerHTML = "";
 
             system.forEach(sys => {
-                // 取得前綴，例如 grade_jp_E -> "小学"
                 const prefixKey = sys.key; 
                 let prefix = t[prefixKey] || sys.key; 
-                
-                // Fallback: 如果字典沒有 grade_jp_E，嘗試用通用的 (這步可選)
                 if(!t[prefixKey]) prefix = sys.key.split('_')[2] || ""; 
 
                 const start = sys.range[0];
                 const end = sys.range[1];
 
-                if (start === 0 && end === 0) { // e.g. Kindergarten
-                     const opt = document.createElement('option');
-                     opt.value = sys.key;
-                     opt.textContent = prefix;
-                     gradeSelect.appendChild(opt);
+                if (start === 0 && end === 0) { 
+                      const opt = document.createElement('option');
+                      opt.value = sys.key;
+                      opt.textContent = prefix;
+                      gradeSelect.appendChild(opt);
                 } else {
                     for (let i = start; i <= end; i++) {
                         const opt = document.createElement('option');
                         opt.value = `${countryCode}_${sys.key}_${i}`; 
-                        
-                        // 組合顯示文字 (最重要的部分)
                         let displayText = prefix + " " + i; 
-                        
-                        // 針對 CJK 語言的特殊處理 (年級/年生)
                         if (lang === 'zh-TW' || lang === 'zh-CN') {
-                            // 繁中/簡中: 國小 + 1 + 年級
                             if (!prefix.includes("年級")) displayText = prefix + i + "年級";
                             else displayText = prefix + i;
                         } else if (lang === 'ja') {
-                            // 日文: 小学 + 1 + 年生
                             displayText = prefix + i + "年生"; 
                         } else if (lang === 'ko') {
-                            // 韓文: 초등 + 1 + 학년
                             displayText = prefix + i + "학년";
                         } else {
-                            // 英文/其他: Grade 1
                             displayText = prefix + " " + i;
                         }
-
                         opt.textContent = displayText;
                         gradeSelect.appendChild(opt);
                     }
@@ -575,8 +567,6 @@
             });
 
             if(preserveValue && currentGrade) {
-               // 嘗試保留值 (如果切換國家會失效，切換語言會保留)
-               // 這裡簡化處理，如果值還在列表內就選中
                for(let i=0; i<gradeSelect.options.length; i++) {
                    if(gradeSelect.options[i].value === currentGrade) {
                        gradeSelect.selectedIndex = i;
