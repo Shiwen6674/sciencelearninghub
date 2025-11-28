@@ -655,7 +655,7 @@
             });
             
             // Fix for dynamic role display text
-            syncRoleFromSelector(); // Re-render the dynamic "Register As [Role]" text
+            syncRoleFromSelector(); 
 
             const phMap = {
                 'input-class': 'ph_class', 'input-student-id': 'ph_student_id', 'input-school-teacher': 'ph_school_teacher',
@@ -742,6 +742,10 @@
                             displayText = prefix + i + "年生"; 
                         } else if (lang === 'ko') {
                             displayText = prefix + i + "학년";
+                        } else if (lang === 'vi') {
+                             displayText = prefix + " " + i; // Vietnamese usually Lớp 1, already has prefix
+                        } else if (lang === 'th') {
+                             displayText = prefix + " " + i; // Prathom 1
                         } else {
                             displayText = prefix + " " + i;
                         }
@@ -761,7 +765,7 @@
             }
         }
 
-        // *** 頁面邏輯 ***
+        // *** 頁面邏輯 (保持原有功能) ***
         let targetRole = null;
         document.addEventListener('DOMContentLoaded', () => { 
             changeLanguage(); 
@@ -787,14 +791,6 @@
             document.getElementById('input-role').value = role; 
             const t = translations[document.getElementById('language-selector').value] || translations['en']; 
             const roleName = t[`role_${role}`]; 
-            const regPrefix = t['label_select_role'] || "Register As";
-            // Logic adjustment: "Register As" label is in the form, the title is separate.
-            // The ID reg-role-display-text is for "Student Registration" style title.
-            // Let's use a specific key or combine.
-            // The simplified Chinese fix requested: "注册新账号 我是学生" -> This suggests we need two parts.
-            // Let's look at translations. reg_title_student was removed in previous refactor? No, let's check.
-            // The translations object above has "reg_title_student" in previous version but in this full version I used "label_select_role" etc.
-            // Let's construct it: "Register New Account" + " " + Role Name.
             const tabRegText = t['tab_register'];
             document.getElementById('reg-role-display-text').textContent = tabRegText + " - " + roleName; 
             
