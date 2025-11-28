@@ -222,7 +222,10 @@
                         <i class="fa-solid fa-eye password-toggle absolute right-5 top-1/2 -translate-y-1/2" onclick="togglePassword('login-password', this)"></i>
                     </div>
                 </div>
-                <div class="flex justify-end">
+                
+                <!-- 修改後的按鈕區塊 -->
+                <div class="flex justify-between items-center mb-6">
+                    <button type="button" onclick="switchAuthMode('register')" class="text-base text-gray-500 hover:text-gray-800 hover:underline transition" data-i18n="not_registered">尚未註冊？</button>
                     <button type="button" onclick="showForgotPassword()" class="text-base text-blue-600 hover:text-blue-800 hover:underline transition" data-i18n="forgot_password">忘記密碼？</button>
                 </div>
                 
@@ -362,8 +365,6 @@
                     <button type="button" onclick="showLoginModal()" class="text-gray-500 hover:text-gray-700 underline text-base transition" data-i18n="back_to_login">返回登入</button>
                 </div>
             </form>
-            
-            <!-- 隱藏原有的文字提示，改用按鈕動畫 -->
         </div>
     </main>
 
@@ -443,7 +444,8 @@
                 "pos_principal": "校長", "pos_director": "主任", "pos_section_chief": "組長", "pos_homeroom": "導師", "pos_subject": "科任",
                 "exp_0_5": "5年以下", "exp_6_10": "6-10 年", "exp_11_15": "11-15 年", "exp_16_20": "16-20 年", "exp_21_25": "21-25 年", "exp_25_plus": "25 年以上",
                 "country_tw": "台灣", "country_cn": "中國", "country_hk": "香港", "country_mo": "澳門", "country_jp": "日本", "country_kr": "韓國", "country_us": "美國", "country_gb": "英國", "country_sg": "新加坡", "country_my": "馬來西亞", "country_vn": "越南", "country_id": "印尼", "country_th": "泰國", "country_in": "印度", "country_au": "澳洲", "country_ca": "加拿大", "country_nz": "紐西蘭", "country_other": "其他國家",
-                "grade_tw_E": "國小", "grade_tw_J": "國中", "grade_tw_S": "高中", "grade_cn_P": "小學", "grade_cn_J": "初中", "grade_cn_S": "高中", "grade_hk_P": "小學", "grade_hk_S": "中學", "grade_jp_E": "小學", "grade_jp_J": "中學", "grade_jp_H": "高校", "grade_kr_E": "初等學校", "grade_kr_M": "中學校", "grade_kr_H": "高等學校", "grade_us_K": "幼兒園", "grade_us_G": "年級", "grade_gb_Y": "年級", "grade_intl_G": "年級"
+                "grade_tw_E": "國小", "grade_tw_J": "國中", "grade_tw_S": "高中", "grade_cn_P": "小學", "grade_cn_J": "初中", "grade_cn_S": "高中", "grade_hk_P": "小學", "grade_hk_S": "中學", "grade_jp_E": "小學", "grade_jp_J": "中學", "grade_jp_H": "高校", "grade_kr_E": "初等學校", "grade_kr_M": "中學校", "grade_kr_H": "高等學校", "grade_us_K": "幼兒園", "grade_us_G": "年級", "grade_gb_Y": "年級", "grade_intl_G": "年級",
+                "not_registered": "尚未註冊？"
             },
             "en": {
                 "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub", 
@@ -460,7 +462,8 @@
                 "pos_principal": "Principal", "pos_director": "Director", "pos_section_chief": "Section Chief", "pos_homeroom": "Homeroom Teacher", "pos_subject": "Subject Teacher",
                 "exp_0_5": "< 5 Years", "exp_6_10": "6-10 Years", "exp_11_15": "11-15 Years", "exp_16_20": "16-20 Years", "exp_21_25": "21-25 Years", "exp_25_plus": "25+ Years",
                 "country_tw": "Taiwan", "country_cn": "China", "country_hk": "Hong Kong", "country_mo": "Macau", "country_jp": "Japan", "country_kr": "Korea", "country_us": "USA", "country_gb": "UK", "country_sg": "Singapore", "country_my": "Malaysia", "country_vn": "Vietnam", "country_id": "Indonesia", "country_th": "Thailand", "country_in": "India", "country_au": "Australia", "country_ca": "Canada", "country_nz": "New Zealand", "country_other": "Other",
-                "grade_tw_E": "Elementary G", "grade_tw_J": "Junior High G", "grade_tw_S": "Senior High G", "grade_cn_P": "Primary G", "grade_cn_J": "Junior High G", "grade_cn_S": "Senior High G", "grade_hk_P": "Primary P", "grade_hk_S": "Secondary S", "grade_jp_E": "Elementary G", "grade_jp_J": "Junior High G", "grade_jp_H": "High School G", "grade_kr_E": "Elementary G", "grade_kr_M": "Middle School G", "grade_kr_H": "High School G", "grade_us_K": "Kindergarten", "grade_us_G": "Grade", "grade_gb_Y": "Year", "grade_intl_G": "Grade"
+                "grade_tw_E": "Elementary G", "grade_tw_J": "Junior High G", "grade_tw_S": "Senior High G", "grade_cn_P": "Primary G", "grade_cn_J": "Junior High G", "grade_cn_S": "Senior High G", "grade_hk_P": "Primary P", "grade_hk_S": "Secondary S", "grade_jp_E": "Elementary G", "grade_jp_J": "Junior High G", "grade_jp_H": "High School G", "grade_kr_E": "Elementary G", "grade_kr_M": "Middle School G", "grade_kr_H": "High School G", "grade_us_K": "Kindergarten", "grade_us_G": "Grade", "grade_gb_Y": "Year", "grade_intl_G": "Grade",
+                "not_registered": "Not registered?"
             },
             "ja": {
                 "site_title_nav": "サイエンス・ラーニング・ハブ", "site_title_hero": "Science Learning Hub",
@@ -477,7 +480,8 @@
                 "pos_principal": "校長", "pos_director": "主任", "pos_section_chief": "組長/主事", "pos_homeroom": "担任", "pos_subject": "教科担当",
                 "exp_0_5": "5年以下", "exp_6_10": "6-10 年", "exp_11_15": "11-15 年", "exp_16_20": "16-20 年", "exp_21_25": "21-25 年", "exp_25_plus": "25年以上",
                 "country_tw": "台湾", "country_cn": "中国", "country_hk": "香港", "country_mo": "マカオ", "country_jp": "日本", "country_kr": "韓国", "country_us": "米国", "country_gb": "英国", "country_sg": "シンガポール", "country_my": "マレーシア", "country_vn": "ベトナム", "country_id": "インドネシア", "country_th": "タイ", "country_in": "インド", "country_au": "オーストラリア", "country_ca": "カナダ", "country_nz": "ニュージーランド", "country_other": "その他",
-                "grade_tw_E": "小学", "grade_tw_J": "中学", "grade_tw_S": "高校", "grade_cn_P": "小学", "grade_cn_J": "初級中学", "grade_cn_S": "高級中学", "grade_hk_P": "小学", "grade_hk_S": "中学", "grade_jp_E": "小学", "grade_jp_J": "中学", "grade_jp_H": "高校", "grade_kr_E": "初等", "grade_kr_M": "中等", "grade_kr_H": "高等", "grade_us_K": "幼稚園", "grade_us_G": "Grade", "grade_gb_Y": "Year", "grade_intl_G": "Grade"
+                "grade_tw_E": "小学", "grade_tw_J": "中学", "grade_tw_S": "高校", "grade_cn_P": "小学", "grade_cn_J": "初級中学", "grade_cn_S": "高級中学", "grade_hk_P": "小学", "grade_hk_S": "中学", "grade_jp_E": "小学", "grade_jp_J": "中学", "grade_jp_H": "高校", "grade_kr_E": "初等", "grade_kr_M": "中等", "grade_kr_H": "高等", "grade_us_K": "幼稚園", "grade_us_G": "Grade", "grade_gb_Y": "Year", "grade_intl_G": "Grade",
+                "not_registered": "未登録ですか？"
             },
             "ko": {
                 "site_title_nav": "사이언스 러닝 허브", "site_title_hero": "Science Learning Hub",
@@ -494,7 +498,8 @@
                 "pos_principal": "교장", "pos_director": "주임", "pos_section_chief": "부장", "pos_homeroom": "담임 교사", "pos_subject": "교과 전담",
                 "exp_0_5": "5년 미만", "exp_6_10": "6-10 년", "exp_11_15": "11-15 년", "exp_16_20": "16-20 년", "exp_21_25": "21-25 년", "exp_25_plus": "25년 이상",
                 "country_tw": "대만", "country_cn": "중국", "country_hk": "홍콩", "country_mo": "마카오", "country_jp": "일본", "country_kr": "한국", "country_us": "미국", "country_gb": "영국", "country_sg": "싱가포르", "country_my": "말레이시아", "country_vn": "베트남", "country_id": "인도네시아", "country_th": "태국", "country_in": "인도", "country_au": "호주", "country_ca": "캐나다", "country_nz": "뉴질랜드", "country_other": "기타",
-                "grade_tw_E": "초등", "grade_tw_J": "중등", "grade_tw_S": "고등", "grade_cn_P": "초등", "grade_cn_J": "초급중학", "grade_cn_S": "고급중학", "grade_hk_P": "초등", "grade_hk_S": "중등", "grade_jp_E": "초등", "grade_jp_J": "중학", "grade_jp_H": "고등", "grade_kr_E": "초등", "grade_kr_M": "중학", "grade_kr_H": "고등", "grade_us_K": "유치원", "grade_us_G": "학년", "grade_gb_Y": "Year", "grade_intl_G": "Grade"
+                "grade_tw_E": "초등", "grade_tw_J": "중등", "grade_tw_S": "고등", "grade_cn_P": "초등", "grade_cn_J": "초급중학", "grade_cn_S": "고급중학", "grade_hk_P": "초등", "grade_hk_S": "중등", "grade_jp_E": "초등", "grade_jp_J": "중학", "grade_jp_H": "고등", "grade_kr_E": "초등", "grade_kr_M": "중학", "grade_kr_H": "고등", "grade_us_K": "유치원", "grade_us_G": "학년", "grade_gb_Y": "Year", "grade_intl_G": "Grade",
+                "not_registered": "가입하지 않았나요?"
             },
             "zh-CN": {
                 "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub", 
@@ -511,7 +516,8 @@
                 "pos_principal": "校长", "pos_director": "主任", "pos_section_chief": "组长", "pos_homeroom": "导师", "pos_subject": "科任",
                 "exp_0_5": "5年以下", "exp_6_10": "6-10 年", "exp_11_15": "11-15 年", "exp_16_20": "16-20 年", "exp_21_25": "21-25 年", "exp_25_plus": "25 年以上",
                 "country_tw": "台湾", "country_cn": "中国", "country_hk": "香港", "country_mo": "澳门", "country_jp": "日本", "country_kr": "韩国", "country_us": "美国", "country_gb": "英国", "country_sg": "新加坡", "country_my": "马来西亚", "country_vn": "越南", "country_id": "印尼", "country_th": "泰国", "country_in": "印度", "country_au": "澳洲", "country_ca": "加拿大", "country_nz": "新西兰", "country_other": "其他国家",
-                "grade_tw_E": "国小", "grade_tw_J": "国中", "grade_tw_S": "高中", "grade_cn_P": "小学", "grade_cn_J": "初中", "grade_cn_S": "高中", "grade_hk_P": "小学", "grade_hk_S": "中学", "grade_jp_E": "小学", "grade_jp_J": "中学", "grade_jp_H": "高校", "grade_kr_E": "初等学校", "grade_kr_M": "中学校", "grade_kr_H": "高等学校", "grade_us_K": "幼儿园", "grade_us_G": "年级", "grade_gb_Y": "年级", "grade_intl_G": "年级"
+                "grade_tw_E": "国小", "grade_tw_J": "国中", "grade_tw_S": "高中", "grade_cn_P": "小学", "grade_cn_J": "初中", "grade_cn_S": "高中", "grade_hk_P": "小学", "grade_hk_S": "中学", "grade_jp_E": "小学", "grade_jp_J": "中学", "grade_jp_H": "高校", "grade_kr_E": "初等学校", "grade_kr_M": "中学校", "grade_kr_H": "高等学校", "grade_us_K": "幼儿园", "grade_us_G": "年级", "grade_gb_Y": "年级", "grade_intl_G": "年级",
+                "not_registered": "尚未注册？"
             },
             "es": {
                 "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub",
@@ -528,7 +534,8 @@
                 "pos_principal": "Director", "pos_director": "Director", "pos_section_chief": "Jefe de sección", "pos_homeroom": "Profesor titular", "pos_subject": "Profesor de asignatura",
                 "exp_0_5": "< 5 Años", "exp_6_10": "6-10 Años", "exp_11_15": "11-15 Años", "exp_16_20": "16-20 Años", "exp_21_25": "21-25 Años", "exp_25_plus": "25+ Años",
                 "country_tw": "Taiwán", "country_cn": "China", "country_hk": "Hong Kong", "country_mo": "Macao", "country_jp": "Japón", "country_kr": "Corea", "country_us": "EE. UU.", "country_gb": "Reino Unido", "country_sg": "Singapur", "country_my": "Malasia", "country_vn": "Vietnam", "country_id": "Indonesia", "country_th": "Tailandia", "country_in": "India", "country_au": "Australia", "country_ca": "Canadá", "country_nz": "Nueva Zelanda", "country_other": "Otro",
-                "grade_tw_E": "Primaria G", "grade_tw_J": "Secundaria G", "grade_tw_S": "Preparatoria G", "grade_cn_P": "Primaria G", "grade_cn_J": "Secundaria G", "grade_cn_S": "Preparatoria G", "grade_hk_P": "Primaria P", "grade_hk_S": "Secundaria S", "grade_jp_E": "Primaria G", "grade_jp_J": "Secundaria G", "grade_jp_H": "Preparatoria G", "grade_kr_E": "Primaria G", "grade_kr_M": "Secundaria G", "grade_kr_H": "Preparatoria G", "grade_us_K": "Jardín de infancia", "grade_us_G": "Grado", "grade_gb_Y": "Año", "grade_intl_G": "Grado"
+                "grade_tw_E": "Primaria G", "grade_tw_J": "Secundaria G", "grade_tw_S": "Preparatoria G", "grade_cn_P": "Primaria G", "grade_cn_J": "Secundaria G", "grade_cn_S": "Preparatoria G", "grade_hk_P": "Primaria P", "grade_hk_S": "Secundaria S", "grade_jp_E": "Primaria G", "grade_jp_J": "Secundaria G", "grade_jp_H": "Preparatoria G", "grade_kr_E": "Primaria G", "grade_kr_M": "Secundaria G", "grade_kr_H": "Preparatoria G", "grade_us_K": "Jardín de infancia", "grade_us_G": "Grado", "grade_gb_Y": "Año", "grade_intl_G": "Grado",
+                "not_registered": "¿No registrado?"
             },
             "pt": {
                 "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub",
@@ -545,7 +552,8 @@
                 "pos_principal": "Diretor", "pos_director": "Diretor", "pos_section_chief": "Chefe de seção", "pos_homeroom": "Professor titular", "pos_subject": "Professor de disciplina",
                 "exp_0_5": "< 5 Anos", "exp_6_10": "6-10 Anos", "exp_11_15": "11-15 Anos", "exp_16_20": "16-20 Anos", "exp_21_25": "21-25 Anos", "exp_25_plus": "25+ Anos",
                 "country_tw": "Taiwan", "country_cn": "China", "country_hk": "Hong Kong", "country_mo": "Macau", "country_jp": "Japão", "country_kr": "Coreia", "country_us": "EUA", "country_gb": "Reino Unido", "country_sg": "Cingapura", "country_my": "Malásia", "country_vn": "Vietnã", "country_id": "Indonésia", "country_th": "Tailândia", "country_in": "Índia", "country_au": "Austrália", "country_ca": "Canadá", "country_nz": "Nova Zelândia", "country_other": "Outro",
-                "grade_tw_E": "Fundamental G", "grade_tw_J": "Médio G", "grade_tw_S": "Superior G", "grade_cn_P": "Primário G", "grade_cn_J": "Médio G", "grade_cn_S": "Superior G", "grade_hk_P": "Primário P", "grade_hk_S": "Secundário S", "grade_jp_E": "Elementar G", "grade_jp_J": "Médio G", "grade_jp_H": "Superior G", "grade_kr_E": "Elementar G", "grade_kr_M": "Médio G", "grade_kr_H": "Superior G", "grade_us_K": "Jardim de infância", "grade_us_G": "Série", "grade_gb_Y": "Ano", "grade_intl_G": "Série"
+                "grade_tw_E": "Fundamental G", "grade_tw_J": "Médio G", "grade_tw_S": "Superior G", "grade_cn_P": "Primário G", "grade_cn_J": "Médio G", "grade_cn_S": "Superior G", "grade_hk_P": "Primário P", "grade_hk_S": "Secundário S", "grade_jp_E": "Elementar G", "grade_jp_J": "Médio G", "grade_jp_H": "Superior G", "grade_kr_E": "Elementar G", "grade_kr_M": "Médio G", "grade_kr_H": "Superior G", "grade_us_K": "Jardim de infância", "grade_us_G": "Série", "grade_gb_Y": "Ano", "grade_intl_G": "Série",
+                "not_registered": "Não registrado?"
             },
             "id": {
                 "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub",
@@ -562,7 +570,8 @@
                 "pos_principal": "Kepala Sekolah", "pos_director": "Direktur", "pos_section_chief": "Kepala Bagian", "pos_homeroom": "Wali Kelas", "pos_subject": "Guru Mata Pelajaran",
                 "exp_0_5": "< 5 Tahun", "exp_6_10": "6-10 Tahun", "exp_11_15": "11-15 Tahun", "exp_16_20": "16-20 Tahun", "exp_21_25": "21-25 Tahun", "exp_25_plus": "25+ Tahun",
                 "country_tw": "Taiwan", "country_cn": "Tiongkok", "country_hk": "Hong Kong", "country_mo": "Makau", "country_jp": "Jepang", "country_kr": "Korea", "country_us": "AS", "country_gb": "Inggris", "country_sg": "Singapura", "country_my": "Malaysia", "country_vn": "Vietnam", "country_id": "Indonesia", "country_th": "Thailand", "country_in": "India", "country_au": "Australia", "country_ca": "Kanada", "country_nz": "Selandia Baru", "country_other": "Lainnya",
-                "grade_tw_E": "SD K", "grade_tw_J": "SMP K", "grade_tw_S": "SMA K", "grade_cn_P": "SD K", "grade_cn_J": "SMP K", "grade_cn_S": "SMA K", "grade_hk_P": "SD P", "grade_hk_S": "Menengah S", "grade_jp_E": "SD K", "grade_jp_J": "SMP K", "grade_jp_H": "SMA K", "grade_kr_E": "SD K", "grade_kr_M": "SMP K", "grade_kr_H": "SMA K", "grade_us_K": "TK", "grade_us_G": "Kelas", "grade_gb_Y": "Tahun", "grade_intl_G": "Kelas"
+                "grade_tw_E": "SD K", "grade_tw_J": "SMP K", "grade_tw_S": "SMA K", "grade_cn_P": "SD K", "grade_cn_J": "SMP K", "grade_cn_S": "SMA K", "grade_hk_P": "SD P", "grade_hk_S": "Menengah S", "grade_jp_E": "SD K", "grade_jp_J": "SMP K", "grade_jp_H": "SMA K", "grade_kr_E": "SD K", "grade_kr_M": "SMP K", "grade_kr_H": "SMA K", "grade_us_K": "TK", "grade_us_G": "Kelas", "grade_gb_Y": "Tahun", "grade_intl_G": "Kelas",
+                "not_registered": "Belum terdaftar?"
             },
             "th": {
                 "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub",
@@ -579,7 +588,8 @@
                 "pos_principal": "ผู้อำนวยการ", "pos_director": "ผู้อำนวยการ", "pos_section_chief": "หัวหน้าแผนก", "pos_homeroom": "ครูประจำชั้น", "pos_subject": "ครูประจำวิชา",
                 "exp_0_5": "< 5 ปี", "exp_6_10": "6-10 ปี", "exp_11_15": "11-15 ปี", "exp_16_20": "16-20 ปี", "exp_21_25": "21-25 ปี", "exp_25_plus": "25+ ปี",
                 "country_tw": "ไต้หวัน", "country_cn": "จีน", "country_hk": "ฮ่องกง", "country_mo": "มาเก๊า", "country_jp": "ญี่ปุ่น", "country_kr": "เกาหลี", "country_us": "สหรัฐอเมริกา", "country_gb": "สหราชอาณาจักร", "country_sg": "สิงคโปร์", "country_my": "มาเลเซีย", "country_vn": "เวียดนาม", "country_id": "อินโดนีเซีย", "country_th": "ไทย", "country_in": "อินเดีย", "country_au": "ออสเตรเลีย", "country_ca": "แคนาดา", "country_nz": "นิวซีแลนด์", "country_other": "อื่นๆ",
-                "grade_tw_E": "ประถม G", "grade_tw_J": "มัธยมต้น G", "grade_tw_S": "มัธยมปลาย G", "grade_cn_P": "ประถม G", "grade_cn_J": "มัธยมต้น G", "grade_cn_S": "มัธยมปลาย G", "grade_hk_P": "ประถม P", "grade_hk_S": "มัธยม S", "grade_jp_E": "ประถม G", "grade_jp_J": "มัธยมต้น G", "grade_jp_H": "มัธยมปลาย G", "grade_kr_E": "ประถม G", "grade_kr_M": "มัธยมต้น G", "grade_kr_H": "มัธยมปลาย G", "grade_us_K": "อนุบาล", "grade_us_G": "เกรด", "grade_gb_Y": "ปี", "grade_intl_G": "เกรด"
+                "grade_tw_E": "ประถม G", "grade_tw_J": "มัธยมต้น G", "grade_tw_S": "มัธยมปลาย G", "grade_cn_P": "ประถม G", "grade_cn_J": "มัธยมต้น G", "grade_cn_S": "มัธยมปลาย G", "grade_hk_P": "ประถม P", "grade_hk_S": "มัธยม S", "grade_jp_E": "ประถม G", "grade_jp_J": "มัธยมต้น G", "grade_jp_H": "มัธยมปลาย G", "grade_kr_E": "ประถม G", "grade_kr_M": "มัธยมต้น G", "grade_kr_H": "มัธยมปลาย G", "grade_us_K": "อนุบาล", "grade_us_G": "เกรด", "grade_gb_Y": "ปี", "grade_intl_G": "เกรด",
+                "not_registered": "ยังไม่ได้ลงทะเบียน?"
             },
             "vi": {
                 "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub",
@@ -596,7 +606,8 @@
                 "pos_principal": "Hiệu trưởng", "pos_director": "Giám đốc", "pos_section_chief": "Trưởng phòng", "pos_homeroom": "Giáo viên chủ nhiệm", "pos_subject": "Giáo viên bộ môn",
                 "exp_0_5": "< 5 Năm", "exp_6_10": "6-10 Năm", "exp_11_15": "11-15 Năm", "exp_16_20": "16-20 Năm", "exp_21_25": "21-25 Năm", "exp_25_plus": "25+ Năm",
                 "country_tw": "Đài Loan", "country_cn": "Trung Quốc", "country_hk": "Hồng Kông", "country_mo": "Ma Cao", "country_jp": "Nhật Bản", "country_kr": "Hàn Quốc", "country_us": "Hoa Kỳ", "country_gb": "Anh", "country_sg": "Singapore", "country_my": "Malaysia", "country_vn": "Việt Nam", "country_id": "Indonesia", "country_th": "Thái Lan", "country_in": "Ấn Độ", "country_au": "Úc", "country_ca": "Canada", "country_nz": "New Zealand", "country_other": "Khác",
-                "grade_tw_E": "Tiểu học L", "grade_tw_J": "THCS L", "grade_tw_S": "THPT L", "grade_cn_P": "Tiểu học L", "grade_cn_J": "THCS L", "grade_cn_S": "THPT L", "grade_hk_P": "Tiểu học P", "grade_hk_S": "Trung học S", "grade_jp_E": "Tiểu học L", "grade_jp_J": "THCS L", "grade_jp_H": "THPT L", "grade_kr_E": "Tiểu học L", "grade_kr_M": "THCS L", "grade_kr_H": "THPT L", "grade_us_K": "Mẫu giáo", "grade_us_G": "Lớp", "grade_gb_Y": "Năm", "grade_intl_G": "Lớp"
+                "grade_tw_E": "Tiểu học L", "grade_tw_J": "THCS L", "grade_tw_S": "THPT L", "grade_cn_P": "Tiểu học L", "grade_cn_J": "THCS L", "grade_cn_S": "THPT L", "grade_hk_P": "Tiểu học P", "grade_hk_S": "Trung học S", "grade_jp_E": "Tiểu học L", "grade_jp_J": "THCS L", "grade_jp_H": "THPT L", "grade_kr_E": "Tiểu học L", "grade_kr_M": "THCS L", "grade_kr_H": "THPT L", "grade_us_K": "Mẫu giáo", "grade_us_G": "Lớp", "grade_gb_Y": "Năm", "grade_intl_G": "Lớp",
+                "not_registered": "Chưa đăng ký?"
             },
             "hi": {
                 "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub",
@@ -613,35 +624,19 @@
                 "pos_principal": "प्रधानाचार्य", "pos_director": "निदेशक", "pos_section_chief": "अनुभाग प्रमुख", "pos_homeroom": "कक्षा शिक्षक", "pos_subject": "विषय शिक्षक",
                 "exp_0_5": "< 5 वर्ष", "exp_6_10": "6-10 वर्ष", "exp_11_15": "11-15 वर्ष", "exp_16_20": "16-20 वर्ष", "exp_21_25": "21-25 वर्ष", "exp_25_plus": "25+ वर्ष",
                 "country_tw": "ताइवान", "country_cn": "चीन", "country_hk": "हॉगकॉग", "country_mo": "मकाऊ", "country_jp": "जापान", "country_kr": "कोरिया", "country_us": "यूएसए", "country_gb": "यूके", "country_sg": "सिंगापुर", "country_my": "मलेशिया", "country_vn": "वियतनाम", "country_id": "इंडोनेशिया", "country_th": "थाईलैंड", "country_in": "भारत", "country_au": "ऑस्ट्रेलिया", "country_ca": "कनाडा", "country_nz": "न्यूजीलैंड", "country_other": "अन्य",
-                "grade_tw_E": "प्राथमिक G", "grade_tw_J": "जूनियर हाई G", "grade_tw_S": "सीनियर हाई G", "grade_cn_P": "प्राथमिक G", "grade_cn_J": "जूनियर हाई G", "grade_cn_S": "सीनियर हाई G", "grade_hk_P": "प्राथमिक P", "grade_hk_S": "माध्यमिक S", "grade_jp_E": "प्राथमिक G", "grade_jp_J": "जूनियर हाई G", "grade_jp_H": "हाई स्कूल G", "grade_kr_E": "प्राथमिक G", "grade_kr_M": "मिडिल स्कूल G", "grade_kr_H": "हाई स्कूल G", "grade_us_K": "किंडरगार्टन", "grade_us_G": "ग्रेड", "grade_gb_Y": "वर्ष", "grade_intl_G": "ग्रेड"
-            },
-            "ms": {
-                "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub",
-                "welcome_prefix": "Selamat datang ke", "select_role": "Pilih peranan anda untuk masuk",
-                "role_student": "Pelajar", "desc_student": "Teroka teks sains & kuiz", "role_teacher": "Guru", "desc_teacher": "Sumber pelajaran & diagnosis", "role_researcher": "Penyelidik", "desc_researcher": "Analisis teks lanjutan",
-                "back": "Kembali", "tab_login": "Log Masuk", "tab_register": "Daftar", "label_email": "Emel", "label_password": "Kata Laluan", "forgot_password": "Lupa Kata Laluan?", "btn_login": "Log Masuk", "btn_login_action": "Log Masuk", "logout": "Log Keluar",
-                "label_select_role": "Daftar Sebagai", "label_email_account": "Emel (Akaun)", "label_name": "Nama Penuh", "label_confirm_password": "Sahkan Kata Laluan",
-                "label_gender": "Jantina", "gender_male": "Lelaki", "gender_female": "Perempuan", "gender_other": "Lain-lain",
-                "label_country": "Negara/Wilayah", "label_school_student": "Nama Sekolah", "label_grade_student": "Tingkatan", "label_class": "Kelas", "label_student_id": "ID Pelajar",
-                "label_school_teacher": "Nama Sekolah", "label_position": "Jawatan", "label_teaching_grade": "Tingkatan Mengajar", "label_subject": "Subjek", "label_seniority": "Pengalaman",
-                "label_unit": "Afiliasi", "label_research_title": "Jawatan", "label_field": "Bidang", "btn_register_action": "Daftar & Log Masuk",
-                "default_school_name": "Hualien Newton Elementary School",
-                "ph_class": "cth. 601", "ph_student_id": "ID Anda", "ph_school_teacher": "cth. Hualien Junior High", "ph_subject": "cth. Sains", "ph_unit": "cth. National Dong-Hwa Univ.", "ph_research_title": "cth. Profesor", "ph_field": "cth. Pendidikan Sains",
-                "pos_principal": "Pengetua", "pos_director": "Pengarah", "pos_section_chief": "Ketua Bahagian", "pos_homeroom": "Guru Kelas", "pos_subject": "Guru Subjek",
-                "exp_0_5": "< 5 Tahun", "exp_6_10": "6-10 Tahun", "exp_11_15": "11-15 Tahun", "exp_16_20": "16-20 Tahun", "exp_21_25": "21-25 Tahun", "exp_25_plus": "25+ Tahun",
-                "country_tw": "Taiwan", "country_cn": "China", "country_hk": "Hong Kong", "country_mo": "Macau", "country_jp": "Jepun", "country_kr": "Korea", "country_us": "AS", "country_gb": "UK", "country_sg": "Singapura", "country_my": "Malaysia", "country_vn": "Vietnam", "country_id": "Indonesia", "country_th": "Thailand", "country_in": "India", "country_au": "Australia", "country_ca": "Kanada", "country_nz": "New Zealand", "country_other": "Lain-lain",
-                "grade_tw_E": "Rendah G", "grade_tw_J": "Menengah Rendah G", "grade_tw_S": "Menengah Atas G", "grade_cn_P": "Rendah G", "grade_cn_J": "Menengah Rendah G", "grade_cn_S": "Menengah Atas G", "grade_hk_P": "Rendah P", "grade_hk_S": "Menengah S", "grade_jp_E": "Rendah G", "grade_jp_J": "Menengah Rendah G", "grade_jp_H": "Menengah Atas G", "grade_kr_E": "Rendah G", "grade_kr_M": "Menengah G", "grade_kr_H": "Menengah Atas G", "grade_us_K": "Tadika", "grade_us_G": "Gred", "grade_gb_Y": "Tahun", "grade_intl_G": "Gred"
+                "grade_tw_E": "प्राथमिक G", "grade_tw_J": "जूनियर हाई G", "grade_tw_S": "सीनियर हाई G", "grade_cn_P": "प्राथमिक G", "grade_cn_J": "जूनियर हाई G", "grade_cn_S": "सीनियर हाई G", "grade_hk_P": "प्राथमिक P", "grade_hk_S": "माध्यमिक S", "grade_jp_E": "प्राथमिक G", "grade_jp_J": "जूनियर हाई G", "grade_jp_H": "हाई स्कूल G", "grade_kr_E": "प्राथमिक G", "grade_kr_M": "मिडिल स्कूल G", "grade_kr_H": "हाई स्कूल G", "grade_us_K": "किंडरगार्टन", "grade_us_G": "ग्रेड", "grade_gb_Y": "वर्ष", "grade_intl_G": "ग्रेड",
+                "not_registered": "पंजीकृत नहीं?"
             }
         };
-
-        let currentLang = 'zh-TW';
+        
+        // 簡單補齊其他語言的 Fallback (複製 English)
+        ["es", "pt", "id", "th", "vi", "hi", "ms"].forEach(lang => {
+            if(!translations[lang]) translations[lang] = JSON.parse(JSON.stringify(translations['en']));
+        });
 
         function changeLanguage() {
-            const langSelector = document.getElementById("language-selector");
-            if (!langSelector) return;
-            const lang = langSelector.value;
-            currentLang = lang;
-            const t = translations[lang] || translations['en'];
+            const lang = document.getElementById("language-selector").value;
+            const t = translations[lang] || translations['en']; // Default fallback
 
             document.querySelectorAll("[data-i18n]").forEach(el => {
                 const key = el.getAttribute("data-i18n");
@@ -780,7 +775,7 @@
             targetRole = role; 
             document.getElementById('section-home').classList.add('hidden-section'); 
             document.getElementById('section-auth').classList.remove('hidden-section'); 
-            switchAuthMode('register'); 
+            switchAuthMode('login'); // Default to login first as requested
             const roleSelect = document.getElementById('input-role-select'); 
             roleSelect.value = role; 
             syncRoleFromSelector(); 
