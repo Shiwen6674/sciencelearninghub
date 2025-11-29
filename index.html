@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Science Learning Hub | 科學學習中心</title>
-    <!-- 引入 Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 引入 Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script>
@@ -118,16 +116,13 @@
 </head>
 <body class="min-h-screen font-sans flex flex-col text-gray-800 relative overflow-x-hidden selection:bg-blue-200">
 
-    <!-- *** 新增：動態背景層 (Canvas + Gradient) *** -->
     <div id="canvas-container">
         <canvas id="network-canvas"></canvas>
     </div>
 
-    <!-- 導航列 (加入 backdrop-blur 讓背景若隱若現) -->
     <nav class="bg-white/80 backdrop-blur-md shadow-md p-5 sticky top-0 z-50 border-b border-white/40">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div class="flex items-center space-x-4 cursor-pointer" onclick="goHome()">
-                <!-- 保留這個轉圈圈設計 -->
                 <i class="fa-solid fa-atom text-blue-600 text-4xl animate-spin-slow"></i>
                 <span class="text-3xl font-bold text-gray-800 tracking-tight" data-i18n="site_title_nav">Science Learning Hub</span>
             </div>
@@ -153,22 +148,18 @@
         </div>
     </nav>
 
-    <!-- 主內容 -->
     <main class="max-w-7xl mx-auto p-8 flex-grow w-full relative z-10">
         
-        <!-- 1. 首頁 (Home) -->
         <div id="section-home" class="fade-in py-16">
             <div class="text-center mb-20 relative">
                 <h2 class="text-3xl md:text-4xl font-medium text-gray-500 mb-4 tracking-wide" data-i18n="welcome_prefix">歡迎來到</h2>
                 
-                <!-- 修改：應用新的 title-3d 樣式 -->
                 <h1 class="title-3d text-6xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 tracking-tight mb-8 drop-shadow-sm font-serif pb-2" data-i18n="site_title_hero">Science Learning Hub</h1>
                 
                 <p class="text-xl text-gray-600 max-w-2xl mx-auto" data-i18n="select_role">請選擇您的身份以進入專屬學習空間</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-7xl mx-auto px-4">
-                <!-- 學生入口 -->
                 <div onclick="preSelectRole('student')" class="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl overflow-hidden cursor-pointer transform transition duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/20 border-b-8 border-student group ring-1 ring-gray-100">
                     <div class="h-60 bg-student-light/50 flex items-center justify-center group-hover:bg-blue-200 transition relative overflow-hidden">
                         <div class="absolute inset-0 bg-gradient-to-tr from-blue-400/20 to-transparent"></div>
@@ -179,7 +170,6 @@
                         <p class="text-gray-600 text-lg" data-i18n="desc_student">探索科學文本、重點整理與測驗回饋</p>
                     </div>
                 </div>
-                <!-- 教師入口 -->
                 <div onclick="preSelectRole('teacher')" class="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl overflow-hidden cursor-pointer transform transition duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-green-500/20 border-b-8 border-teacher group ring-1 ring-gray-100">
                     <div class="h-60 bg-teacher-light/50 flex items-center justify-center group-hover:bg-green-200 transition relative overflow-hidden">
                          <div class="absolute inset-0 bg-gradient-to-tr from-green-400/20 to-transparent"></div>
@@ -190,7 +180,6 @@
                         <p class="text-gray-600 text-lg" data-i18n="desc_teacher">備課資源、命題檢核與學習診斷</p>
                     </div>
                 </div>
-                <!-- 研究員入口 -->
                 <div onclick="preSelectRole('researcher')" class="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl overflow-hidden cursor-pointer transform transition duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-purple-500/20 border-b-8 border-researcher group ring-1 ring-gray-100">
                     <div class="h-60 bg-researcher-light/50 flex items-center justify-center group-hover:bg-purple-200 transition relative overflow-hidden">
                         <div class="absolute inset-0 bg-gradient-to-tr from-purple-400/20 to-transparent"></div>
@@ -204,23 +193,18 @@
             </div>
         </div>
 
-        <!-- 2. 認證中心 -->
         <div id="section-auth" class="hidden-section fade-in max-w-2xl mx-auto bg-white/95 backdrop-blur-xl p-12 rounded-3xl shadow-2xl mt-12 border border-white/50 relative overflow-hidden">
-            <!-- 裝飾用背景光 -->
             <div class="absolute top-0 right-0 w-40 h-40 bg-blue-100 rounded-full blur-3xl -z-10 opacity-50"></div>
 
             <button onclick="goHome()" class="text-gray-400 hover:text-gray-600 mb-8 flex items-center gap-2 transition text-xl"><i class="fa-solid fa-arrow-left"></i> <span data-i18n="back">返回</span></button>
             
-            <!-- 分頁切換按鈕 -->
             <div class="flex mb-10 border-b-2 border-gray-200">
                 <button id="tab-login" onclick="switchAuthMode('login')" class="w-1/2 py-4 text-xl font-bold text-blue-600 border-b-4 border-blue-600 focus:outline-none transition-colors" data-i18n="tab_login">登入</button>
                 <button id="tab-register" onclick="switchAuthMode('register')" class="w-1/2 py-4 text-xl font-bold text-gray-400 hover:text-gray-600 focus:outline-none transition-colors" data-i18n="tab_register">註冊新帳號</button>
             </div>
 
-            <!-- 標題區域：顯示「學生登入」等動態標題 -->
             <h2 id="login-title-text" class="text-3xl font-bold text-center text-gray-800 mb-8 hidden"></h2>
 
-            <!-- A. 登入表單 -->
             <form id="form-login" onsubmit="handleLogin(event)" class="space-y-8">
                 <div>
                     <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_email">Email</label>
@@ -234,28 +218,23 @@
                     </div>
                 </div>
                 
-                <!-- 修改後的按鈕區塊：左側「尚未註冊」，右側「忘記密碼」 -->
                 <div class="flex justify-between items-center mb-6">
                     <button type="button" onclick="switchAuthMode('register')" class="text-base text-gray-500 hover:text-gray-800 hover:underline transition" data-i18n="not_registered">尚未註冊？</button>
                     <button type="button" onclick="showForgotPassword()" class="text-base text-blue-600 hover:text-blue-800 hover:underline transition" data-i18n="forgot_password">忘記密碼？</button>
                 </div>
                 
                 <button type="submit" id="btn-do-login" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-5 rounded-xl shadow-lg hover:shadow-blue-500/40 transition transform active:scale-95 text-xl flex items-center justify-center gap-3" data-i18n="btn_login_action">
-                    <!-- 按鈕內的文字與圖示 -->
                     <span>登入系統</span>
                 </button>
             </form>
 
-            <!-- B. 註冊表單 (保持不變，但確保點首頁是去登入) -->
             <form id="form-register" class="hidden-section space-y-6" onsubmit="handleRegister(event)">
                 <input type="hidden" id="input-role" value="student">
 
-                <!-- 情境A: 標題 -->
                 <div id="role-display-block" class="mb-8 text-center hidden">
                     <span class="bg-blue-50 text-blue-800 border border-blue-100 px-6 py-2 rounded-full text-xl font-bold" id="reg-role-display-text">註冊學生帳號</span>
                 </div>
 
-                <!-- 情境B: 下拉選單 -->
                 <div id="role-select-block" class="p-6 bg-blue-50 rounded-xl border border-blue-100 mb-6 hidden">
                     <label class="block text-blue-800 text-lg font-bold mb-3" data-i18n="label_select_role">註冊身分</label>
                     <select id="input-role-select" onchange="syncRoleFromSelector()" class="w-full px-4 py-3 rounded border border-blue-200 text-gray-700 bg-white focus:outline-none focus:border-blue-500 text-lg">
@@ -302,7 +281,6 @@
                     </select>
                 </div>
 
-                <!-- 學生專屬欄位 -->
                 <div id="fields-student" class="role-fields space-y-6 p-6 bg-gray-50/80 rounded-xl border border-gray-200">
                     <div>
                         <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_country">國家/地區</label>
@@ -316,7 +294,6 @@
                     </div>
                 </div>
 
-                <!-- 教師專屬欄位 -->
                 <div id="fields-teacher" class="role-fields hidden-section space-y-6 p-6 bg-gray-50/80 rounded-xl border border-gray-200">
                     <div><label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_country">國家/地區</label>
                         <select id="input-country-teacher" onchange="updateGrades('teacher')" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 outline-none bg-white text-lg"></select>
@@ -344,7 +321,6 @@
                     </div>
                 </div>
 
-                <!-- 研究員專屬欄位 -->
                 <div id="fields-researcher" class="role-fields hidden-section space-y-6 p-6 bg-gray-50/80 rounded-xl border border-gray-200">
                     <div>
                         <label class="block text-gray-700 text-lg font-bold mb-3" data-i18n="label_country">國家/地區</label>
@@ -360,7 +336,6 @@
                 <button id="btn-do-register" type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-5 px-8 rounded-xl shadow-lg transition transform active:scale-95 mt-8 text-xl" data-i18n="btn_register_action">註冊並登入</button>
             </form>
 
-            <!-- C. 忘記密碼表單 -->
             <form id="form-forgot-password" class="hidden-section space-y-8" onsubmit="handleForgotPassword(event)">
                 <h3 class="text-3xl font-bold text-gray-800 text-center mb-6" data-i18n="forgot_password_title">重設密碼</h3>
                 <p class="text-gray-600 text-lg text-center mb-8" data-i18n="forgot_password_desc">請輸入您註冊時的 Email，系統將發送驗證信給您。</p>
@@ -374,8 +349,7 @@
                 </div>
             </form>
             
-            <!-- 隱藏原有的文字提示，改用按鈕動畫 -->
-        </div>
+            </div>
     </main>
 
     <footer class="text-center py-10 text-gray-500 text-base mt-12 border-t border-white/20 bg-white/60 backdrop-blur-md relative z-10">
@@ -387,7 +361,6 @@
         
     </footer>
 
-    <!-- 隱藏的登出確認模態視窗 -->
     <div id="logout-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 overflow-y-auto h-full w-full z-[60] flex items-center justify-center backdrop-blur-sm transition-opacity">
         <div class="relative p-8 border w-full max-w-md shadow-2xl rounded-2xl bg-white transform transition-all scale-100">
             <div class="text-center">
@@ -662,14 +635,94 @@
             } 
         }
         
-        // ... (其他 handleLogin, handleRegister 等保持不變) ...
         function togglePassword(inputId, icon) { 
             const input = document.getElementById(inputId); 
             if (input.type === "password") { input.type = "text"; icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); } 
             else { input.type = "password"; icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); } 
         }
-        function handleLogin(e) { e.preventDefault(); alert("Login Simulation: Success"); }
-        function handleRegister(e) { e.preventDefault(); alert("Register Simulation: Success"); }
+
+        // --- ★★★ 修正部分開始：handleLogin 與 handleRegister 實作頁面跳轉 ★★★ ---
+        
+        function handleLogin(e) { 
+            e.preventDefault(); 
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            // 簡單驗證
+            if (!email || !password) {
+                alert("請輸入 Email 和密碼");
+                return;
+            }
+
+            const btn = document.getElementById('btn-do-login');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> 處理中...';
+            btn.disabled = true;
+
+            // 模擬 API 延遲
+            setTimeout(() => {
+                // 決定要跳轉去哪裡
+                // 優先使用使用者在首頁選的 targetRole
+                // 如果是直接點右上角登入 (targetRole 為 null)，則根據 Email 關鍵字猜測，或預設為 student
+                let roleToRedirect = targetRole;
+
+                if (!roleToRedirect) {
+                    if (email.includes('teacher')) roleToRedirect = 'teacher';
+                    else if (email.includes('researcher')) roleToRedirect = 'researcher';
+                    else roleToRedirect = 'student';
+                }
+
+                // 模擬 Session 儲存
+                const userInfo = {
+                    email: email,
+                    name: email.split('@')[0],
+                    role: roleToRedirect
+                };
+                sessionStorage.setItem("currentUser", JSON.stringify(userInfo));
+
+                // 執行跳轉
+                let targetPage = 'student.html';
+                if (roleToRedirect === 'teacher') targetPage = 'teacher.html';
+                if (roleToRedirect === 'researcher') targetPage = 'researcher.html';
+
+                // 恢復按鈕狀態 (雖然即將跳轉，但為了安全起見)
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+
+                // 跳轉
+                window.location.href = targetPage;
+            }, 800);
+        }
+
+        function handleRegister(e) { 
+            e.preventDefault(); 
+            const role = document.getElementById('input-role').value || 'student';
+            const email = document.getElementById('reg-email').value;
+            
+            const btn = document.getElementById('btn-do-register');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> 處理中...';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                // 模擬註冊成功並自動登入
+                const userInfo = {
+                    email: email,
+                    name: document.getElementById('input-name').value,
+                    role: role
+                };
+                sessionStorage.setItem("currentUser", JSON.stringify(userInfo));
+                
+                let targetPage = 'student.html';
+                if (role === 'teacher') targetPage = 'teacher.html';
+                if (role === 'researcher') targetPage = 'researcher.html';
+
+                window.location.href = targetPage;
+            }, 800);
+        }
+        
+        // --- ★★★ 修正部分結束 ★★★ ---
+
         function showForgotPassword() { alert("Please contact admin."); }
         function showLoginModal() { 
             document.getElementById('section-home').classList.add('hidden-section'); 
