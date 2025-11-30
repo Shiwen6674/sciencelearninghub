@@ -67,12 +67,11 @@
         }
         .glass-card:hover {
             background: rgba(255, 255, 255, 0.85);
-            transform: translateY(-8px); /* 懸浮更高一點 */
-            box-shadow: 0 15px 50px -10px rgba(59, 130, 246, 0.4); /* 陰影更深 */
+            transform: translateY(-8px);
+            box-shadow: 0 15px 50px -10px rgba(59, 130, 246, 0.4);
             border-color: rgba(59, 130, 246, 0.4);
         }
 
-        /* 3D 文字特效 (與首頁一致，但更大) */
         .title-3d {
             background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #7c3aed 100%);
             -webkit-background-clip: text;
@@ -82,10 +81,8 @@
                     drop-shadow(4px 4px 0px rgba(30, 58, 138, 0.3));
         }
         
-        /* 輸入框與選單樣式優化 */
         select, button, input { font-size: 1rem !important; }
         
-        /* 背景 Canvas */
         #canvas-container {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%; z-index: -10;
@@ -147,22 +144,19 @@
             <div id="dashboard-view" class="fade-in">
                 <div class="text-center mb-20 mt-8">
                     <span class="text-blue-600 font-bold tracking-wider text-base uppercase mb-3 block opacity-80" data-i18n="role_student">學生專區</span>
-                    <!-- 修改：字體微調縮小 text-5xl/7xl -->
                     <h1 class="title-3d text-5xl md:text-7xl font-black mb-6 tracking-tight leading-tight" data-i18n="welcome_student">歡迎來到科學學習中心</h1>
                     <p class="text-slate-500 text-xl md:text-2xl max-w-3xl mx-auto font-medium" data-i18n="select_tool">請選擇下方的學習工具開始您的科學探索之旅</p>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-10 px-4 mb-12">
-                    <!-- 卡片 1: 科學文本 -->
-                    <div onclick="openTool('science-text')" class="glass-card p-10 rounded-[2.5rem] cursor-pointer group relative overflow-hidden flex flex-col items-center text-center">
+                    <!-- 卡片 1: 科學文本 (★ 修正連結) -->
+                    <div onclick="window.location.href='sciencebilingual.html'" class="glass-card p-10 rounded-[2.5rem] cursor-pointer group relative overflow-hidden flex flex-col items-center text-center">
                         <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-blue-400/10 rounded-full blur-3xl group-hover:bg-blue-400/20 transition"></div>
                         
-                        <!-- 修改：圖示容器放大到 w-28 h-28，圖示放大到 text-6xl -->
                         <div class="w-28 h-28 bg-gradient-to-br from-blue-50 to-white rounded-3xl flex items-center justify-center mb-8 shadow-lg shadow-blue-100 group-hover:scale-110 transition duration-300 border border-blue-100 group-hover:border-blue-200">
                             <i class="fa-solid fa-book-open-reader text-6xl text-blue-600"></i>
                         </div>
                         <h3 class="text-2xl font-bold text-slate-800 mb-4 group-hover:text-blue-600 transition" data-i18n="feat_s_1_title">科學雙語文本</h3>
-                        <!-- 修改：這裡的文字改成雙語對照 -->
                         <p class="text-slate-500 text-base leading-relaxed" data-i18n="feat_s_1_desc">雙語對照閱讀，提升科學語言能力與專業詞彙量。</p>
                     </div>
 
@@ -170,7 +164,6 @@
                     <div onclick="openTool('unit-summary')" class="glass-card p-10 rounded-[2.5rem] cursor-pointer group relative overflow-hidden flex flex-col items-center text-center">
                          <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-green-400/10 rounded-full blur-3xl group-hover:bg-green-400/20 transition"></div>
                         
-                        <!-- 修改：圖示容器放大 -->
                         <div class="w-28 h-28 bg-gradient-to-br from-green-50 to-white rounded-3xl flex items-center justify-center mb-8 shadow-lg shadow-green-100 group-hover:scale-110 transition duration-300 border border-green-100 group-hover:border-green-200">
                             <i class="fa-solid fa-highlighter text-6xl text-green-600"></i>
                         </div>
@@ -182,7 +175,6 @@
                     <div onclick="openTool('ai-grading')" class="glass-card p-10 rounded-[2.5rem] cursor-pointer group relative overflow-hidden flex flex-col items-center text-center">
                          <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-purple-400/10 rounded-full blur-3xl group-hover:bg-purple-400/20 transition"></div>
                         
-                        <!-- 修改：圖示容器放大 -->
                         <div class="w-28 h-28 bg-gradient-to-br from-purple-50 to-white rounded-3xl flex items-center justify-center mb-8 shadow-lg shadow-purple-100 group-hover:scale-110 transition duration-300 border border-purple-100 group-hover:border-purple-200">
                             <i class="fa-solid fa-wand-magic-sparkles text-6xl text-purple-600"></i>
                         </div>
@@ -192,116 +184,15 @@
                 </div>
             </div>
 
-            <!-- 功能視窗容器 -->
+            <!-- 功能視窗容器 (這裡保留其他功能的空殼，方便未來擴充) -->
             <div id="tool-container" class="hidden-section fade-in">
                 <button onclick="backToDashboard()" class="mb-6 flex items-center gap-2 text-slate-500 hover:text-blue-600 transition font-bold bg-white/50 px-4 py-2 rounded-full w-fit backdrop-blur-sm hover:bg-white">
                     <i class="fa-solid fa-arrow-left"></i> <span data-i18n="back_dashboard">返回儀表板</span>
                 </button>
-
-                <!-- 工具內容區塊 -->
-                <div id="tool-content-area" class="glass-panel p-8 rounded-3xl min-h-[500px]">
-                    
-                    <!-- 1. 科學文本 -->
-                    <div id="tool-science-text" class="tool-view hidden-section">
-                        <h2 class="text-2xl font-bold text-blue-800 mb-6 flex items-center gap-3 border-b border-slate-200 pb-4">
-                            <i class="fa-solid fa-book-open-reader"></i> <span data-i18n="feat_s_1_title">科學雙語文本</span>
-                        </h2>
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                            <div class="p-6 bg-white/60 rounded-2xl border border-white/50 shadow-sm">
-                                <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2"><span class="w-2 h-6 bg-blue-500 rounded-full"></span>中文閱讀</h3>
-                                <div class="h-96 overflow-y-auto text-slate-600 leading-relaxed text-justify pr-4 scrollbar-thin">
-                                    <p class="mb-4">光合作用是植物、藻類和某些細菌利用光能將二氧化碳和水轉化為葡萄糖和氧氣的過程。這個過程對於地球上的生命至關重要，因為它提供了食物鏈的基礎能量來源，並釋放出我們呼吸所需的氧氣。</p>
-                                    <p>葉綠體是進行光合作用的主要場所。在葉綠體中，葉綠素吸收太陽光，並啟動一連串複雜的化學反應。</p>
-                                </div>
-                            </div>
-                            <div class="p-6 bg-white/60 rounded-2xl border border-white/50 shadow-sm">
-                                <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2"><span class="w-2 h-6 bg-purple-500 rounded-full"></span>English Reading</h3>
-                                <div class="h-96 overflow-y-auto text-slate-600 leading-relaxed text-justify pr-4 scrollbar-thin">
-                                    <p class="mb-4">Photosynthesis is the process by which plants, algae, and certain bacteria use light energy to convert carbon dioxide and water into glucose and oxygen. This process is vital for life on Earth as it provides the base energy source for the food chain and releases the oxygen we breathe.</p>
-                                    <p>Chloroplasts are the main sites where photosynthesis takes place. Inside chloroplasts, chlorophyll absorbs sunlight and initiates a complex series of chemical reactions.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 2. 單元重點 -->
-                    <div id="tool-unit-summary" class="tool-view hidden-section">
-                        <h2 class="text-2xl font-bold text-green-800 mb-6 flex items-center gap-3 border-b border-slate-200 pb-4">
-                            <i class="fa-solid fa-highlighter"></i> <span data-i18n="feat_s_2_title">單元重點整理</span>
-                        </h2>
-                        <div class="flex flex-wrap gap-4 mb-8">
-                            <select class="glass-card p-3 rounded-xl w-full max-w-xs outline-none focus:ring-2 focus:ring-green-500 text-slate-700">
-                                <option>選擇單元...</option>
-                                <option>光與影 (Light and Shadow)</option>
-                                <option>力與運動 (Force and Motion)</option>
-                                <option>植物的構造 (Plant Structure)</option>
-                            </select>
-                            <button class="bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition shadow-lg shadow-green-500/30 font-bold">
-                                <i class="fa-solid fa-magnifying-glass mr-2"></i> 產生摘要
-                            </button>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                             <div class="p-6 bg-white/80 rounded-2xl border-l-8 border-green-500 shadow-sm">
-                                <h4 class="font-bold text-slate-800 text-lg mb-2">核心概念 1：光的直進性</h4>
-                                <p class="text-slate-600">光在均勻介質中是沿直線傳播的。當光遇到不透明物體時，會在物體背光面形成影子。</p>
-                            </div>
-                            <div class="p-6 bg-white/80 rounded-2xl border-l-8 border-green-500 shadow-sm">
-                                <h4 class="font-bold text-slate-800 text-lg mb-2">核心概念 2：反射定律</h4>
-                                <p class="text-slate-600">入射光線、反射光線和法線在同一平面上，且入射角等於反射角。這是面鏡成像的基礎。</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 3. AI 評量 -->
-                    <div id="tool-ai-grading" class="tool-view hidden-section">
-                        <h2 class="text-2xl font-bold text-purple-800 mb-6 flex items-center gap-3 border-b border-slate-200 pb-4">
-                            <i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="feat_s_3_title">AI自動命題與評量</span>
-                        </h2>
-                        <div class="max-w-3xl mx-auto">
-                            <div class="bg-white/80 p-8 rounded-3xl shadow-sm border border-white/50 mb-8">
-                                <div class="flex justify-between items-start mb-6">
-                                    <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-bold">Question 1</span>
-                                </div>
-                                <p class="font-bold text-xl mb-6 text-slate-800 leading-snug">下列關於光合作用的敘述，何者正確？</p>
-                                <div class="space-y-4 text-slate-700">
-                                    <label class="flex items-center gap-4 cursor-pointer p-4 rounded-xl border border-transparent hover:bg-blue-50 hover:border-blue-200 transition group">
-                                        <div class="w-6 h-6 rounded-full border-2 border-slate-300 group-hover:border-blue-500 flex items-center justify-center">
-                                            <div class="w-3 h-3 rounded-full bg-blue-500 hidden group-hover:block"></div>
-                                        </div>
-                                        <input type="radio" name="q1" class="hidden"> 
-                                        <span class="font-medium">A. 主要在植物的根部進行</span>
-                                    </label>
-                                    <label class="flex items-center gap-4 cursor-pointer p-4 rounded-xl border border-transparent hover:bg-blue-50 hover:border-blue-200 transition group">
-                                        <div class="w-6 h-6 rounded-full border-2 border-slate-300 group-hover:border-blue-500 flex items-center justify-center">
-                                            <div class="w-3 h-3 rounded-full bg-blue-500 hidden group-hover:block"></div>
-                                        </div>
-                                        <input type="radio" name="q1" class="hidden"> 
-                                        <span class="font-medium">B. 需要氧氣參與反應</span>
-                                    </label>
-                                    <label class="flex items-center gap-4 cursor-pointer p-4 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 transition group">
-                                        <div class="w-6 h-6 rounded-full border-2 border-blue-500 flex items-center justify-center">
-                                            <div class="w-3 h-3 rounded-full bg-blue-500"></div>
-                                        </div>
-                                        <input type="radio" name="q1" class="hidden" checked> 
-                                        <span class="font-medium">C. 產物包含葡萄糖與氧氣</span>
-                                    </label>
-                                    <label class="flex items-center gap-4 cursor-pointer p-4 rounded-xl border border-transparent hover:bg-blue-50 hover:border-blue-200 transition group">
-                                        <div class="w-6 h-6 rounded-full border-2 border-slate-300 group-hover:border-blue-500 flex items-center justify-center">
-                                            <div class="w-3 h-3 rounded-full bg-blue-500 hidden group-hover:block"></div>
-                                        </div>
-                                        <input type="radio" name="q1" class="hidden"> 
-                                        <span class="font-medium">D. 只能在晚上進行</span>
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="text-center">
-                                <button class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-10 py-4 rounded-2xl font-bold hover:shadow-lg hover:shadow-blue-500/30 transition transform hover:-translate-y-1 active:scale-95 text-lg">
-                                    提交答案並取得回饋
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                
+                <!-- 工具佔位符 -->
+                <div id="tool-unit-summary" class="tool-view hidden-section p-10 text-center text-slate-400">功能開發中...</div>
+                <div id="tool-ai-grading" class="tool-view hidden-section p-10 text-center text-slate-400">功能開發中...</div>
             </div>
         </div>
     </main>
@@ -309,76 +200,53 @@
     <script>
         const GAS_URL = "https://script.google.com/macros/s/AKfycbzcDKkz8Tilzb3qbx0_fDR7QoG4-c2JCtsa4p9V8_1gBjZaEMlvQHd72OD0kZq_jW8H/exec";
 
-        // 完整的翻譯字典 (確保切換語言時卡片內容會變)
         const translations = {
             "zh-TW": {
-                "role_student": "學生專區",
-                "welcome_student": "歡迎來到科學學習中心", 
+                "role_student": "學生專區", "welcome_student": "歡迎來到科學學習中心", 
                 "select_tool": "請選擇下方的學習工具開始您的科學探索之旅", 
                 "back_dashboard": "返回儀表板",
-                "feat_s_1_title": "科學雙語文本", 
-                "feat_s_1_desc": "雙語對照閱讀，提升科學語言能力與專業詞彙量。",
-                "feat_s_2_title": "單元重點整理", 
-                "feat_s_2_desc": "快速掌握各單元核心概念，圖文並茂的重點摘要。",
-                "feat_s_3_title": "AI自動命題與評量", 
-                "feat_s_3_desc": "客製化出題自我測驗，獲得即時且精準的學習回饋。",
+                "feat_s_1_title": "科學雙語文本", "feat_s_1_desc": "雙語對照閱讀，提升科學語言能力與專業詞彙量。",
+                "feat_s_2_title": "單元重點整理", "feat_s_2_desc": "快速掌握各單元核心概念，圖文並茂的重點摘要。",
+                "feat_s_3_title": "AI自動命題與評量", "feat_s_3_desc": "客製化出題自我測驗，獲得即時且精準的學習回饋。",
                 "logout": "登出"
             },
             "en": {
-                "role_student": "Student Zone",
-                "welcome_student": "Welcome to Science Learning Hub", 
+                "role_student": "Student Zone", "welcome_student": "Welcome to Science Learning Hub", 
                 "select_tool": "Select a learning tool below to start your scientific exploration", 
                 "back_dashboard": "Back to Dashboard",
-                "feat_s_1_title": "Bilingual Science Text", 
-                "feat_s_1_desc": "Bilingual reading comparison to improve scientific language proficiency.",
-                "feat_s_2_title": "Unit Summary", 
-                "feat_s_2_desc": "Quickly grasp core concepts with illustrated summaries.",
-                "feat_s_3_title": "AI Assessment", 
-                "feat_s_3_desc": "Customized quizzes with instant and precise learning feedback.",
+                "feat_s_1_title": "Bilingual Science Text", "feat_s_1_desc": "Bilingual reading comparison to improve scientific language proficiency.",
+                "feat_s_2_title": "Unit Summary", "feat_s_2_desc": "Quickly grasp core concepts with illustrated summaries.",
+                "feat_s_3_title": "AI Assessment", "feat_s_3_desc": "Customized quizzes with instant and precise learning feedback.",
                 "logout": "Logout"
             },
             "ja": {
-                "role_student": "学生ゾーン",
-                "welcome_student": "科学学習センターへようこそ", 
+                "role_student": "学生ゾーン", "welcome_student": "科学学習センターへようこそ", 
                 "select_tool": "以下の学習ツールを選択して、科学の探求を始めましょう", 
                 "back_dashboard": "ダッシュボードに戻る",
-                "feat_s_1_title": "科学バイリンガルテキスト", 
-                "feat_s_1_desc": "二言語対訳で読み、科学語学力と専門用語を向上させます。",
-                "feat_s_2_title": "単元のまとめ", 
-                "feat_s_2_desc": "図解付きの要約で、各単元の核心概念を素早く把握します。",
-                "feat_s_3_title": "AI自動採点・評価", 
-                "feat_s_3_desc": "カスタマイズされたクイズで、即時かつ正確なフィードバックを得られます。",
+                "feat_s_1_title": "科学バイリンガルテキスト", "feat_s_1_desc": "二言語対訳で読み、科学語学力と専門用語を向上させます。",
+                "feat_s_2_title": "単元のまとめ", "feat_s_2_desc": "図解付きの要約で、各単元の核心概念を素早く把握します。",
+                "feat_s_3_title": "AI自動採点・評価", "feat_s_3_desc": "カスタマイズされたクイズで、即時かつ正確なフィードバックを得られます。",
                 "logout": "ログアウト"
             },
             "zh-CN": {
-                "role_student": "学生专区",
-                "welcome_student": "欢迎来到科学学习中心", 
+                "role_student": "学生专区", "welcome_student": "欢迎来到科学学习中心", 
                 "select_tool": "请选择下方的学习工具开始您的科学探索之旅", 
                 "back_dashboard": "返回仪表板",
-                "feat_s_1_title": "科学双语文本", 
-                "feat_s_1_desc": "双语对照阅读，提升科学语言能力与专业词汇量。",
-                "feat_s_2_title": "单元重点整理", 
-                "feat_s_2_desc": "快速掌握各单元核心概念，图文并茂的重点摘要。",
-                "feat_s_3_title": "AI自动命题与评量", 
-                "feat_s_3_desc": "客制化出题自我测验，获得即时且精准的学习回馈。",
+                "feat_s_1_title": "科学双语文本", "feat_s_1_desc": "双语对照阅读，提升科学语言能力与专业词汇量。",
+                "feat_s_2_title": "单元重点整理", "feat_s_2_desc": "快速掌握各单元核心概念，图文并茂的重点摘要。",
+                "feat_s_3_title": "AI自动命题与评量", "feat_s_3_desc": "客制化出题自我测验，获得即时且精准的学习回馈。",
                 "logout": "登出"
             }
         };
 
-        // --- 1. 權限檢查 ---
+        // 1. 權限檢查與用戶資料
         const userJson = sessionStorage.getItem("currentUser");
-        if (!userJson) {
-            // 為了防止重新整理跳出，可以先註解掉下面這行，或者在開發時允許 null
-            // alert("請先登入！");
-            // window.location.href = "index.html";
-        }
-        // 容錯處理：如果沒有登入資料，顯示預設名稱
         const currentUser = userJson ? JSON.parse(userJson) : { name: "訪客", role: "Student" };
         
         document.getElementById("user-name-display").innerText = currentUser.name;
         document.getElementById("user-avatar").innerText = currentUser.name.charAt(0).toUpperCase();
 
-        // --- 2. 語言邏輯 (自動讀取) ---
+        // 2. 語言邏輯
         function initLanguage() {
             const savedLang = localStorage.getItem("slh_lang");
             if (savedLang) {
@@ -401,13 +269,14 @@
 
         window.addEventListener('DOMContentLoaded', initLanguage);
 
-        // --- 3. 頁面切換邏輯 ---
+        // 3. 頁面切換邏輯 (針對未獨立的工具)
         function openTool(toolId) {
             document.getElementById("dashboard-view").classList.add("hidden-section");
             document.getElementById("tool-container").classList.remove("hidden-section");
             
             document.querySelectorAll(".tool-view").forEach(el => el.classList.add("hidden-section"));
-            document.getElementById("tool-" + toolId).classList.remove("hidden-section");
+            const target = document.getElementById("tool-" + toolId);
+            if(target) target.classList.remove("hidden-section");
             
             logAction(toolId);
         }
@@ -425,7 +294,6 @@
                 action: "use_tool",
                 page: actionName
             };
-            // 使用 no-cors 模式避免跨域錯誤干擾前端體驗
             fetch(GAS_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }).catch(e => console.log("Log ignored"));
         }
 
@@ -436,90 +304,16 @@
             }
         }
 
-        // *** 移植 Canvas 原子軌域動畫 ***
+        // Canvas Background
         (function() {
             const canvas = document.getElementById('network-canvas');
             const ctx = canvas.getContext('2d');
-            let width, height;
-            let orbits = [];
-            let centerX, centerY, targetCenterX, targetCenterY;
-            let mouse = { x: null, y: null };
-
+            let width, height, orbits = [], centerX, centerY, targetCenterX, targetCenterY, mouse = { x: null, y: null };
             window.addEventListener('mousemove', function(e) { mouse.x = e.x; mouse.y = e.y; });
-
-            function resize() {
-                width = window.innerWidth;
-                height = window.innerHeight;
-                canvas.width = width;
-                canvas.height = height;
-                centerX = width / 2;
-                centerY = height / 2;
-                targetCenterX = centerX;
-                targetCenterY = centerY;
-                initOrbits();
-            }
-
-            class Orbit {
-                constructor(radiusX, radiusY, angle, color, shadowColor, speed, particleColor) {
-                    this.radiusX = radiusX; this.radiusY = radiusY; this.tilt = angle; this.rotation = 0;
-                    this.speed = speed * 0.5; this.color = color; this.shadowColor = shadowColor;
-                    this.electronAngle = Math.random() * Math.PI * 2;
-                    this.electronSpeed = 0.0015 + Math.random() * 0.001; 
-                    this.particleColor = particleColor || 'rgba(255, 255, 255, 0.8)';
-                }
-                draw(cx, cy) {
-                    ctx.save(); ctx.translate(cx, cy); ctx.rotate(this.tilt); 
-                    ctx.beginPath(); ctx.ellipse(0, 0, this.radiusX, this.radiusY, this.rotation, 0, Math.PI * 2);
-                    ctx.shadowBlur = 80; ctx.shadowColor = this.shadowColor;
-                    ctx.strokeStyle = this.color; ctx.lineWidth = 8; ctx.lineCap = 'round'; ctx.stroke();
-                    ctx.lineWidth = 4; ctx.stroke();
-                    const t = this.electronAngle;
-                    const electronX = this.radiusX * Math.cos(t);
-                    const electronY = this.radiusY * Math.sin(t);
-                    ctx.beginPath(); ctx.arc(electronX, electronY, 4, 0, Math.PI*2); 
-                    ctx.fillStyle = this.particleColor; ctx.shadowBlur = 20; ctx.shadowColor = this.particleColor; ctx.fill();
-                    ctx.restore();
-                }
-                update() { this.rotation += this.speed; this.electronAngle += this.electronSpeed; }
-            }
-
-            function drawNucleus(cx, cy) {
-                ctx.save(); ctx.translate(cx, cy);
-                const gradient = ctx.createRadialGradient(0, 0, 5, 0, 0, 30);
-                gradient.addColorStop(0, 'rgba(59, 130, 246, 0.2)'); gradient.addColorStop(1, 'rgba(59, 130, 246, 0)');
-                ctx.beginPath(); ctx.arc(0, 0, 30, 0, Math.PI * 2); ctx.fillStyle = gradient; ctx.fill();
-                ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-                ctx.shadowBlur = 25; ctx.shadowColor = 'rgba(59, 130, 246, 0.3)'; ctx.fill();
-                ctx.restore();
-            }
-
-            function initOrbits() {
-                orbits = [];
-                const baseR = width < height ? width * 0.2 : height * 0.25;
-                // S 軌域
-                orbits.push(new Orbit(baseR * 2.2, baseR * 2.2, 0, 'rgba(139, 92, 246, 0.02)', 'rgba(167, 139, 250, 0.3)', 0.0005, 'rgba(196, 181, 253, 0.5)')); 
-                // P 軌域
-                const pStroke = 'rgba(59, 130, 246, 0.05)'; const pShadow = 'rgba(96, 165, 250, 0.4)'; const pParticle = 'rgba(147, 197, 253, 0.6)';
-                orbits.push(new Orbit(baseR * 1.3, baseR * 0.5, Math.PI / 6, pStroke, pShadow, 0.001, pParticle));
-                orbits.push(new Orbit(baseR * 1.3, baseR * 0.5, Math.PI * 5 / 6, pStroke, pShadow, -0.0012, pParticle));
-                // D/F 軌域
-                const dStroke = 'rgba(16, 185, 129, 0.08)'; const dShadow = 'rgba(52, 211, 153, 0.5)'; const dParticle = 'rgba(134, 239, 172, 0.7)';
-                orbits.push(new Orbit(baseR * 0.9, baseR * 0.3, Math.PI / 4, dStroke, dShadow, 0.002, dParticle));
-            }
-
-            function animate() {
-                ctx.clearRect(0, 0, width, height);
-                if (mouse.x != null) {
-                    targetCenterX = (width / 2) + (mouse.x - width / 2) * 0.03; 
-                    targetCenterY = (height / 2) + (mouse.y - height / 2) * 0.03;
-                } else {
-                    targetCenterX = width / 2; targetCenterY = height / 2;
-                }
-                centerX += (targetCenterX - centerX) * 0.05; centerY += (targetCenterY - centerY) * 0.05;
-                for (let orbit of orbits) { orbit.update(); orbit.draw(centerX, centerY); }
-                drawNucleus(centerX, centerY);
-                requestAnimationFrame(animate);
-            }
+            function resize() { width = window.innerWidth; height = window.innerHeight; canvas.width = width; canvas.height = height; centerX = width / 2; centerY = height / 2; targetCenterX = centerX; targetCenterY = centerY; initOrbits(); }
+            class Orbit { constructor(rx, ry, a, c, s, pc) { this.rx=rx; this.ry=ry; this.a=a; this.s=s; this.c=c; this.pc=pc; this.r=0; this.ea=Math.random()*Math.PI*2; } update(){ this.r+=this.s; this.ea+=0.002; } draw(){ ctx.save(); ctx.translate(centerX,centerY); ctx.rotate(this.a); ctx.beginPath(); ctx.ellipse(0,0,this.rx,this.ry,this.r,0,Math.PI*2); ctx.strokeStyle=this.c; ctx.lineWidth=1; ctx.stroke(); ctx.beginPath(); ctx.arc(this.rx*Math.cos(this.ea), this.ry*Math.sin(this.ea), 3, 0, Math.PI*2); ctx.fillStyle=this.pc; ctx.fill(); ctx.restore(); } }
+            function initOrbits() { orbits=[]; const br=width<height?width*0.2:height*0.25; orbits.push(new Orbit(br*2.2, br*2.2, 0, 'rgba(59,130,246,0.1)', 0.0005, 'rgba(147,197,253,0.6)')); orbits.push(new Orbit(br*1.3, br*0.5, Math.PI/6, 'rgba(59,130,246,0.1)', 0.001, 'rgba(147,197,253,0.6)')); }
+            function animate() { ctx.clearRect(0,0,width,height); if(mouse.x){ targetCenterX=width/2+(mouse.x-width/2)*0.03; targetCenterY=height/2+(mouse.y-height/2)*0.03; } centerX+=(targetCenterX-centerX)*0.05; centerY+=(targetCenterY-centerY)*0.05; orbits.forEach(o=>{o.update();o.draw()}); ctx.beginPath(); ctx.arc(centerX,centerY,5,0,Math.PI*2); ctx.fillStyle='rgba(59,130,246,0.2)'; ctx.fill(); requestAnimationFrame(animate); }
             window.addEventListener('resize', resize); resize(); animate();
         })();
     </script>
