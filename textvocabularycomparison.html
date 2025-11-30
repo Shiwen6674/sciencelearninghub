@@ -402,14 +402,13 @@
             setTimeout(() => btn.innerHTML = originalHTML, 1500);
         }
 
-        // 解析詞性並過濾
-        // return Map<word, pos>
+        // 解析詞性並過濾 (關鍵修正：如果沒有標記，無條件保留)
         function parseAndFilter(text, activePos) {
             const rawTokens = text.trim().split(/\s+/);
             const resultMap = new Map(); // key: word, value: pos
 
             // 定義標點符號正則 (排除)
-            const punctuationRegex = /[^\w\u4e00-\u9fa5]/; 
+            const punctuationRegex = /[^\u4e00-\u9fa5a-zA-Z0-9]/; 
 
             rawTokens.forEach(token => {
                 if (!token) return;
@@ -417,36 +416,41 @@
                 // 嘗試解析 Word(Pos)
                 const match = token.match(/^(.+)\((.+)\)$/);
                 let word = token;
-                let pos = 'O'; 
+                let pos = 'Unk'; // Default Unknown POS
 
+                // *** 關鍵修正邏輯 ***
                 if (match) {
+                    // 1. 有詞性標記 -> 進行詞性過濾
                     word = match[1];
                     pos = match[2];
-                }
 
-                // 2. 過濾標點符號
-                if (punctuationRegex.test(word) && word.length === 1) {
-                    return; 
-                }
-                // CKIP 常見標點標記
-                if (['PERIODCATEGORY', 'COMMACATEGORY', 'PARENTHESISCATEGORY', 'COLONCATEGORY', 'SEMICOLONCATEGORY', 'EXCLAMATIONCATEGORY', 'QUESTIONCATEGORY'].includes(pos)) {
-                    return;
-                }
-
-                // 3. 詞性對應
-                let category = 'O';
-                if (pos.startsWith('N')) category = 'N';
-                else if (pos.startsWith('V')) category = 'V';
-                else if (pos.startsWith('A') || pos === 'VH') category = 'A'; 
-                else if (pos.startsWith('D')) category = 'D';
-                else if (pos.startsWith('C')) category = 'C';
-                
-                // 4. 根據勾選狀態篩選
-                if (activePos.has(category)) {
-                    // 只保留第一個遇到的 POS 或覆蓋，這裡簡單處理：存入 Map
-                    if (!resultMap.has(word)) {
-                        resultMap.set(word, pos);
+                    // 過濾標點標記 (CKIP)
+                    if (['PERIODCATEGORY', 'COMMACATEGORY', 'PARENTHESISCATEGORY', 'COLONCATEGORY', 'SEMICOLONCATEGORY', 'EXCLAMATIONCATEGORY', 'QUESTIONCATEGORY'].includes(pos)) {
+                        return;
                     }
+
+                    // 詞性對應與篩選
+                    let category = 'O';
+                    if (pos.startsWith('N')) category = 'N';
+                    else if (pos.startsWith('V')) category = 'V';
+                    else if (pos.startsWith('A') || pos === 'VH') category = 'A'; 
+                    else if (pos.startsWith('D')) category = 'D';
+                    else if (pos.startsWith('C')) category = 'C';
+                    
+                    if (!activePos.has(category)) {
+                        return; // 被篩選掉
+                    }
+                } else {
+                    // 2. 無詞性標記 -> 無條件保留 (除非是純標點)
+                    if (punctuationRegex.test(word) && word.length === 1) {
+                        return; // 跳過標點
+                    }
+                    // 視為有效詞彙，不進行 activePos 檢查
+                }
+
+                // 儲存
+                if (!resultMap.has(word)) {
+                    resultMap.set(word, pos);
                 }
             });
             
@@ -480,10 +484,11 @@
             const locale = document.getElementById("language-selector").value === 'en' ? 'en' : 'zh-TW';
             
             // 輔助：格式化輸出 (word 或 word (pos))
+            // 如果 POS 是 'Unk' (未標記來源)，即使 Show POS 開啟也不顯示 Unk，保持版面乾淨
             const format = (word, sourceMap) => {
                 if (showPos) {
                     const p = sourceMap.get(word);
-                    return `${word} (${p})`;
+                    if (p && p !== 'Unk') return `${word} (${p})`;
                 }
                 return word;
             };
@@ -505,8 +510,8 @@
             const union = [...unionKeys].sort((a, b) => a.localeCompare(b, locale))
                 .map(w => {
                     // 優先用 A 的 POS，沒有則用 B
-                    const p = mapA.has(w) ? mapA.get(w) : mapB.get(w);
-                    return showPos ? `${w} (${p})` : w;
+                    const mapToUse = mapA.has(w) ? mapA : mapB;
+                    return format(w, mapToUse);
                 });
 
             // 渲染結果
