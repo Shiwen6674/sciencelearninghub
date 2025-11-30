@@ -254,8 +254,8 @@
     </div>
 
     <script>
-        // *** 重要：請確保後台已經更新並發布了最新版本 ***
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbzcDKkz8Tilzb3qbx0_fDR7QoG4-c2JCtsa4p9V8_1gBjZaEMlvQHd72OD0kZq_jW8H/exec"; 
+        // *** 請確認下方網址是您「建立新版本」後的最新網址 ***
+        const GAS_URL = "https://https://script.google.com/macros/s/AKfycbyrohBVPgMabQrsyzZU5CcZ8DSSfKwoCGlwAzslirYdLU8VuG4_wpKIluhBQcFMmfFz/exec"; 
         
         let allOptions = {}; 
         let currentRawText = ""; 
@@ -546,12 +546,11 @@
             window.speechSynthesis.speak(u);
             isSpeaking = true;
         }
-        // 簡易切換語音狀態
+        
         function toggleSpeech(side) {
             if (isSpeaking) {
                 window.speechSynthesis.cancel();
                 isSpeaking = false;
-                // 重置按鈕樣式 (簡單處理：假設用戶點的是正在播放的那個)
                 document.querySelectorAll('.fa-stop').forEach(el => {
                     el.closest('button').innerHTML = '<i class="fa-solid fa-play ml-0.5"></i>';
                     el.closest('button').classList.remove('bg-red-500', 'text-white');
