@@ -62,6 +62,33 @@
         .custom-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
         .loader { border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #3b82f6; width: 20px; height: 20px; animation: spin 1s linear infinite; }
+        
+        /* Google 四色漸層 */
+        .google-gradient-text {
+            background: linear-gradient(135deg, #4285F4 25%, #EA4335 25%, #EA4335 50%, #FBBC05 50%, #FBBC05 75%, #34A853 75%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .google-border {
+            position: relative;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .google-border::before {
+            content: "";
+            position: absolute;
+            z-index: -1;
+            inset: 0;
+            padding: 2px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4285F4, #EA4335, #FBBC05, #34A853);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+        }
+
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         #canvas-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -10; background: linear-gradient(135deg, #eff6ff 0%, #e0f2fe 100%); }
     </style>
@@ -213,8 +240,8 @@
         <div id="chat-window" class="chat-window chat-hidden mb-4 w-80 md:w-96 h-[500px] bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col ring-1 ring-black/5">
             <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 flex justify-between items-center text-white shadow-md">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-white/20 backdrop-blur rounded-full flex items-center justify-center border border-white/30 shadow-inner">
-                        <i class="fa-solid fa-robot text-lg"></i>
+                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md google-border">
+                        <i class="fa-solid fa-robot text-lg google-gradient-text"></i>
                     </div>
                     <div>
                         <h3 class="font-bold text-base" data-i18n="bot_name">小科 (SciBot)</h3>
@@ -227,7 +254,9 @@
             </div>
             <div id="chat-messages" class="flex-1 overflow-y-auto p-4 bg-slate-50 space-y-4 custom-scroll">
                 <div class="flex items-start gap-3">
-                    <div class="w-8 h-8 rounded-full bg-white text-student flex items-center justify-center shrink-0 border border-slate-200 shadow-sm mt-1"><i class="fa-solid fa-robot text-xs"></i></div>
+                    <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm mt-1 google-border">
+                        <i class="fa-solid fa-robot text-xs google-gradient-text"></i>
+                    </div>
                     <div class="bg-white p-3.5 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 text-slate-700 text-sm leading-relaxed" data-i18n="bot_welcome">
                         嗨！我是小科 👋<br>閱讀課文時有任何不懂的科學概念，都可以問我喔！
                     </div>
@@ -242,8 +271,8 @@
         </div>
 
         <button onclick="toggleChat()" class="group relative flex items-center justify-center outline-none transition transform hover:scale-105 active:scale-95">
-            <div class="relative w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full shadow-xl flex items-center justify-center text-white text-3xl border-4 border-white hover:shadow-2xl">
-                <i class="fa-solid fa-robot"></i>
+            <div class="relative w-16 h-16 bg-white rounded-full shadow-xl flex items-center justify-center text-3xl google-border hover:shadow-2xl">
+                <i class="fa-solid fa-robot google-gradient-text"></i>
             </div>
         </button>
     </div>
@@ -254,14 +283,18 @@
     </div>
 
     <script>
-        // *** 這裡請填入剛剛「新建部署」後得到的全新網址 ***
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbwaqb_hmKvQEgVKCI-9W8zmU85vh_ielL0Kb6TGQq1dg52PfDozWzgYtnRMwRVXqyZk/exec"; 
+        // *** 這裡請填入您的 GAS 網址 (確認是最後一次部署的網址) ***
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbzcDKkz8Tilzb3qbx0_fDR7QoG4-c2JCtsa4p9V8_1gBjZaEMlvQHd72OD0kZq_jW8H/exec"; 
         
         let allOptions = {}; 
         let currentRawText = ""; 
         let currentTerms = {}; 
         let isSpeaking = false;
         
+        // ** 重要：翻譯快取物件 (Cache) **
+        // 用來儲存已經翻譯過的內容，避免重複呼叫 API
+        let translationCache = {};
+
         // 完整 12 國語言翻譯字典
         const uiTranslations = {
             "zh-TW": {
@@ -338,8 +371,6 @@
                 const key = el.getAttribute("data-i18n");
                 if (t[key]) el.innerHTML = t[key];
             });
-            
-            // 更新下拉選單的預設文字
             updateDropdownLabels(t);
         }
 
@@ -347,14 +378,13 @@
             const map = { 'sel-stage': 'opt_stage', 'sel-grade': 'opt_grade', 'sel-version': 'opt_version', 'sel-semester': 'opt_semester', 'sel-unit': 'opt_unit' };
             for(const [id, key] of Object.entries(map)) {
                 const sel = document.getElementById(id);
-                // 只更新 placeholder (第一個 disabled option)
                 if(sel.options.length > 0 && sel.options[0].disabled) {
                     sel.options[0].text = t[key];
                 }
             }
         }
 
-        // 1. 獲取選單資料 (使用 text/plain 避開 CORS)
+        // 1. 獲取選單資料
         function fetchTextbookOptions() {
             const stageSel = document.getElementById('sel-stage');
             stageSel.options[0].text = "載入資料庫中...";
@@ -378,7 +408,7 @@
             })
             .catch(err => {
                 console.error("Fetch failed:", err);
-                showToast("無法連接資料庫，請檢查網路或後台部署", "error");
+                showToast("無法連接資料庫", "error");
             });
         }
 
@@ -387,7 +417,6 @@
             const t = uiTranslations[document.getElementById('ui-lang').value] || uiTranslations['en'];
             sel.innerHTML = `<option value="" disabled selected>${t.opt_stage}</option>`;
             
-            // 填充 Stage
             Object.keys(allOptions).forEach(key => {
                 let label = key;
                 if (key === '國小') label = t.val_elem || key;
@@ -444,6 +473,10 @@
                 unit: document.getElementById('sel-unit').value
             };
 
+            // 重置翻譯快取 (新的一課，舊快取失效)
+            translationCache = {};
+
+            // 顯示左側載入中，右側等待
             document.getElementById('content-zh').innerHTML = '<div class="h-full flex items-center justify-center"><div class="loader"></div></div>';
             document.getElementById('content-target').innerHTML = '<div class="h-full flex items-center justify-center text-slate-400">...</div>';
 
@@ -474,7 +507,6 @@
             data.content.split('\n').forEach(p => {
                 if(!p.trim()) return;
                 let text = p;
-                // 詞彙高亮
                 for (let [zh, en] of Object.entries(currentTerms)) {
                     const regex = new RegExp(zh, "g");
                     text = text.replace(regex, `<span class="sci-term" title="${en}">${zh}<span class="text-sm font-normal ml-1 opacity-70">(${en})</span></span>`);
@@ -482,16 +514,32 @@
                 html += `<p>${text}</p>`;
             });
 
+            // 更新左側 (原文)
             document.getElementById('content-zh').innerHTML = html;
-            // 自動翻譯
+            
+            // 觸發右側 (翻譯) - 根據當前選擇的語言
             translateContent();
         }
 
-        // 4. 翻譯
+        // 4. 翻譯 (包含快取邏輯)
         function translateContent() {
             const lang = document.getElementById('target-lang').value;
             if(!currentRawText) return;
 
+            // 1. 如果選擇繁體中文，直接複製左邊內容 (不用翻譯)
+            if (lang === 'zh-TW') {
+                document.getElementById('content-target').innerHTML = document.getElementById('content-zh').innerHTML;
+                return;
+            }
+
+            // 2. 檢查快取：如果這課的這個語言已經翻譯過，直接用快取的
+            if (translationCache[lang]) {
+                document.getElementById('content-target').innerHTML = marked.parse(translationCache[lang]);
+                console.log("Loaded from cache:", lang);
+                return;
+            }
+
+            // 3. 沒快取才呼叫 API
             document.getElementById('trans-loading').classList.remove('hidden');
             document.getElementById('content-target').innerHTML = '<div class="h-full flex items-center justify-center"><div class="loader"></div></div>';
 
@@ -504,6 +552,9 @@
             .then(response => {
                 if (response.result === "success") {
                     const mdText = response.translatedText;
+                    // 存入快取
+                    translationCache[lang] = mdText;
+                    // 顯示
                     document.getElementById('content-target').innerHTML = marked.parse(mdText);
                 } else {
                     document.getElementById('content-target').innerHTML = "<p class='text-red-400'>Translation failed.</p>";
@@ -575,7 +626,7 @@
             input.value = '';
             
             const loadingId = 'load-' + Date.now();
-            document.getElementById('chat-messages').insertAdjacentHTML('beforeend', `<div id="${loadingId}" class="flex items-start gap-2"><div class="w-8 h-8 rounded-full bg-white text-student flex items-center justify-center border border-slate-200"><i class="fa-solid fa-robot text-xs"></i></div><div class="bg-white px-4 py-2 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 text-slate-400 text-sm"><i class="fa-solid fa-ellipsis fa-bounce"></i></div></div>`);
+            document.getElementById('chat-messages').insertAdjacentHTML('beforeend', `<div id="${loadingId}" class="flex items-start gap-2"><div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm mt-1 google-border"><i class="fa-solid fa-robot text-xs google-gradient-text"></i></div><div class="bg-white px-4 py-2 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 text-slate-400 text-sm"><i class="fa-solid fa-ellipsis fa-bounce"></i></div></div>`);
 
             fetch(GAS_URL, {
                 method: 'POST',
@@ -599,7 +650,7 @@
             if (role === 'user') {
                 html = `<div class="flex justify-end"><div class="bg-student text-white px-4 py-2 rounded-2xl rounded-tr-none shadow-sm max-w-[85%] text-sm">${text}</div></div>`;
             } else {
-                html = `<div class="flex items-start gap-2"><div class="w-8 h-8 rounded-full bg-white text-student flex items-center justify-center shrink-0 border border-slate-200 shadow-sm"><i class="fa-solid fa-robot text-xs"></i></div><div class="bg-white px-4 py-2 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 text-slate-700 max-w-[85%] text-sm leading-relaxed prose prose-sm">${marked.parse(text)}</div></div>`;
+                html = `<div class="flex items-start gap-2"><div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm mt-1 google-border"><i class="fa-solid fa-robot text-xs google-gradient-text"></i></div><div class="bg-white px-4 py-2 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 text-slate-700 max-w-[85%] text-sm leading-relaxed prose prose-sm">${marked.parse(text)}</div></div>`;
             }
             container.insertAdjacentHTML('beforeend', html);
             container.scrollTop = container.scrollHeight;
