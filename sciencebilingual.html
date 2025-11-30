@@ -254,8 +254,8 @@
     </div>
 
     <script>
-        // *** 請確認下方網址是您「建立新版本」後的最新網址 ***
-        const GAS_URL = "https://https://script.google.com/macros/s/AKfycbyrohBVPgMabQrsyzZU5CcZ8DSSfKwoCGlwAzslirYdLU8VuG4_wpKIluhBQcFMmfFz/exec"; 
+        // *** 這裡請填入剛剛「新建部署」後得到的全新網址 ***
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbwaqb_hmKvQEgVKCI-9W8zmU85vh_ielL0Kb6TGQq1dg52PfDozWzgYtnRMwRVXqyZk/exec"; 
         
         let allOptions = {}; 
         let currentRawText = ""; 
@@ -580,7 +580,6 @@
             fetch(GAS_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                // 修正：增加 context 傳送長度
                 body: JSON.stringify({ action: "chat_bot", message: msg, context: currentRawText.substring(0, 10000) })
             })
             .then(res => res.json())
