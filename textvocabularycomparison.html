@@ -6,620 +6,526 @@
     <title>文本詞彙比較 | Science Learning Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- 引入 Markdown 解析器 -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        researcher: { light: '#e9d5ff', DEFAULT: '#a855f7', dark: '#7e22ce' },
-                        glass: {
-                            100: 'rgba(255, 255, 255, 0.1)',
-                            200: 'rgba(255, 255, 255, 0.2)',
-                            700: 'rgba(255, 255, 255, 0.7)',
-                            900: 'rgba(255, 255, 255, 0.9)',
-                        }
+                        research: { 
+                            50: '#f5f3ff', 100: '#ede9fe', 200: '#ddd6fe', 
+                            500: '#8b5cf6', 600: '#7c3aed', 700: '#6d28d9', 
+                            800: '#5b21b6', 900: '#4c1d95' 
+                        },
+                        glass: { 100: 'rgba(255, 255, 255, 0.1)', 700: 'rgba(255, 255, 255, 0.7)' }
                     },
                     fontFamily: {
-                        sans: ['ui-sans-serif', 'system-ui', '-apple-system', "Segoe UI", 'Roboto', "Helvetica Neue", 'Arial', 'sans-serif'],
+                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
                     },
                     animation: {
-                        "fade-in-up": "fadeInUp 0.6s ease-out forwards",
-                        "pulse-slow": "pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+                        "fade-in-up": "fadeInUp 0.5s ease-out forwards",
                     },
                     keyframes: {
-                        "fadeInUp": {
-                            "0%": { opacity: "0", transform: "translateY(20px)" },
-                            "100%": { opacity: "1", transform: "translateY(0)" }
-                        }
+                        "fadeInUp": { "0%": { opacity: "0", transform: "translateY(10px)" }, "100%": { opacity: "1", transform: "translateY(0)" } }
                     }
                 }
             }
         }
     </script>
     <style>
-        /* 玻璃擬態與背景 */
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f8fafc; }
         .glass-panel {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            box-shadow: 0 8px 32px 0 rgba(126, 34, 206, 0.08);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 8px 32px 0 rgba(109, 40, 217, 0.05);
+        }
+        .input-area {
+            transition: all 0.2s;
+            border: 1px solid #e2e8f0;
+            background-color: #f8fafc;
+        }
+        .input-area:focus {
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+            border-color: #7c3aed;
+            outline: none;
+        }
+        .checkbox-wrapper label {
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s;
+        }
+        .checkbox-wrapper input:checked + span {
+            background-color: #7c3aed;
+            color: white;
+            border-color: #7c3aed;
         }
         
-        .input-area:focus {
-            outline: none;
-            border-color: #a855f7;
-            box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.15);
-        }
-
         #canvas-container {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -10; overflow: hidden;
-            background: linear-gradient(135deg, #fdfbff 0%, #f5f3ff 100%);
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -10;
+            background: linear-gradient(135deg, #f5f3ff 0%, #eef2ff 100%);
         }
-
-        .title-3d {
-            background: linear-gradient(135deg, #581c87 0%, #7e22ce 50%, #a855f7 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            filter: drop-shadow(1px 1px 0px rgba(168, 85, 247, 0.4)) 
-                    drop-shadow(3px 3px 0px rgba(88, 28, 135, 0.1));
-        }
-
+        
+        /* 滾動條美化 */
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #d8b4fe; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #a855f7; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
 
-        .result-card {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid transparent;
+        /* Toggle Switch */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #7c3aed;
         }
-        .result-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px -10px rgba(126, 34, 206, 0.15);
-            border-color: rgba(168, 85, 247, 0.2);
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #7c3aed;
         }
-        
-        /* AI 報告優化樣式 */
-        .ai-report-content table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.95rem; }
-        .ai-report-content th { background-color: #f3e8ff; color: #6b21a8; font-weight: bold; padding: 0.75rem; text-align: left; border-bottom: 2px solid #d8b4fe; }
-        .ai-report-content td { padding: 0.75rem; border-bottom: 1px solid #f3f4f6; color: #4b5563; }
-        .ai-report-content tr:last-child td { border-bottom: none; }
-        /* 調整下拉選單樣式 */
-        select { font-size: 0.95rem; }
     </style>
 </head>
-<body class="min-h-screen font-sans flex flex-col text-slate-700 relative overflow-x-hidden selection:bg-purple-200 selection:text-purple-900">
+<body class="text-slate-800 h-screen flex flex-col overflow-hidden">
 
-    <div id="canvas-container">
-        <canvas id="network-canvas"></canvas>
-    </div>
+    <div id="canvas-container"></div>
 
-    <!-- 導航列 -->
+    <!-- 頂部導航 -->
     <nav class="glass-panel sticky top-0 z-50 border-b-0">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+        <div class="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-3 cursor-pointer group" onclick="window.location.href='researcher.html'">
-                <div class="bg-purple-100 p-2 rounded-xl text-purple-600 shadow-sm transition group-hover:scale-105 group-hover:bg-purple-200">
+                <div class="bg-research-100 p-2 rounded-xl text-research-700 shadow-sm transition group-hover:bg-research-600 group-hover:text-white">
                     <i class="fa-solid fa-arrow-left text-lg"></i>
                 </div>
-                <span class="text-xl font-bold tracking-tight text-slate-800 group-hover:text-purple-700 transition" data-i18n="back_researcher">返回研究中心</span>
+                <span class="text-lg font-bold tracking-tight text-slate-700 group-hover:text-research-700 transition" data-i18n="back_btn">返回研究中心</span>
             </div>
             
-            <!-- 語言選單 -->
-            <div class="flex items-center space-x-4">
-                 <select id="language-selector" onchange="changeLanguage()" class="glass-panel rounded-xl py-2 px-4 text-sm font-medium outline-none focus:ring-2 focus:ring-purple-400/50 cursor-pointer text-slate-700 border border-purple-200 hover:bg-white/90 transition">
-                    <option value="zh-TW">繁體中文</option>
-                    <option value="en">English</option>
-                    <option value="ja">日本語</option>
-                    <option value="zh-CN">简体中文</option>
-                </select>
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2 px-3 py-1 bg-research-50 text-research-700 rounded-full border border-research-200 text-sm font-bold">
+                    <i class="fa-solid fa-scale-balanced"></i> <span data-i18n="tool_name">文本詞彙比較</span>
+                </div>
                 
-                <span class="bg-purple-50 text-purple-700 px-4 py-1.5 rounded-full text-sm font-bold border border-purple-200 shadow-sm flex items-center gap-2">
-                    <i class="fa-solid fa-scale-balanced"></i> 
-                    <span data-i18n="tool_name">文本比較工具</span>
-                </span>
+                <!-- 語言選擇器 -->
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-globe text-slate-400"></i>
+                    <select id="language-selector" onchange="changeLanguage()" class="bg-white/50 border border-slate-200 text-slate-600 text-sm rounded-lg focus:ring-research-500 focus:border-research-500 block p-1.5 outline-none hover:bg-white transition cursor-pointer">
+                        <option value="zh-TW">繁體中文</option>
+                        <option value="en">English</option>
+                        <option value="ja">日本語</option>
+                        <option value="ko">한국어</option>
+                        <option value="zh-CN">简体中文</option>
+                        <option value="es">Español</option>
+                        <option value="pt">Português</option>
+                        <option value="id">Bahasa Indonesia</option>
+                        <option value="th">ไทย</option>
+                        <option value="vi">Tiếng Việt</option>
+                        <option value="hi">हिन्दी</option>
+                        <option value="ms">Bahasa Melayu</option>
+                    </select>
+                </div>
             </div>
         </div>
     </nav>
 
-    <!-- 主內容區 -->
-    <main class="flex-1 p-6 md:p-10 relative z-10">
-        <div class="max-w-[1800px] mx-auto animate-fade-in-up">
+    <main class="flex-1 overflow-hidden flex flex-col md:flex-row">
+        
+        <!-- 左側：輸入與設定 (30%) -->
+        <aside class="w-full md:w-1/3 bg-white border-r border-slate-200 flex flex-col overflow-y-auto z-10 shadow-lg">
+            <div class="p-6 space-y-6">
+                
+                <!-- 設定區塊 -->
+                <div class="bg-research-50/50 p-5 rounded-2xl border border-research-100">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="text-sm font-bold text-research-800 flex items-center">
+                            <i class="fa-solid fa-filter mr-2"></i> <span data-i18n="label_pos_filter">詞性篩選</span>
+                        </h3>
+                        <!-- 顯示 POS 開關 -->
+                        <div class="flex items-center">
+                            <label for="show-pos-toggle" class="flex items-center cursor-pointer">
+                                <div class="relative">
+                                    <input type="checkbox" id="show-pos-toggle" class="sr-only">
+                                    <div class="w-10 h-6 bg-slate-200 rounded-full shadow-inner transition-colors duration-300" id="toggle-bg"></div>
+                                    <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full shadow transition-transform duration-300" id="toggle-dot"></div>
+                                </div>
+                                <span class="ml-2 text-xs font-bold text-slate-600" data-i18n="label_show_pos">顯示 POS</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-wrapper grid grid-cols-2 gap-2">
+                        <!-- 預設勾選 -->
+                        <label class="flex items-center">
+                            <input type="checkbox" class="hidden pos-check" value="N" checked>
+                            <span class="w-full text-center px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-bold text-slate-500 hover:bg-white transition" data-i18n="pos_n">名詞 (N)</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" class="hidden pos-check" value="V" checked>
+                            <span class="w-full text-center px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-bold text-slate-500 hover:bg-white transition" data-i18n="pos_v">動詞 (V)</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" class="hidden pos-check" value="A" checked>
+                            <span class="w-full text-center px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-bold text-slate-500 hover:bg-white transition" data-i18n="pos_a">形容詞 (A)</span>
+                        </label>
+                        
+                        <!-- 預設不勾選 -->
+                        <label class="flex items-center">
+                            <input type="checkbox" class="hidden pos-check" value="D">
+                            <span class="w-full text-center px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-bold text-slate-500 hover:bg-white transition" data-i18n="pos_d">副詞 (D)</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" class="hidden pos-check" value="C">
+                            <span class="w-full text-center px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-bold text-slate-500 hover:bg-white transition" data-i18n="pos_c">連接詞 (C)</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" class="hidden pos-check" value="O">
+                            <span class="w-full text-center px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-bold text-slate-500 hover:bg-white transition" data-i18n="pos_o">其他</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 輸入框 A -->
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-sm font-bold text-slate-700 flex items-center gap-2">
+                            <span class="w-6 h-6 rounded bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs">A</span> <span data-i18n="label_text_a">文本 A</span>
+                        </label>
+                        <div class="flex gap-2">
+                            <button onclick="loadExample()" class="text-xs text-indigo-600 hover:text-indigo-800 transition font-bold border border-indigo-200 rounded px-2 py-1 bg-indigo-50 flex items-center gap-1">
+                                <i class="fa-solid fa-file-import"></i> <span data-i18n="btn_example">載入範例</span>
+                            </button>
+                            <button onclick="clearInput('text-a')" class="text-xs text-slate-400 hover:text-red-500 transition flex items-center gap-1">
+                                <i class="fa-solid fa-trash-can"></i> <span data-i18n="btn_clear">清空</span>
+                            </button>
+                        </div>
+                    </div>
+                    <textarea id="text-a" class="input-area w-full h-40 p-4 rounded-xl resize-none text-sm font-mono leading-relaxed" placeholder="..."></textarea>
+                </div>
+
+                <!-- 輸入框 B -->
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-sm font-bold text-slate-700 flex items-center gap-2">
+                            <span class="w-6 h-6 rounded bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs">B</span> <span data-i18n="label_text_b">文本 B</span>
+                        </label>
+                        <button onclick="clearInput('text-b')" class="text-xs text-slate-400 hover:text-red-500 transition flex items-center gap-1">
+                            <i class="fa-solid fa-trash-can"></i> <span data-i18n="btn_clear">清空</span>
+                        </button>
+                    </div>
+                    <textarea id="text-b" class="input-area w-full h-40 p-4 rounded-xl resize-none text-sm font-mono leading-relaxed" placeholder="..."></textarea>
+                </div>
+
+                <button onclick="compareTexts()" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transition transform active:scale-95 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-arrow-right-arrow-left"></i> <span data-i18n="btn_analyze">開始比對分析</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- 右側：分析結果 (70%) -->
+        <main class="flex-1 bg-slate-50 p-6 md:p-8 overflow-y-auto custom-scrollbar">
             
-            <!-- 標題 -->
-            <div class="text-center mb-10">
-                <h1 class="text-4xl md:text-5xl font-black title-3d mb-3 tracking-tight" data-i18n="page_title">文本詞彙差異分析</h1>
-                <p class="text-slate-500 text-lg font-medium" data-i18n="page_subtitle">Text Vocabulary Comparison & Set Analysis</p>
+            <!-- 狀態提示 -->
+            <div id="empty-state" class="h-full flex flex-col items-center justify-center text-slate-300 select-none">
+                <i class="fa-solid fa-chart-venn text-6xl mb-4 opacity-50"></i>
+                <p class="text-lg font-medium" data-i18n="msg_start">輸入文本並開始比對</p>
+                <p class="text-sm opacity-70 mt-2" data-i18n="msg_hint">支援自動過濾標點與詞性篩選</p>
             </div>
 
-            <!-- 輸入區塊 -->
-            <div class="glass-panel p-8 rounded-[2.5rem] mb-8 border border-white/60 max-w-7xl mx-auto">
+            <!-- 結果面板 -->
+            <div id="result-panel" class="hidden grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 animate-fade-in-up">
                 
-                <div class="flex items-center justify-between mb-6 bg-purple-50/60 p-4 rounded-2xl border border-purple-100/50 backdrop-blur-sm">
-                    <div class="flex items-center gap-2 text-sm font-bold text-purple-800">
-                        <i class="fa-solid fa-sliders"></i> <span data-i18n="label_settings">設定</span>
+                <!-- 1. A 獨有 -->
+                <div class="flex flex-col h-[calc(100vh-140px)] glass-panel rounded-2xl overflow-hidden border-t-4 border-indigo-500">
+                    <div class="p-4 bg-white border-b border-slate-100 flex justify-between items-center">
+                        <h3 class="font-bold text-indigo-700 flex items-center gap-2"><i class="fa-solid fa-circle-minus"></i> <span data-i18n="header_only_a">A 獨有</span></h3>
+                        <span class="bg-indigo-50 text-indigo-700 text-xs px-2 py-1 rounded-md font-bold" id="count-only-a">0</span>
                     </div>
-                    <div class="flex items-center gap-4">
-                        <button onclick="loadDemo()" class="text-sm font-bold text-purple-600 hover:text-purple-800 hover:underline transition flex items-center gap-2 bg-white/80 px-4 py-2 rounded-full border border-purple-100 hover:bg-white shadow-sm">
-                            <i class="fa-solid fa-flask"></i> <span data-i18n="btn_load_demo">載入範例</span>
+                    <textarea id="res-only-a" readonly class="flex-1 p-4 bg-transparent resize-none outline-none text-slate-600 font-mono text-sm leading-relaxed custom-scrollbar"></textarea>
+                    <div class="p-3 bg-slate-50 border-t border-slate-100">
+                        <button onclick="copyText('res-only-a')" class="w-full py-2 rounded-lg text-xs font-bold text-slate-500 hover:bg-white hover:text-indigo-600 hover:shadow-sm transition border border-transparent hover:border-slate-200 flex items-center justify-center gap-2">
+                            <i class="fa-regular fa-copy"></i> <span data-i18n="btn_copy">複製內容</span>
                         </button>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 relative">
-                    <!-- 文本 A -->
-                    <div class="relative group flex flex-col h-full">
-                        <div class="flex justify-between items-center mb-3 px-1">
-                            <label class="font-bold text-purple-900 text-lg flex items-center gap-2">
-                                <div class="w-8 h-8 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center font-black">A</div>
-                                <span data-i18n="label_text_a">文本 A</span>
-                            </label>
-                            <button onclick="clearText('textA')" class="text-slate-400 hover:text-red-500 text-sm transition font-medium px-2 py-1 rounded hover:bg-red-50">
-                                <i class="fa-solid fa-trash-can mr-1"></i> <span data-i18n="btn_clear">清空</span>
-                            </button>
-                        </div>
-                        <textarea id="textA" class="input-area w-full h-64 p-6 rounded-3xl border border-slate-200 bg-white/70 text-slate-700 leading-relaxed resize-none custom-scrollbar transition text-base shadow-inner font-mono" placeholder="在此貼上已斷詞的文本 A..."></textarea>
-                        <div class="absolute bottom-4 right-4 bg-white/80 backdrop-blur px-3 py-1.5 rounded-xl text-xs font-bold text-purple-600 shadow-sm border border-purple-100 pointer-events-none">
-                            <span data-i18n="label_count">詞彙數</span>: <span id="countA">0</span>
-                        </div>
+                <!-- 2. 交集 -->
+                <div class="flex flex-col h-[calc(100vh-140px)] glass-panel rounded-2xl overflow-hidden border-t-4 border-teal-500">
+                    <div class="p-4 bg-white border-b border-slate-100 flex justify-between items-center">
+                        <h3 class="font-bold text-teal-700 flex items-center gap-2"><i class="fa-solid fa-link"></i> <span data-i18n="header_common">AB 交集</span></h3>
+                        <span class="bg-teal-50 text-teal-700 text-xs px-2 py-1 rounded-md font-bold" id="count-common">0</span>
                     </div>
-
-                    <!-- 中央操作按鈕 -->
-                    <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 hidden md:flex flex-col gap-4 pt-8">
-                        <button onclick="compareTexts()" class="w-14 h-14 bg-white border-2 border-purple-100 rounded-full text-purple-600 shadow-xl hover:shadow-purple-500/20 hover:bg-purple-50 hover:scale-110 hover:border-purple-300 transition transform flex items-center justify-center group" title="Compare">
-                            <i class="fa-solid fa-arrow-right-arrow-left text-xl group-hover:animate-pulse"></i>
+                    <textarea id="res-common" readonly class="flex-1 p-4 bg-transparent resize-none outline-none text-slate-600 font-mono text-sm leading-relaxed custom-scrollbar"></textarea>
+                    <div class="p-3 bg-slate-50 border-t border-slate-100">
+                        <button onclick="copyText('res-common')" class="w-full py-2 rounded-lg text-xs font-bold text-slate-500 hover:bg-white hover:text-teal-600 hover:shadow-sm transition border border-transparent hover:border-slate-200 flex items-center justify-center gap-2">
+                             <i class="fa-regular fa-copy"></i> <span data-i18n="btn_copy">複製內容</span>
                         </button>
                     </div>
+                </div>
 
-                    <!-- 文本 B -->
-                    <div class="relative group flex flex-col h-full">
-                        <div class="flex justify-between items-center mb-3 px-1">
-                            <label class="font-bold text-indigo-900 text-lg flex items-center gap-2">
-                                <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center font-black">B</div>
-                                <span data-i18n="label_text_b">文本 B</span>
-                            </label>
-                            <button onclick="clearText('textB')" class="text-slate-400 hover:text-red-500 text-sm transition font-medium px-2 py-1 rounded hover:bg-red-50">
-                                <i class="fa-solid fa-trash-can mr-1"></i> <span data-i18n="btn_clear">清空</span>
-                            </button>
-                        </div>
-                        <textarea id="textB" class="input-area w-full h-64 p-6 rounded-3xl border border-slate-200 bg-white/70 text-slate-700 leading-relaxed resize-none custom-scrollbar transition text-base shadow-inner font-mono" placeholder="在此貼上已斷詞的文本 B..."></textarea>
-                        <div class="absolute bottom-4 right-4 bg-white/80 backdrop-blur px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-600 shadow-sm border border-indigo-100 pointer-events-none">
-                            <span data-i18n="label_count">詞彙數</span>: <span id="countB">0</span>
-                        </div>
+                <!-- 3. 聯集 -->
+                <div class="flex flex-col h-[calc(100vh-140px)] glass-panel rounded-2xl overflow-hidden border-t-4 border-fuchsia-500">
+                    <div class="p-4 bg-white border-b border-slate-100 flex justify-between items-center">
+                        <h3 class="font-bold text-fuchsia-700 flex items-center gap-2"><i class="fa-solid fa-layer-group"></i> <span data-i18n="header_union">AB 聯集</span></h3>
+                        <span class="bg-fuchsia-50 text-fuchsia-700 text-xs px-2 py-1 rounded-md font-bold" id="count-union">0</span>
+                    </div>
+                    <textarea id="res-union" readonly class="flex-1 p-4 bg-transparent resize-none outline-none text-slate-600 font-mono text-sm leading-relaxed custom-scrollbar"></textarea>
+                    <div class="p-3 bg-slate-50 border-t border-slate-100">
+                        <button onclick="copyText('res-union')" class="w-full py-2 rounded-lg text-xs font-bold text-slate-500 hover:bg-white hover:text-fuchsia-600 hover:shadow-sm transition border border-transparent hover:border-slate-200 flex items-center justify-center gap-2">
+                             <i class="fa-regular fa-copy"></i> <span data-i18n="btn_copy">複製內容</span>
+                        </button>
                     </div>
                 </div>
 
-                <!-- 行動版按鈕 -->
-                <div class="md:hidden mt-8">
-                    <button onclick="compareTexts()" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-purple-500/30 active:scale-95 transition flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-magnifying-glass-chart"></i> <span data-i18n="btn_start_compare">開始比較分析</span>
-                    </button>
+                <!-- 4. B 獨有 -->
+                <div class="flex flex-col h-[calc(100vh-140px)] glass-panel rounded-2xl overflow-hidden border-t-4 border-emerald-500">
+                    <div class="p-4 bg-white border-b border-slate-100 flex justify-between items-center">
+                        <h3 class="font-bold text-emerald-700 flex items-center gap-2"><i class="fa-solid fa-circle-plus"></i> <span data-i18n="header_only_b">B 獨有</span></h3>
+                        <span class="bg-emerald-50 text-emerald-700 text-xs px-2 py-1 rounded-md font-bold" id="count-only-b">0</span>
+                    </div>
+                    <textarea id="res-only-b" readonly class="flex-1 p-4 bg-transparent resize-none outline-none text-slate-600 font-mono text-sm leading-relaxed custom-scrollbar"></textarea>
+                    <div class="p-3 bg-slate-50 border-t border-slate-100">
+                        <button onclick="copyText('res-only-b')" class="w-full py-2 rounded-lg text-xs font-bold text-slate-500 hover:bg-white hover:text-emerald-600 hover:shadow-sm transition border border-transparent hover:border-slate-200 flex items-center justify-center gap-2">
+                             <i class="fa-regular fa-copy"></i> <span data-i18n="btn_copy">複製內容</span>
+                        </button>
+                    </div>
                 </div>
+
             </div>
-
-            <!-- 分析結果區 (預設隱藏) -->
-            <div id="analysis-results" class="hidden mb-10 animate-fade-in-up">
-                
-                <!-- 4 欄位結果區 -->
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-                    <!-- 1. A 獨有 -->
-                    <div class="result-card bg-white/80 backdrop-blur-md p-5 rounded-3xl shadow-sm border border-purple-100 flex flex-col h-[500px]">
-                        <div class="flex items-center justify-between mb-4 pb-3 border-b border-purple-50">
-                            <h3 class="font-bold text-purple-700 flex items-center gap-2">
-                                <span class="w-3 h-3 rounded-full bg-purple-500 shadow-sm"></span> <span data-i18n="header_only_a">A 獨有</span>
-                            </h3>
-                            <span class="bg-purple-100 text-purple-700 text-xs px-2.5 py-1 rounded-lg font-black" id="countOnlyA">0</span>
-                        </div>
-                        <textarea id="onlyA" readonly class="flex-1 w-full bg-transparent resize-none outline-none text-slate-600 custom-scrollbar text-sm leading-relaxed font-mono" placeholder="..."></textarea>
-                        <button onclick="copyToClipboard('onlyA')" class="mt-3 w-full py-2 rounded-xl border border-purple-200 text-purple-600 hover:bg-purple-50 transition text-xs font-bold flex items-center justify-center gap-2">
-                            <i class="fa-regular fa-copy"></i> <span data-i18n="btn_copy">複製</span>
-                        </button>
-                    </div>
-                    <!-- 2. 聯集 -->
-                    <div class="result-card bg-white/80 backdrop-blur-md p-5 rounded-3xl shadow-sm border border-fuchsia-100 flex flex-col h-[500px]">
-                        <div class="flex items-center justify-between mb-4 pb-3 border-b border-fuchsia-50">
-                             <h3 class="font-bold text-fuchsia-700 flex items-center gap-2">
-                                <i class="fa-solid fa-layer-group text-sm"></i> <span data-i18n="header_union">AB 聯集</span>
-                            </h3>
-                            <span class="bg-fuchsia-100 text-fuchsia-700 text-xs px-2.5 py-1 rounded-lg font-black" id="countUnion">0</span>
-                        </div>
-                        <textarea id="unionResult" readonly class="flex-1 w-full bg-transparent resize-none outline-none text-slate-600 custom-scrollbar text-sm leading-relaxed font-mono" placeholder="..."></textarea>
-                        <button onclick="copyToClipboard('unionResult')" class="mt-3 w-full py-2 rounded-xl border border-fuchsia-200 text-fuchsia-600 hover:bg-fuchsia-50 transition text-xs font-bold flex items-center justify-center gap-2">
-                            <i class="fa-regular fa-copy"></i> <span data-i18n="btn_copy">複製</span>
-                        </button>
-                    </div>
-                    <!-- 3. 交集 -->
-                    <div class="result-card bg-white/80 backdrop-blur-md p-5 rounded-3xl shadow-sm border border-teal-100 flex flex-col h-[500px]">
-                        <div class="flex items-center justify-between mb-4 pb-3 border-b border-teal-50">
-                            <h3 class="font-bold text-teal-700 flex items-center gap-2">
-                                <i class="fa-solid fa-link text-sm"></i> <span data-i18n="header_common">AB 交集</span>
-                            </h3>
-                            <span class="bg-teal-100 text-teal-700 text-xs px-2.5 py-1 rounded-lg font-black" id="countCommon">0</span>
-                        </div>
-                        <textarea id="common" readonly class="flex-1 w-full bg-transparent resize-none outline-none text-slate-600 custom-scrollbar text-sm leading-relaxed font-mono" placeholder="..."></textarea>
-                        <button onclick="copyToClipboard('common')" class="mt-3 w-full py-2 rounded-xl border border-teal-200 text-teal-600 hover:bg-teal-50 transition text-xs font-bold flex items-center justify-center gap-2">
-                            <i class="fa-regular fa-copy"></i> <span data-i18n="btn_copy">複製</span>
-                        </button>
-                    </div>
-                    <!-- 4. B 獨有 -->
-                    <div class="result-card bg-white/80 backdrop-blur-md p-5 rounded-3xl shadow-sm border border-indigo-100 flex flex-col h-[500px]">
-                        <div class="flex items-center justify-between mb-4 pb-3 border-b border-indigo-50">
-                            <h3 class="font-bold text-indigo-700 flex items-center gap-2">
-                                <span class="w-3 h-3 rounded-full bg-indigo-500 shadow-sm"></span> <span data-i18n="header_only_b">B 獨有</span>
-                            </h3>
-                            <span class="bg-indigo-100 text-indigo-700 text-xs px-2.5 py-1 rounded-lg font-black" id="countOnlyB">0</span>
-                        </div>
-                        <textarea id="onlyB" readonly class="flex-1 w-full bg-transparent resize-none outline-none text-slate-600 custom-scrollbar text-sm leading-relaxed font-mono" placeholder="..."></textarea>
-                        <button onclick="copyToClipboard('onlyB')" class="mt-3 w-full py-2 rounded-xl border border-indigo-200 text-indigo-600 hover:bg-indigo-50 transition text-xs font-bold flex items-center justify-center gap-2">
-                            <i class="fa-regular fa-copy"></i> <span data-i18n="btn_copy">複製</span>
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- 下載報告 & AI 分析按鈕 -->
-                <div class="mt-8 flex flex-col items-center gap-4">
-                    <button onclick="analyzeWithGemini()" class="bg-gradient-to-r from-amber-400 to-orange-500 text-white px-8 py-3 rounded-2xl font-bold text-lg shadow-lg hover:shadow-orange-500/40 hover:scale-105 transition transform flex items-center gap-2 relative overflow-hidden group">
-                        <span class="absolute top-0 left-0 w-full h-full bg-white/20 animate-pulse-slow"></span>
-                        <i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="btn_ai_analyze">AI 深度差異分析</span>
-                    </button>
-                    <button onclick="downloadReport()" class="text-slate-400 hover:text-purple-600 transition text-sm font-bold flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-download"></i> <span data-i18n="btn_download_report">下載完整分析報告 (.txt)</span>
-                    </button>
-                </div>
-
-                <!-- AI 分析結果顯示區 -->
-                <div id="ai-analysis-result" class="hidden mt-8 glass-panel p-8 rounded-3xl border-2 border-amber-200/50 bg-white/90">
-                    <div class="flex justify-between items-center mb-6 border-b border-amber-100 pb-4">
-                        <h2 class="text-2xl font-bold text-amber-700 flex items-center gap-2">
-                            <i class="fa-solid fa-robot"></i> <span data-i18n="ai_report_title">AI 分析報告</span>
-                        </h2>
-                        <button onclick="document.getElementById('ai-analysis-result').classList.add('hidden')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
-                    </div>
-                    <div id="ai-content" class="ai-report-content text-slate-700 leading-relaxed">
-                        <div class="flex items-center justify-center py-10 text-amber-600">
-                            <i class="fa-solid fa-circle-notch fa-spin mr-3 text-2xl"></i> <span data-i18n="msg_generating">正在生成深度分析...</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </main>
-
-    <!-- Toast -->
-    <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-slate-800/90 backdrop-blur text-white px-6 py-3 rounded-full shadow-2xl transition-all duration-300 opacity-0 translate-y-10 z-50 flex items-center gap-3 pointer-events-none border border-slate-700/50">
-        <i class="fa-solid fa-check-circle text-green-400"></i>
-        <span id="toast-msg" class="font-medium text-sm">操作成功</span>
+        </main>
     </div>
 
     <script>
-        const apiKey = ""; 
+        // Toggle Switch Logic
+        document.getElementById('show-pos-toggle').addEventListener('change', function() {
+            const bg = document.getElementById('toggle-bg');
+            const dot = document.getElementById('toggle-dot');
+            if(this.checked) {
+                bg.classList.replace('bg-slate-200', 'bg-research-500');
+                dot.style.transform = 'translateX(100%)';
+            } else {
+                bg.classList.replace('bg-research-500', 'bg-slate-200');
+                dot.style.transform = 'translateX(0)';
+            }
+            // Re-run comparison if data exists
+            const textA = document.getElementById('text-a').value;
+            if(textA) compareTexts();
+        });
 
-        // *** 多語系字典 ***
+        // i18n
         const translations = {
             "zh-TW": {
-                "back_researcher": "返回研究中心", "tool_name": "文本比較工具", "page_title": "文本詞彙差異分析", "page_subtitle": "Text Vocabulary Comparison & Set Analysis",
-                "label_settings": "設定", "btn_load_demo": "載入範例", "label_text_a": "文本 A", "label_text_b": "文本 B", "btn_clear": "清空", "label_count": "詞彙數",
-                "btn_start_compare": "開始比較分析", "header_only_a": "A 獨有", "header_union": "AB 聯集", "header_common": "AB 交集", "header_only_b": "B 獨有",
-                "btn_copy": "複製", "btn_download_report": "下載完整分析報告 (.txt)", "btn_ai_analyze": "AI 深度差異分析", "ai_report_title": "AI 分析報告",
-                "msg_input_empty": "請先輸入或貼上文本", "msg_analysis_done": "分析完成！", "msg_copied": "內容已複製", "msg_downloading": "報告下載中...", "msg_demo_loaded": "範例資料已載入",
-                "msg_generating": "正在生成深度分析...", "msg_ai_error": "AI 分析服務暫時無法使用，請稍後再試。", "msg_ai_empty": "請先執行比較分析，確認有詞彙資料後再使用 AI 分析。",
-                "demo_text_a": "光合作用 是 植物 利用 葉綠素 吸收 太陽能 ， 將 水 和 二氧化碳 轉化 為 葡萄糖 與 氧氣 的 過程 。 這 是 生態系 能量 的 基礎 。",
-                "demo_text_b": "呼吸作用 是 生物 利用 氧氣 將 葡萄糖 分解 ， 產生 能量 、 水 和 二氧化碳 的 過程 。 這 是 維持 生命 現象 所 必需 的 。"
+                "back_btn": "返回研究中心", "tool_name": "文本詞彙比較", 
+                "label_pos_filter": "詞性篩選", "label_show_pos": "顯示 POS",
+                "pos_n": "名詞 (N)", "pos_v": "動詞 (V)", "pos_a": "形容詞 (A)", "pos_d": "副詞 (D)", "pos_c": "連接詞 (C)", "pos_o": "其他",
+                "label_text_a": "文本 A", "label_text_b": "文本 B", "btn_example": "載入範例", "btn_clear": "清空",
+                "btn_analyze": "開始比對分析", "msg_start": "輸入文本並開始比對", "msg_hint": "支援自動過濾標點與詞性篩選",
+                "header_only_a": "A 獨有", "header_common": "AB 交集", "header_union": "AB 聯集", "header_only_b": "B 獨有",
+                "btn_copy": "複製內容", "msg_copied": "已複製", "err_input": "請至少輸入一段文本！",
+                "ph_text": "請貼上斷詞後的文本..."
             },
             "en": {
-                "back_researcher": "Back to Research Center", "tool_name": "Corpus Search", "page_title": "Scientific Corpus Query", "page_subtitle": "Search Scientific Text Corpus & Analysis",
-                "label_settings": "Settings", "btn_load_demo": "Load Demo", "label_text_a": "Text A", "label_text_b": "Text B", "btn_clear": "Clear", "label_count": "Words",
-                "btn_start_compare": "Compare", "header_only_a": "Unique to A", "header_union": "Union (A ∪ B)", "header_common": "Intersection (A ∩ B)", "header_only_b": "Unique to B",
-                "btn_copy": "Copy", "btn_download_report": "Download Report (.txt)", "btn_ai_analyze": "AI Deep Analysis", "ai_report_title": "AI Analysis Report",
-                "msg_input_empty": "Please enter text first", "msg_analysis_done": "Analysis Complete!", "msg_copied": "Copied!", "msg_downloading": "Downloading...", "msg_demo_loaded": "Demo Loaded",
-                "msg_generating": "Generating analysis...", "msg_ai_error": "AI service unavailable, please try again later.", "msg_ai_empty": "Please run comparison first.",
-                "demo_text_a": "Photosynthesis is the process used by plants to convert light energy into chemical energy that can later be released to fuel the organism's activities.",
-                "demo_text_b": "Cellular respiration is a set of metabolic reactions and processes that take place in the cells of organisms to convert biochemical energy from nutrients into adenosine triphosphate."
+                "back_btn": "Back to Research", "tool_name": "Vocab Comparison", 
+                "label_pos_filter": "POS Filter", "label_show_pos": "Show POS",
+                "pos_n": "Noun (N)", "pos_v": "Verb (V)", "pos_a": "Adj (A)", "pos_d": "Adv (D)", "pos_c": "Conj (C)", "pos_o": "Other",
+                "label_text_a": "Text A", "label_text_b": "Text B", "btn_example": "Example", "btn_clear": "Clear",
+                "btn_analyze": "Start Analysis", "msg_start": "Input text to start comparison", "msg_hint": "Auto-filter punctuation & POS",
+                "header_only_a": "Unique to A", "header_common": "Intersection", "header_union": "Union", "header_only_b": "Unique to B",
+                "btn_copy": "Copy Content", "msg_copied": "Copied", "err_input": "Please input text!",
+                "ph_text": "Paste tokenized text here..."
             },
             "ja": {
-                "back_researcher": "研究センターへ戻る", "tool_name": "テキスト比較", "page_title": "語彙差異分析", "page_subtitle": "Text Vocabulary Comparison & Set Analysis",
-                "label_settings": "設定", "btn_load_demo": "デモをロード", "label_text_a": "テキスト A", "label_text_b": "テキスト B", "btn_clear": "クリア", "label_count": "語数",
-                "btn_start_compare": "比較開始", "header_only_a": "A のみ", "header_union": "和集合 (A ∪ B)", "header_common": "共通 (A ∩ B)", "header_only_b": "B のみ",
-                "btn_copy": "コピー", "btn_download_report": "レポートをダウンロード (.txt)", "btn_ai_analyze": "AI 詳細分析", "ai_report_title": "AI 分析レポート",
-                "msg_input_empty": "テキストを入力してください", "msg_analysis_done": "分析完了！", "msg_copied": "コピーしました", "msg_downloading": "ダウンロード中...", "msg_demo_loaded": "デモデータをロードしました",
-                "msg_generating": "分析を生成中...", "msg_ai_error": "AI サービスは現在利用できません。後でもう一度お試しください。", "msg_ai_empty": "AI 分析を使用する前に、比較を実行してください。",
-                "demo_text_a": "光合成 は 植物 が 光エネルギー を 利用 して 水 と 二酸化炭素 から 酸素 と 炭水化物 を 合成 する 過程 です 。",
-                "demo_text_b": "呼吸 は 生物 が 酸素 を 用いて 有機物 を 分解 し 、 エネルギー を 取り出す 過程 です 。"
+                "back_btn": "研究センターへ", "tool_name": "語彙比較ツール", 
+                "label_pos_filter": "品詞フィルタ", "label_show_pos": "POS表示",
+                "pos_n": "名詞 (N)", "pos_v": "動詞 (V)", "pos_a": "形容詞 (A)", "pos_d": "副詞 (D)", "pos_c": "接続詞 (C)", "pos_o": "その他",
+                "label_text_a": "テキスト A", "label_text_b": "テキスト B", "btn_example": "例文", "btn_clear": "クリア",
+                "btn_analyze": "比較開始", "msg_start": "テキストを入力して比較", "msg_hint": "句読点と品詞を自動フィルタリング",
+                "header_only_a": "A のみ", "header_common": "共通 (交差)", "header_union": "和集合", "header_only_b": "B のみ",
+                "btn_copy": "コピー", "msg_copied": "コピーしました", "err_input": "テキストを入力してください！",
+                "ph_text": "分かち書きされたテキストを貼り付け..."
             },
             "zh-CN": {
-                "back_researcher": "返回研究中心", "tool_name": "文本比较工具", "page_title": "文本词汇差异分析", "page_subtitle": "Text Vocabulary Comparison & Set Analysis",
-                "label_settings": "设定", "btn_load_demo": "载入范例", "label_text_a": "文本 A", "label_text_b": "文本 B", "btn_clear": "清空", "label_count": "词汇数",
-                "btn_start_compare": "开始比较分析", "header_only_a": "A 独有", "header_union": "AB 并集", "header_common": "AB 交集", "header_only_b": "B 独有",
-                "btn_copy": "复制", "btn_download_report": "下载完整分析报告 (.txt)", "btn_ai_analyze": "AI 深度差异分析", "ai_report_title": "AI 分析报告",
-                "msg_input_empty": "请先输入或贴上文本", "msg_analysis_done": "分析完成！", "msg_copied": "内容已复制", "msg_downloading": "报告下载中...", "msg_demo_loaded": "范例已载入",
-                "msg_generating": "正在生成深度分析...", "msg_ai_error": "AI 分析服务暂时无法使用，请稍后再试。", "msg_ai_empty": "请先执行比较分析，确认有词汇资料后再使用 AI 分析。",
-                "demo_text_a": "光合作用 是 植物 利用 叶绿素 吸收 太阳能 ， 将 水 和 二氧化碳 转化 为 葡萄糖 与 氧气 的 过程 。 这 是 生态系 能量 的 基础 。",
-                "demo_text_b": "呼吸作用 是 生物 利用 氧气 将 葡萄糖 分解 ， 产生 能量 、 水 和 二氧化碳 的 过程 。 这 是 维持 生命 现象 所 必需 的 。"
-            }
+                "back_btn": "返回研究中心", "tool_name": "文本词汇比较", 
+                "label_pos_filter": "词性筛选", "label_show_pos": "显示 POS",
+                "pos_n": "名词 (N)", "pos_v": "动词 (V)", "pos_a": "形容词 (A)", "pos_d": "副词 (D)", "pos_c": "连词 (C)", "pos_o": "其他",
+                "label_text_a": "文本 A", "label_text_b": "文本 B", "btn_example": "载入范例", "btn_clear": "清空",
+                "btn_analyze": "开始比对分析", "msg_start": "输入文本并开始比对", "msg_hint": "支持自动过滤标点与词性筛选",
+                "header_only_a": "A 独有", "header_common": "AB 交集", "header_union": "AB 并集", "header_only_b": "B 独有",
+                "btn_copy": "复制内容", "msg_copied": "已复制", "err_input": "请至少输入一段文本！",
+                "ph_text": "请贴上断词后的文本..."
+            },
+            "ko": { "back_btn": "연구 센터로", "tool_name": "어휘 비교", "label_pos_filter": "품사 필터", "label_show_pos": "POS 표시", "pos_n": "명사 (N)", "pos_v": "동사 (V)", "pos_a": "형용사 (A)", "pos_d": "부사 (D)", "pos_c": "접속사 (C)", "pos_o": "기타", "label_text_a": "텍스트 A", "label_text_b": "텍스트 B", "btn_example": "예시", "btn_clear": "지우기", "btn_analyze": "분석 시작", "msg_start": "텍스트를 입력하여 비교 시작", "msg_hint": "구두점 및 품사 자동 필터링", "header_only_a": "A 고유", "header_common": "교집합", "header_union": "합집합", "header_only_b": "B 고유", "btn_copy": "복사", "msg_copied": "복사됨", "err_input": "텍스트를 입력하세요!", "ph_text": "토큰화된 텍스트 붙여넣기..." },
+            "es": { "back_btn": "Volver", "tool_name": "Comp. Vocabulario", "label_pos_filter": "Filtro POS", "label_show_pos": "Mostrar POS", "pos_n": "Sustantivo", "pos_v": "Verbo", "pos_a": "Adj", "pos_d": "Adv", "pos_c": "Conj", "pos_o": "Otro", "label_text_a": "Texto A", "label_text_b": "Texto B", "btn_example": "Ejemplo", "btn_clear": "Borrar", "btn_analyze": "Analizar", "msg_start": "Entrada de texto", "msg_hint": "Filtro automático", "header_only_a": "Solo A", "header_common": "Intersección", "header_union": "Unión", "header_only_b": "Solo B", "btn_copy": "Copiar", "msg_copied": "Copiado", "err_input": "¡Entrada requerida!", "ph_text": "Pegar texto..." },
+            "pt": { "back_btn": "Voltar", "tool_name": "Comp. Vocabulário", "label_pos_filter": "Filtro POS", "label_show_pos": "Mostrar POS", "pos_n": "Substantivo", "pos_v": "Verbo", "pos_a": "Adj", "pos_d": "Adv", "pos_c": "Conj", "pos_o": "Outro", "label_text_a": "Texto A", "label_text_b": "Texto B", "btn_example": "Exemplo", "btn_clear": "Limpar", "btn_analyze": "Analisar", "msg_start": "Entrada de texto", "msg_hint": "Filtro automático", "header_only_a": "Só A", "header_common": "Interseção", "header_union": "União", "header_only_b": "Só B", "btn_copy": "Copiar", "msg_copied": "Copiado", "err_input": "Entrada necessária!", "ph_text": "Colar texto..." },
+            "id": { "back_btn": "Kembali", "tool_name": "Komp. Kosakata", "label_pos_filter": "Filter POS", "label_show_pos": "Tampil POS", "pos_n": "Nomina", "pos_v": "Verba", "pos_a": "Adjektiva", "pos_d": "Adverbia", "pos_c": "Konjungsi", "pos_o": "Lainnya", "label_text_a": "Teks A", "label_text_b": "Teks B", "btn_example": "Contoh", "btn_clear": "Hapus", "btn_analyze": "Analisis", "msg_start": "Mulai analisis", "msg_hint": "Filter otomatis", "header_only_a": "Hanya A", "header_common": "Irisan", "header_union": "Gabungan", "header_only_b": "Hanya B", "btn_copy": "Salin", "msg_copied": "Disalin", "err_input": "Input teks!", "ph_text": "Tempel teks..." },
+            "th": { "back_btn": "กลับ", "tool_name": "เปรียบเทียบคำศัพท์", "label_pos_filter": "ตัวกรอง POS", "label_show_pos": "แสดง POS", "pos_n": "คำนาม", "pos_v": "คำกริยา", "pos_a": "คำคุณศัพท์", "pos_d": "คำวิเศษณ์", "pos_c": "คำสันธาน", "pos_o": "อื่นๆ", "label_text_a": "ข้อความ A", "label_text_b": "ข้อความ B", "btn_example": "ตัวอย่าง", "btn_clear": "ล้าง", "btn_analyze": "วิเคราะห์", "msg_start": "เริ่มการวิเคราะห์", "msg_hint": "กรองอัตโนมัติ", "header_only_a": "เฉพาะ A", "header_common": "จุดตัด", "header_union": "ยูเนียน", "header_only_b": "เฉพาะ B", "btn_copy": "คัดลอก", "msg_copied": "คัดลอกแล้ว", "err_input": "กรุณาใส่ข้อความ!", "ph_text": "วางข้อความ..." },
+            "vi": { "back_btn": "Trở lại", "tool_name": "So sánh Từ vựng", "label_pos_filter": "Bộ lọc POS", "label_show_pos": "Hiện POS", "pos_n": "Danh từ", "pos_v": "Động từ", "pos_a": "Tính từ", "pos_d": "Trạng từ", "pos_c": "Liên từ", "pos_o": "Khác", "label_text_a": "Văn bản A", "label_text_b": "Văn bản B", "btn_example": "Ví dụ", "btn_clear": "Xóa", "btn_analyze": "Phân tích", "msg_start": "Bắt đầu", "msg_hint": "Lọc tự động", "header_only_a": "Chỉ A", "header_common": "Giao nhau", "header_union": "Hợp nhất", "header_only_b": "Chỉ B", "btn_copy": "Sao chép", "msg_copied": "Đã sao chép", "err_input": "Vui lòng nhập văn bản!", "ph_text": "Dán văn bản..." },
+            "hi": { "back_btn": "वापस", "tool_name": "शब्दावली तुलना", "label_pos_filter": "POS फ़िल्टर", "label_show_pos": "POS दिखाएं", "pos_n": "संज्ञा", "pos_v": "क्रिया", "pos_a": "विशेषण", "pos_d": "क्रिया विशेषण", "pos_c": "संयोजक", "pos_o": "अन्य", "label_text_a": "पाठ A", "label_text_b": "पाठ B", "btn_example": "उदाहरण", "btn_clear": "साफ़ करें", "btn_analyze": "विश्लेषण करें", "msg_start": "विश्लेषण शुरू करें", "msg_hint": "स्वतः फ़िल्टर", "header_only_a": "केवल A", "header_common": "उभयनिष्ठ", "header_union": "संघ", "header_only_b": "केवल B", "btn_copy": "कॉपी करें", "msg_copied": "कॉपी किया गया", "err_input": "कृपया पाठ दर्ज करें!", "ph_text": "पाठ पेस्ट करें..." },
+            "ms": { "back_btn": "Kembali", "tool_name": "Perbandingan Kosa Kata", "label_pos_filter": "Penapis POS", "label_show_pos": "Tunjuk POS", "pos_n": "Kata Nama", "pos_v": "Kata Kerja", "pos_a": "Kata Adjektif", "pos_d": "Kata Adverba", "pos_c": "Kata Hubung", "pos_o": "Lain", "label_text_a": "Teks A", "label_text_b": "Teks B", "btn_example": "Contoh", "btn_clear": "Padam", "btn_analyze": "Analisis", "msg_start": "Mula analisis", "msg_hint": "Penapis automatik", "header_only_a": "Hanya A", "header_common": "Persilangan", "header_union": "Kesatuan", "header_only_b": "Hanya B", "btn_copy": "Salin", "msg_copied": "Disalin", "err_input": "Sila masukkan teks!", "ph_text": "Tampal teks..." }
         };
 
-        function getMsg(key) {
-            const lang = document.getElementById("language-selector").value;
-            const dict = translations[lang] || translations['zh-TW'];
-            return dict[key] || translations['zh-TW'][key] || key;
-        }
-
         function changeLanguage() {
-            const lang = document.getElementById("language-selector").value;
+            const langSelector = document.getElementById("language-selector");
+            if(!langSelector) return;
+            const lang = langSelector.value;
+            const t = translations[lang] || translations['en'];
+
             document.querySelectorAll("[data-i18n]").forEach(el => {
                 const key = el.getAttribute("data-i18n");
-                el.innerText = getMsg(key);
+                if (t[key]) el.innerText = t[key];
             });
-            const textA = document.getElementById('textA');
-            const textB = document.getElementById('textB');
-            if(lang === 'en') {
-                textA.placeholder = "Paste tokenized text A here...";
-                textB.placeholder = "Paste tokenized text B here...";
-            } else if(lang === 'ja') {
-                textA.placeholder = "分かち書きされたテキストAをここに貼り付けてください...";
-                textB.placeholder = "分かち書きされたテキストBをここに貼り付けてください...";
-            } else {
-                textA.placeholder = "在此貼上已斷詞的文本 A...";
-                textB.placeholder = "在此貼上已斷詞的文本 B...";
-            }
+
+            const ph = t.ph_text || "Paste text...";
+            document.getElementById('text-a').placeholder = ph;
+            document.getElementById('text-b').placeholder = ph;
         }
 
-        // *** 1. Canvas 背景動畫 ***
-        (function() {
-            const canvas = document.getElementById('network-canvas');
-            const ctx = canvas.getContext('2d');
-            let width, height, particles = [];
-            function resize() { width = window.innerWidth; height = window.innerHeight; canvas.width = width; canvas.height = height; initParticles(); }
-            class Particle {
-                constructor() {
-                    this.x = Math.random() * width; this.y = Math.random() * height;
-                    this.vx = (Math.random() - 0.5) * 0.5; this.vy = (Math.random() - 0.5) * 0.5;
-                    this.size = Math.random() * 2 + 1;
-                    this.color = `rgba(168, 85, 247, ${Math.random() * 0.4})`;
+        // 載入範例功能
+        function loadExample() {
+            const textA = "細胞(Na) 是(SHI) 生物體(Na) 結構(Na) 和(Caa) 功能(Na) 的(DE) 基本(Na) 單位(Na) 。(PERIODCATEGORY) 細胞膜(Na) 控制(VC) 物質(Na) 進出(VA) ，(COMMACATEGORY) 細胞核(Na) 含有(VJ) 遺傳(Na) 物質(Na) DNA(FW) 。(PERIODCATEGORY)";
+            const textB = "生物體(Na) 由(P) 細胞(Na) 組成(VG) ，(COMMACATEGORY) 細胞(Na) 是(SHI) 生命(Na) 的(DE) 基本(Na) 單位(Na) 。(PERIODCATEGORY) 外層(Nc) 有(V_2) 細胞膜(Na) 負責(VJ) 物質(Na) 運輸(VC) ，(COMMACATEGORY) 核心(Na) 有(V_2) DNA(FW) 負責(VJ) 遺傳(Na) 。(PERIODCATEGORY)";
+            
+            document.getElementById('text-a').value = textA;
+            document.getElementById('text-b').value = textB;
+        }
+
+        function clearInput(id) {
+            document.getElementById(id).value = '';
+            document.getElementById(id).focus();
+        }
+
+        function copyText(id) {
+            const el = document.getElementById(id);
+            el.select();
+            document.execCommand('copy');
+            // 簡單的按鈕反饋
+            const btn = el.nextElementSibling.querySelector('button');
+            const originalHTML = btn.innerHTML;
+            const t = translations[document.getElementById("language-selector").value] || translations['en'];
+            btn.innerHTML = `<i class="fa-solid fa-check"></i> ${t.msg_copied}`;
+            setTimeout(() => btn.innerHTML = originalHTML, 1500);
+        }
+
+        // 解析詞性並過濾
+        // return Map<word, pos>
+        function parseAndFilter(text, activePos) {
+            const rawTokens = text.trim().split(/\s+/);
+            const resultMap = new Map(); // key: word, value: pos
+
+            // 定義標點符號正則 (排除)
+            const punctuationRegex = /[^\w\u4e00-\u9fa5]/; 
+
+            rawTokens.forEach(token => {
+                if (!token) return;
+
+                // 嘗試解析 Word(Pos)
+                const match = token.match(/^(.+)\((.+)\)$/);
+                let word = token;
+                let pos = 'O'; 
+
+                if (match) {
+                    word = match[1];
+                    pos = match[2];
                 }
-                update() { this.x+=this.vx; this.y+=this.vy; if(this.x<0||this.x>width)this.vx*=-1; if(this.y<0||this.y>height)this.vy*=-1; }
-                draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fillStyle=this.color; ctx.fill(); }
-            }
-            function initParticles() { particles=[]; for(let i=0;i<50;i++) particles.push(new Particle()); }
-            function animate() {
-                ctx.clearRect(0, 0, width, height);
-                particles.forEach(p => { p.update(); p.draw(); });
-                for(let i=0;i<particles.length;i++){
-                    for(let j=i;j<particles.length;j++){
-                        const dx = particles[i].x - particles[j].x; const dy = particles[i].y - particles[j].y;
-                        const dist = Math.sqrt(dx*dx+dy*dy);
-                        if(dist<150){ ctx.beginPath(); ctx.strokeStyle=`rgba(168,85,247,${0.08 - dist/2000})`; ctx.lineWidth=0.5; ctx.moveTo(particles[i].x,particles[i].y); ctx.lineTo(particles[j].x,particles[j].y); ctx.stroke(); }
+
+                // 2. 過濾標點符號
+                if (punctuationRegex.test(word) && word.length === 1) {
+                    return; 
+                }
+                // CKIP 常見標點標記
+                if (['PERIODCATEGORY', 'COMMACATEGORY', 'PARENTHESISCATEGORY', 'COLONCATEGORY', 'SEMICOLONCATEGORY', 'EXCLAMATIONCATEGORY', 'QUESTIONCATEGORY'].includes(pos)) {
+                    return;
+                }
+
+                // 3. 詞性對應
+                let category = 'O';
+                if (pos.startsWith('N')) category = 'N';
+                else if (pos.startsWith('V')) category = 'V';
+                else if (pos.startsWith('A') || pos === 'VH') category = 'A'; 
+                else if (pos.startsWith('D')) category = 'D';
+                else if (pos.startsWith('C')) category = 'C';
+                
+                // 4. 根據勾選狀態篩選
+                if (activePos.has(category)) {
+                    // 只保留第一個遇到的 POS 或覆蓋，這裡簡單處理：存入 Map
+                    if (!resultMap.has(word)) {
+                        resultMap.set(word, pos);
                     }
                 }
-                requestAnimationFrame(animate);
-            }
-            window.addEventListener('resize', resize); resize(); animate();
-        })();
-
-        // *** 2. 核心邏輯 ***
-        document.addEventListener('keydown', function(e) {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { compareTexts(); }
-        });
-
-        function loadDemo() {
-            const lang = document.getElementById("language-selector").value;
-            const t = translations[lang] || translations['zh-TW'];
-            document.getElementById('textA').value = t.demo_text_a;
-            document.getElementById('textB').value = t.demo_text_b;
-            document.getElementById('textA').dispatchEvent(new Event('input'));
-            document.getElementById('textB').dispatchEvent(new Event('input'));
-            showToast(t.msg_demo_loaded); 
-        }
-
-        ['textA', 'textB'].forEach(id => {
-            document.getElementById(id).addEventListener('input', function() {
-                const count = this.value.trim() === '' ? 0 : splitText(this.value).length;
-                document.getElementById('count' + id.slice(-1)).innerText = count;
             });
-        });
-
-        function clearText(id) {
-            document.getElementById(id).value = '';
-            document.getElementById('count' + id.slice(-1)).innerText = '0';
-            document.getElementById('analysis-results').classList.add('hidden');
-            document.getElementById('ai-analysis-result').classList.add('hidden');
-        }
-
-        function splitText(rawText) {
-            if (!rawText) return [];
-            const ignoreCase = true;
-            if (ignoreCase) rawText = rawText.toLowerCase();
-            const cleanedText = rawText.replace(/[^\w\u4e00-\u9fa5\u3040-\u309f\u30a0-\u30ff\s]/g, ' ');
-            return cleanedText.split(/\s+/).filter(t => t.length > 0);
+            
+            return resultMap;
         }
 
         function compareTexts() {
-            const textA = document.getElementById('textA').value;
-            const textB = document.getElementById('textB').value;
+            const textA = document.getElementById('text-a').value;
+            const textB = document.getElementById('text-b').value;
+            const t = translations[document.getElementById("language-selector").value] || translations['en'];
 
-            if (!textA.trim() && !textB.trim()) {
-                showToast(getMsg('msg_input_empty'), 'error');
+            if (!textA && !textB) {
+                alert(t.err_input);
                 return;
             }
 
-            const tokensA = splitText(textA);
-            const tokensB = splitText(textB);
-            const setA = new Set(tokensA);
-            const setB = new Set(tokensB);
-
-            const lang = document.getElementById("language-selector").value;
-            const locale = lang === 'en' ? 'en' : 'zh-Hant'; 
-
-            const onlyA = [...setA].filter(x => !setB.has(x)).sort((a, b) => a.localeCompare(b, locale));
-            const common = [...setA].filter(x => setB.has(x)).sort((a, b) => a.localeCompare(b, locale));
-            const onlyB = [...setB].filter(x => !setA.has(x)).sort((a, b) => a.localeCompare(b, locale));
-            const union = [...new Set([...tokensA, ...tokensB])].sort((a, b) => a.localeCompare(b, locale));
-
-            updateResult('onlyA', onlyA, 'countOnlyA');
-            updateResult('common', common, 'countCommon');
-            updateResult('onlyB', onlyB, 'countOnlyB');
-            updateResult('unionResult', union, 'countUnion');
+            // 取得勾選的詞性
+            const activePos = new Set();
+            document.querySelectorAll('.pos-check:checked').forEach(cb => activePos.add(cb.value));
             
-            const results = document.getElementById('analysis-results');
-            results.classList.remove('hidden');
-            document.getElementById('ai-analysis-result').classList.add('hidden');
+            // 取得是否顯示 POS
+            const showPos = document.getElementById('show-pos-toggle').checked;
 
-            setTimeout(() => { results.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
-            showToast(getMsg('msg_analysis_done'));
-        }
+            const mapA = parseAndFilter(textA, activePos);
+            const mapB = parseAndFilter(textB, activePos);
 
-        function updateResult(elementId, dataArray, countId) {
-            const el = document.getElementById(elementId);
-            if (dataArray.length === 0) {
-                el.value = "( None )";
-                el.classList.add('text-slate-300', 'italic');
-            } else {
-                el.value = dataArray.join('\n');
-                el.classList.remove('text-slate-300', 'italic');
-            }
-            document.getElementById(countId).innerText = dataArray.length;
-        }
+            const setA = new Set(mapA.keys());
+            const setB = new Set(mapB.keys());
 
-        function copyToClipboard(elementId) {
-            const el = document.getElementById(elementId);
-            if (!el || el.value === "( None )") return;
-            el.select();
-            el.setSelectionRange(0, 99999);
-            document.execCommand("copy");
-            window.getSelection().removeAllRanges();
-            showToast(getMsg('msg_copied'));
-        }
-        
-        function downloadReport() {
-            const onlyA = document.getElementById('onlyA').value;
-            const common = document.getElementById('common').value;
-            const onlyB = document.getElementById('onlyB').value;
-            const unionResult = document.getElementById('unionResult').value;
-            const time = new Date().toLocaleString();
-            const content = `Science Learning Hub - Text Analysis\nTime: ${time}\n\n=== Union ===\n${unionResult}\n\n=== Intersection ===\n${common}\n\n=== Unique A ===\n${onlyA}\n\n=== Unique B ===\n${onlyB}\n`;
-            const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `text_analysis_report_${Date.now()}.txt`;
-            a.click();
-            URL.revokeObjectURL(url);
-            showToast(getMsg('msg_downloading'));
-        }
-
-        // *** Gemini AI Integration (多語系 Prompt) ***
-        async function analyzeWithGemini() {
-            const resultsPanel = document.getElementById('ai-analysis-result');
-            const contentDiv = document.getElementById('ai-content');
-            const lang = document.getElementById("language-selector").value;
-
-            resultsPanel.classList.remove('hidden');
-            contentDiv.innerHTML = `<div class="flex items-center justify-center py-10 text-amber-600"><i class="fa-solid fa-circle-notch fa-spin mr-3 text-2xl"></i> ${getMsg('msg_generating')}</div>`;
-            resultsPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-            const onlyA = document.getElementById('onlyA').value.substring(0, 500); 
-            const onlyB = document.getElementById('onlyB').value.substring(0, 500);
-            const common = document.getElementById('common').value.substring(0, 500);
-
-            if (onlyA === "( None )" && onlyB === "( None )" && common === "( None )") {
-                contentDiv.innerHTML = `<p class='text-red-500 text-center'>${getMsg('msg_ai_empty')}</p>`;
-                return;
-            }
-
-            // 定義各語言的 AI 提示詞
-            const prompts = {
-                'zh-TW': {
-                    role: "你是一位科學教育專家。請針對以下詞彙數據進行深度分析，並直接輸出 HTML 格式的報告。",
-                    constraint: "切勿包含「作為一位科學教育專家...」等開場白或結尾語。請使用 Tailwind CSS class 進行排版，風格需與 '紫色/靛色' 的學術風格一致。",
-                    labels: { common: "共同詞彙", a: "文本 A 獨有", b: "文本 B 獨有" },
-                    titles: ["難度與深度差異", "學科重點偏向", "教學應用建議"],
-                    instruction: "(請在此處生成內容，比較兩者獨有詞彙的專業度。若有具體詞彙，請用 <span class=\"bg-purple-100 text-purple-700 px-1 rounded text-sm font-bold mx-1\">詞彙</span> 標示)"
-                },
-                'en': {
-                    role: "You are a science education expert. Please analyze the following vocabulary data and output a report directly in HTML format.",
-                    constraint: "Do not include opening or closing remarks like 'As a science education expert...'. Use Tailwind CSS classes for layout, matching a 'purple/indigo' academic style.",
-                    labels: { common: "Common Vocabulary", a: "Unique to Text A", b: "Unique to Text B" },
-                    titles: ["Difficulty & Depth Analysis", "Subject Focus Bias", "Teaching Application Suggestions"],
-                    instruction: "(Generate content here. Highlight specific vocabulary using <span class=\"bg-purple-100 text-purple-700 px-1 rounded text-sm font-bold mx-1\">Term</span>)"
-                },
-                'ja': {
-                    role: "あなたは科学教育の専門家です。以下の語彙データを深く分析し、HTML形式のレポートを直接出力してください。",
-                    constraint: "「科学教育の専門家として...」などの前置きや結びの言葉は含めないでください。Tailwind CSSクラスを使用してレイアウトし、スタイルは「紫/藍色」の学術的なスタイルと一致させてください。",
-                    labels: { common: "共通語彙", a: "テキストA固有", b: "テキストB固有" },
-                    titles: ["難易度と深度の差異", "主題の傾向", "教育への応用提案"],
-                    instruction: "(ここでコンテンツを生成します。具体的な語彙がある場合は、<span class=\"bg-purple-100 text-purple-700 px-1 rounded text-sm font-bold mx-1\">語彙</span> でマークしてください)"
-                },
-                'zh-CN': {
-                    role: "你是一位科学教育专家。请针对以下词汇数据进行深度分析，并直接输出 HTML 格式的报告。",
-                    constraint: "切勿包含“作为一位科学教育专家...”等开场白或结束语。请使用 Tailwind CSS class 进行排版，风格需与 '紫色/靛色' 的学术风格一致。",
-                    labels: { common: "共同词汇", a: "文本 A 独有", b: "文本 B 独有" },
-                    titles: ["难度与深度差异", "学科重点偏向", "教学应用建议"],
-                    instruction: "(请在此处生成内容，比较两者独有词汇的专业度。若有具体词汇，请用 <span class=\"bg-purple-100 text-purple-700 px-1 rounded text-sm font-bold mx-1\">词汇</span> 标示)"
+            // 排序
+            const locale = document.getElementById("language-selector").value === 'en' ? 'en' : 'zh-TW';
+            
+            // 輔助：格式化輸出 (word 或 word (pos))
+            const format = (word, sourceMap) => {
+                if (showPos) {
+                    const p = sourceMap.get(word);
+                    return `${word} (${p})`;
                 }
+                return word;
             };
 
-            const p = prompts[lang] || prompts['zh-TW'];
+            // 1. Only A
+            const onlyA = [...setA].filter(x => !setB.has(x)).sort((a, b) => a.localeCompare(b, locale))
+                .map(w => format(w, mapA));
 
-            const prompt = `
-            ${p.role}
-            ${p.constraint}
+            // 2. Only B
+            const onlyB = [...setB].filter(x => !setA.has(x)).sort((a, b) => a.localeCompare(b, locale))
+                .map(w => format(w, mapB));
 
-            Data:
-            【${p.labels.common}】: ${common}
-            【${p.labels.a}】: ${onlyA}
-            【${p.labels.b}】: ${onlyB}
+            // 3. Common (Intersection) - prefer POS from A
+            const common = [...setA].filter(x => setB.has(x)).sort((a, b) => a.localeCompare(b, locale))
+                .map(w => format(w, mapA));
 
-            Please generate the following 3 HTML blocks (Output HTML directly, NO markdown code fences):
-
-            1. <div class="bg-white/50 p-6 rounded-2xl border border-purple-100 shadow-sm mb-6">
-               <h3 class="text-lg font-bold text-purple-800 mb-3 flex items-center gap-2"><i class="fa-solid fa-layer-group"></i> ${p.titles[0]}</h3>
-               ${p.instruction}
-            </div>
-
-            2. <div class="bg-white/50 p-6 rounded-2xl border border-purple-100 shadow-sm mb-6">
-               <h3 class="text-lg font-bold text-purple-800 mb-3 flex items-center gap-2"><i class="fa-solid fa-magnifying-glass-chart"></i> ${p.titles[1]}</h3>
-               (Content for ${p.titles[1]})
-            </div>
-
-            3. <div class="bg-white/50 p-6 rounded-2xl border border-purple-100 shadow-sm mb-6">
-               <h3 class="text-lg font-bold text-purple-800 mb-3 flex items-center gap-2"><i class="fa-solid fa-chalkboard-user"></i> ${p.titles[2]}</h3>
-               (Content for ${p.titles[2]})
-            </div>
-            `;
-
-            try {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            // 4. Union - mix POS from A then B
+            const unionKeys = new Set([...setA, ...setB]);
+            const union = [...unionKeys].sort((a, b) => a.localeCompare(b, locale))
+                .map(w => {
+                    // 優先用 A 的 POS，沒有則用 B
+                    const p = mapA.has(w) ? mapA.get(w) : mapB.get(w);
+                    return showPos ? `${w} (${p})` : w;
                 });
-                
-                if (!response.ok) throw new Error('AI API Error');
-                const data = await response.json();
-                let htmlContent = data.candidates[0].content.parts[0].text;
-                htmlContent = htmlContent.replace(/```html/g, '').replace(/```/g, '');
-                contentDiv.innerHTML = htmlContent;
 
-            } catch (error) {
-                console.error(error);
-                contentDiv.innerHTML = `<div class="text-center text-red-500 py-4"><i class="fa-solid fa-triangle-exclamation mb-2 text-2xl"></i><br>${getMsg('msg_ai_error')}<br><span class="text-xs text-slate-400">${error.message}</span></div>`;
-            }
+            // 渲染結果
+            document.getElementById('empty-state').classList.add('hidden');
+            document.getElementById('result-panel').classList.remove('hidden');
+
+            updateCard('res-only-a', 'count-only-a', onlyA);
+            updateCard('res-only-b', 'count-only-b', onlyB);
+            updateCard('res-common', 'count-common', common);
+            updateCard('res-union', 'count-union', union);
         }
 
-        function showToast(message, type = 'normal') {
-            const toast = document.getElementById('toast');
-            const msgEl = document.getElementById('toast-msg');
-            const icon = toast.querySelector('i');
-            msgEl.innerText = message;
-            if (type === 'error') { icon.className = 'fa-solid fa-triangle-exclamation text-red-400'; } 
-            else { icon.className = 'fa-solid fa-check-circle text-green-400'; }
-            toast.classList.remove('opacity-0', 'translate-y-10');
-            setTimeout(() => { toast.classList.add('opacity-0', 'translate-y-10'); }, 3000);
+        function updateCard(textareaId, countId, data) {
+            document.getElementById(textareaId).value = data.join('\n');
+            document.getElementById(countId).innerText = data.length;
         }
+
+        // Init
+        changeLanguage();
     </script>
 </body>
 </html>
