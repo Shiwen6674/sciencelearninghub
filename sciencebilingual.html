@@ -70,18 +70,15 @@
 
     <div id="canvas-container"><canvas id="network-canvas"></canvas></div>
 
-    <!-- 1. 頂部導航 -->
     <header class="glass-panel z-40 flex flex-col shadow-sm relative">
-        <!-- Row 1 -->
         <div class="px-6 py-3 flex justify-between items-center border-b border-slate-100/50">
             <div class="flex items-center gap-4">
-                <!-- 返回按鈕 (左側) -->
-                <button onclick="window.location.href='student.html'" class="flex items-center gap-2 text-slate-500 hover:text-student font-bold transition bg-white/80 px-4 py-2 rounded-xl shadow-sm hover:shadow border border-slate-200 hover:border-student/30">
+                <button onclick="window.location.href='?page=student'" class="flex items-center gap-2 text-slate-500 hover:text-student font-bold transition bg-white/80 px-4 py-2 rounded-xl shadow-sm hover:shadow border border-slate-200 hover:border-student/30">
                     <i class="fa-solid fa-chevron-left"></i> <span data-i18n="back_student">返回學習中心</span>
                 </button>
-                <div class="h-6 w-px bg-slate-300"></div>
+                <div class="h-6 w-px bg-slate-300 hidden md:block"></div>
                 <div class="flex items-center gap-3">
-                    <div class="bg-student-light p-2 rounded-xl text-student-dark">
+                    <div class="bg-student-light p-2 rounded-xl text-student-dark hidden md:block">
                         <i class="fa-solid fa-book-open-reader text-xl"></i>
                     </div>
                     <h1 class="text-lg font-bold text-slate-800" data-i18n="page_title">科學雙語文本閱讀</h1>
@@ -89,39 +86,35 @@
             </div>
             
             <div class="flex items-center gap-3">
-                 <!-- 12國語言選單 -->
                  <div class="relative">
                     <i class="fa-solid fa-globe absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-<select id="target-lang" onchange="translateContent()" class="text-sm border border-slate-200 bg-white rounded-lg py-1.5 px-3 focus:ring-2 focus:ring-indigo-500 font-bold text-slate-700 cursor-pointer hover:border-indigo-300 transition shadow-sm">
-    <option value="zh-TW">繁體中文</option>
-    <option value="en" selected>English</option>
-    <option value="ja">日本語</option>
-    <option value="ko">한국어</option>
-    <option value="zh-CN">简体中文</option>
-    <option value="es">Español</option>
-    <option value="pt">Português</option>
-    <option value="id">Bahasa Indonesia</option>
-    <option value="th">ไทย</option>
-    <option value="vi">Tiếng Việt</option>
-    <option value="hi">हिन्दी</option>
-    <option value="ms">Bahasa Melayu</option>
-</select>
+                    <select id="ui-lang" onchange="changeUILanguage()" class="pl-9 pr-8 py-2 bg-white border border-slate-200 text-sm rounded-lg focus:ring-2 focus:ring-student outline-none cursor-pointer shadow-sm text-slate-600 font-medium appearance-none">
+                        <option value="zh-TW">繁體中文</option>
+                        <option value="en">English</option>
+                        <option value="ja">日本語</option>
+                        <option value="ko">한국어</option>
+                        <option value="zh-CN">简体中文</option>
+                        <option value="es">Español</option>
+                        <option value="pt">Português</option>
+                        <option value="id">Bahasa Indonesia</option>
+                        <option value="th">ไทย</option>
+                        <option value="vi">Tiếng Việt</option>
+                        <option value="hi">हिन्दी</option>
+                        <option value="ms">Bahasa Melayu</option>
+                    </select>
                  </div>
                  
-                 <!-- 單元重點整理 (右側) -->
-                 <button onclick="window.location.href='unitkeyidea.html'" class="flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-xl hover:bg-green-100 transition font-bold border border-green-200 shadow-sm">
+                 <button onclick="window.location.href='?page=unitkeyidea'" class="flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-xl hover:bg-green-100 transition font-bold border border-green-200 shadow-sm">
                     <i class="fa-solid fa-list-check"></i> <span data-i18n="btn_summary">單元重點整理</span>
                 </button>
             </div>
         </div>
 
-        <!-- Row 2: 篩選器 -->
         <div class="px-6 py-4 bg-white/60 backdrop-blur flex flex-wrap items-center gap-3">
             <div class="flex items-center gap-2 text-sm font-bold text-slate-600 mr-2">
                 <i class="fa-solid fa-filter text-student"></i> <span data-i18n="label_filter">教材篩選：</span>
             </div>
             
-            <!-- 級聯選單 (連動邏輯) -->
             <select id="sel-stage" class="filter-select bg-white border border-slate-300 text-sm rounded-xl p-2.5 min-w-[120px] font-medium text-slate-700 shadow-sm" onchange="updateDropdowns('stage')">
                 <option value="" disabled selected data-i18n="opt_stage">載入中...</option>
             </select>
@@ -148,11 +141,9 @@
         </div>
     </header>
 
-    <!-- 2. 雙欄閱讀區 -->
-    <div class="flex-1 flex overflow-hidden relative z-10">
+    <div class="flex-1 flex flex-col md:flex-row overflow-hidden relative z-10">
         
-        <!-- 左側：原文 -->
-        <div class="w-1/2 flex flex-col border-r border-slate-200 bg-white h-full shadow-xl z-10">
+        <div class="w-full md:w-1/2 flex flex-col border-r border-slate-200 bg-white h-full shadow-xl z-10">
             <div class="px-6 py-3 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 shrink-0">
                 <span class="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2 bg-white px-3 py-1 rounded-lg border border-slate-200 shadow-sm">
                     <span class="w-2 h-2 rounded-full bg-blue-500"></span> <span data-i18n="label_original">繁體中文 (原文)</span>
@@ -177,25 +168,23 @@
             </div>
         </div>
 
-        <!-- 右側：翻譯 -->
-        <div class="w-1/2 flex flex-col h-full bg-slate-50/30 backdrop-blur-sm">
+        <div class="w-full md:w-1/2 flex flex-col h-full bg-slate-50/30 backdrop-blur-sm">
             <div class="px-6 py-3 border-b border-slate-200 flex justify-between items-center bg-white/80 shrink-0">
                 <div class="flex items-center gap-3">
                     <span class="text-xs font-bold text-slate-500 uppercase tracking-widest" data-i18n="label_target">翻譯語言：</span>
                     <select id="target-lang" onchange="translateContent()" class="text-sm border border-slate-200 bg-white rounded-lg py-1.5 px-3 focus:ring-2 focus:ring-indigo-500 font-bold text-slate-700 cursor-pointer hover:border-indigo-300 transition shadow-sm">
-                        <option value="en">English</option>
+                        <option value="zh-TW">繁體中文</option>
+                        <option value="en" selected>English</option>
                         <option value="ja">日本語</option>
                         <option value="ko">한국어</option>
                         <option value="zh-CN">简体中文</option>
                         <option value="es">Español</option>
-                        <option value="fr">Français</option>
-                        <option value="de">Deutsch</option>
-                        <option value="vi">Tiếng Việt</option>
-                        <option value="th">ไทย</option>
+                        <option value="pt">Português</option>
                         <option value="id">Bahasa Indonesia</option>
+                        <option value="th">ไทย</option>
+                        <option value="vi">Tiếng Việt</option>
                         <option value="hi">हिन्दी</option>
                         <option value="ms">Bahasa Melayu</option>
-                        <option value="pt">Português</option>
                     </select>
                 </div>
                 <div class="flex items-center gap-3">
@@ -220,9 +209,7 @@
         </div>
     </div>
 
-    <!-- 4. 小科機器人 -->
     <div class="fixed bottom-8 right-8 z-50 flex flex-col items-end">
-        <!-- Chat Window -->
         <div id="chat-window" class="chat-window chat-hidden mb-4 w-80 md:w-96 h-[500px] bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col ring-1 ring-black/5">
             <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 flex justify-between items-center text-white shadow-md">
                 <div class="flex items-center gap-3">
@@ -261,14 +248,13 @@
         </button>
     </div>
     
-    <!-- Toast -->
     <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-slate-800/90 backdrop-blur text-white px-6 py-3 rounded-full shadow-xl transition-all duration-300 opacity-0 translate-y-10 z-50 flex items-center gap-3 pointer-events-none">
         <i id="toast-icon" class="fa-solid fa-circle-info text-yellow-400"></i>
         <span id="toast-msg">系統提示</span>
     </div>
 
     <script>
-        // *** 重要：後端 GAS 網址 ***
+        // *** 重要：請確保後台已經更新並發布了最新版本 ***
         const GAS_URL = "https://script.google.com/macros/s/AKfycbzcDKkz8Tilzb3qbx0_fDR7QoG4-c2JCtsa4p9V8_1gBjZaEMlvQHd72OD0kZq_jW8H/exec"; 
         
         let allOptions = {}; 
@@ -382,7 +368,6 @@
             .then(response => {
                 if(response.result === "success") {
                     allOptions = response.data || response; 
-                    // 清理非資料欄位
                     delete allOptions.result;
                     delete allOptions.message;
                     initStageSelect();
@@ -393,7 +378,7 @@
             })
             .catch(err => {
                 console.error("Fetch failed:", err);
-                showToast("無法連接資料庫", "error");
+                showToast("無法連接資料庫，請檢查網路或後台部署", "error");
             });
         }
 
@@ -402,19 +387,17 @@
             const t = uiTranslations[document.getElementById('ui-lang').value] || uiTranslations['en'];
             sel.innerHTML = `<option value="" disabled selected>${t.opt_stage}</option>`;
             
-            // 填充 Stage (只顯示有的資料)
+            // 填充 Stage
             Object.keys(allOptions).forEach(key => {
-                // 這裡可以做簡單的語言對應，例如 "國小" -> t.val_elem
                 let label = key;
                 if (key === '國小') label = t.val_elem || key;
                 if (key === '國中') label = t.val_junior || key;
-                // 實際 value 必須保持中文以對應後端資料
                 sel.add(new Option(label, key));
             });
             sel.disabled = false;
         }
 
-        // 2. 級聯選單更新邏輯 (修正版)
+        // 2. 級聯選單更新邏輯
         function updateDropdowns(source) {
             const stage = document.getElementById('sel-stage');
             const grade = document.getElementById('sel-grade');
@@ -493,7 +476,6 @@
                 let text = p;
                 // 詞彙高亮
                 for (let [zh, en] of Object.entries(currentTerms)) {
-                    // 簡單替換 (注意：這只會替換第一個出現的，若要全部替換可改用 RegExp Global)
                     const regex = new RegExp(zh, "g");
                     text = text.replace(regex, `<span class="sci-term" title="${en}">${zh}<span class="text-sm font-normal ml-1 opacity-70">(${en})</span></span>`);
                 }
@@ -564,6 +546,20 @@
             window.speechSynthesis.speak(u);
             isSpeaking = true;
         }
+        // 簡易切換語音狀態
+        function toggleSpeech(side) {
+            if (isSpeaking) {
+                window.speechSynthesis.cancel();
+                isSpeaking = false;
+                // 重置按鈕樣式 (簡單處理：假設用戶點的是正在播放的那個)
+                document.querySelectorAll('.fa-stop').forEach(el => {
+                    el.closest('button').innerHTML = '<i class="fa-solid fa-play ml-0.5"></i>';
+                    el.closest('button').classList.remove('bg-red-500', 'text-white');
+                });
+            } else {
+                speakText(side);
+            }
+        }
 
         // 6. Chatbot
         function toggleChat() {
@@ -585,7 +581,8 @@
             fetch(GAS_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ action: "chat_bot", message: msg, context: currentRawText })
+                // 修正：增加 context 傳送長度
+                body: JSON.stringify({ action: "chat_bot", message: msg, context: currentRawText.substring(0, 10000) })
             })
             .then(res => res.json())
             .then(response => {
