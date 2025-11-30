@@ -278,7 +278,7 @@
     </div>
 
     <script>
-        // *** 請記得更新您的 GAS 網址 ***
+        // *** 重要：請貼入您的後台新網址 ***
         const GAS_URL = "https://script.google.com/macros/s/AKfycbx3MW-IOcU-38IqgawidSakL9nVwARmov4cuK0S6Jcqbv3SJFyHUbrvrI43Y6nskJAx/exec"; 
         
         let allOptions = {}; 
@@ -303,8 +303,7 @@
                 btn_read: "Read", label_original: "Original (TC)", label_target: "Translate to:",
                 msg_hint: "Select a unit above", msg_trans_hint: "Select language and click translate", msg_translating: "Translating...",
                 bot_name: "SciBot", bot_welcome: "Hi! I'm SciBot 👋<br>Ask me anything about the text!"
-            },
-            // 其他語言省略以節省篇幅，邏輯相同
+            }
         };
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -325,7 +324,7 @@
 
         function changeUILanguage() {
             const lang = document.getElementById('ui-lang').value;
-            const t = uiTranslations[lang] || uiTranslations['zh-TW']; // 預設中文
+            const t = uiTranslations[lang] || uiTranslations['zh-TW'];
             
             if(t) {
                  document.querySelectorAll("[data-i18n]").forEach(el => {
@@ -418,6 +417,11 @@
         }
 
         function fetchLessonContent() {
+            // 強制清空快取與畫面
+            translationCache = {};
+            document.getElementById('content-zh').innerHTML = '<div class="h-full flex items-center justify-center"><div class="loader"></div></div>';
+            document.getElementById('content-target').innerHTML = '<div class="h-full flex items-center justify-center text-slate-400">...</div>';
+
             const criteria = {
                 stage: document.getElementById('sel-stage').value,
                 grade: document.getElementById('sel-grade').value,
@@ -425,11 +429,6 @@
                 semester: document.getElementById('sel-semester').value,
                 unit: document.getElementById('sel-unit').value
             };
-
-            translationCache = {};
-
-            document.getElementById('content-zh').innerHTML = '<div class="h-full flex items-center justify-center"><div class="loader"></div></div>';
-            document.getElementById('content-target').innerHTML = '<div class="h-full flex items-center justify-center text-slate-400">...</div>';
 
             fetch(GAS_URL, {
                 method: 'POST',
@@ -445,6 +444,7 @@
                 }
             })
             .catch(err => {
+                document.getElementById('content-zh').innerHTML = `<p class="text-red-500 text-center p-4">讀取失敗，請檢查網路</p>`;
                 showToast("讀取失敗", "error");
                 console.error(err);
             });
@@ -455,7 +455,7 @@
             currentTerms = data.terms || {};
 
             let html = `<h1>${data.title}</h1>`;
-            if (data.content) {
+            if (data.content && data.content.trim() !== "") {
                  data.content.split('\n').forEach(p => {
                     if(!p.trim()) return;
                     let text = p;
@@ -466,10 +466,9 @@
                     html += `<p>${text}</p>`;
                 });
             } else {
-                html += "<p>無課文內容。</p>";
+                html += "<div class='text-center text-slate-400 py-10'><p>本單元目前沒有課文內容。</p></div>";
             }
            
-            // 這裡不再自動呼叫翻譯，只顯示原文
             document.getElementById('content-zh').innerHTML = html;
         }
 
@@ -532,7 +531,6 @@
             }
 
             const btn = document.getElementById(btnId);
-            const originalIcon = btn.innerHTML;
             
             btn.innerHTML = '<i class="fa-solid fa-stop"></i>';
             btn.classList.add('bg-red-500', 'text-white', 'hover:bg-red-600');
@@ -541,7 +539,6 @@
             u.lang = lang;
             u.rate = rate;
             u.onend = () => {
-                // 恢復邏輯：如果按鈕 ID 是 target (右側)，恢復成 YouTube 圖示，否則恢復成一般 Play
                 if (btnId === "btn-play-target") {
                     btn.innerHTML = '<i class="fa-brands fa-youtube text-lg"></i>';
                 } else {
@@ -558,7 +555,6 @@
                 window.speechSynthesis.cancel();
                 isSpeaking = false;
                 
-                // 強制重置按鈕樣式
                 const btnZh = document.getElementById('btn-play-zh');
                 btnZh.innerHTML = '<i class="fa-solid fa-play ml-0.5"></i>';
                 btnZh.classList.remove('bg-red-500', 'text-white', 'hover:bg-red-600');
