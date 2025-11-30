@@ -6,7 +6,6 @@
     <title>科學雙語文本閱讀 | Science Learning Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Markdown Parser -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <script>
@@ -21,7 +20,7 @@
                         sans: ['Noto Sans TC', 'sans-serif'],
                     },
                     animation: {
-                        "spin-slow": "spin 10s linear infinite",
+                        "spin-slow": "spin 3s linear infinite",
                         "fade-in-up": "fadeInUp 0.5s ease-out forwards"
                     },
                     keyframes: {
@@ -33,16 +32,12 @@
     </script>
     <style>
         body { background-color: #f0f9ff; font-family: 'Noto Sans TC', sans-serif; }
-        
-        /* 玻璃擬態面板 (Student Style) */
         .glass-panel {
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.6);
             box-shadow: 0 8px 32px 0 rgba(59, 130, 246, 0.1);
         }
-
-        /* 下拉選單優化 */
         .filter-select {
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
             background-position: right 0.5rem center;
@@ -53,39 +48,13 @@
             appearance: none;
             transition: all 0.2s;
         }
-        .filter-select:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-            outline: none;
-        }
-        .filter-select:disabled {
-            background-color: #f3f4f6;
-            color: #9ca3af;
-            cursor: not-allowed;
-        }
-
-        /* 閱讀內容 */
-        .reader-content {
-            font-size: 1.15rem;
-            line-height: 2.2; /* 更舒適的行高 */
-            color: #334155;
-            text-align: justify;
-        }
-        .reader-content h1 { 
-            font-size: 2rem; font-weight: 900; color: #1e293b; 
-            margin-bottom: 1.5rem; border-bottom: 2px solid #bfdbfe; padding-bottom: 1rem;
-        }
+        .filter-select:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); outline: none; }
+        .filter-select:disabled { background-color: #f8fafc; color: #cbd5e1; cursor: not-allowed; border-color: #e2e8f0; }
+        .reader-content { font-size: 1.15rem; line-height: 2.2; color: #334155; text-align: justify; }
+        .reader-content h1 { font-size: 2rem; font-weight: 900; color: #1e293b; margin-bottom: 1.5rem; border-bottom: 2px solid #bfdbfe; padding-bottom: 1rem; text-align: center; }
         .reader-content p { margin-bottom: 2rem; }
-        
-        /* 科學詞彙標記 */
-        .sci-term {
-            font-weight: 700; color: #2563eb; background-color: #eff6ff;
-            padding: 2px 6px; border-radius: 6px; border-bottom: 2px solid #93c5fd;
-            cursor: help; transition: all 0.2s;
-        }
+        .sci-term { font-weight: 700; color: #2563eb; background-color: #eff6ff; padding: 2px 6px; border-radius: 6px; border-bottom: 2px solid #93c5fd; cursor: help; transition: all 0.2s; display: inline-block; }
         .sci-term:hover { background-color: #2563eb; color: white; border-color: #1d4ed8; }
-
-        /* Chatbot & Scrollbar */
         .chat-window { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform-origin: bottom right; }
         .chat-hidden { transform: scale(0.9) translateY(20px); opacity: 0; pointer-events: none; }
         .custom-scroll::-webkit-scrollbar { width: 8px; }
@@ -94,8 +63,6 @@
         .custom-scroll::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
         .loader { border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #3b82f6; width: 20px; height: 20px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        /* Canvas Background */
         #canvas-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -10; background: linear-gradient(135deg, #eff6ff 0%, #e0f2fe 100%); }
     </style>
 </head>
@@ -103,25 +70,26 @@
 
     <div id="canvas-container"><canvas id="network-canvas"></canvas></div>
 
-    <!-- 1. 頂部導航與篩選列 (整合為一體，更像 App) -->
+    <!-- 1. 頂部導航 -->
     <header class="glass-panel z-40 flex flex-col shadow-sm relative">
-        <!-- Row 1: Nav -->
+        <!-- Row 1 -->
         <div class="px-6 py-3 flex justify-between items-center border-b border-slate-100/50">
             <div class="flex items-center gap-4">
+                <!-- 返回按鈕 (左側) -->
                 <button onclick="window.location.href='student.html'" class="flex items-center gap-2 text-slate-500 hover:text-student font-bold transition bg-white/80 px-4 py-2 rounded-xl shadow-sm hover:shadow border border-slate-200 hover:border-student/30">
-                    <i class="fa-solid fa-chevron-left"></i> <span data-i18n="back_student">返回學生專區</span>
+                    <i class="fa-solid fa-chevron-left"></i> <span data-i18n="back_student">返回學習中心</span>
                 </button>
                 <div class="h-6 w-px bg-slate-300"></div>
                 <div class="flex items-center gap-3">
                     <div class="bg-student-light p-2 rounded-xl text-student-dark">
                         <i class="fa-solid fa-book-open-reader text-xl"></i>
                     </div>
-                    <h1 class="text-lg font-bold text-slate-800" data-i18n="page_title">科學雙語閱讀器</h1>
+                    <h1 class="text-lg font-bold text-slate-800" data-i18n="page_title">科學雙語文本閱讀</h1>
                 </div>
             </div>
             
             <div class="flex items-center gap-3">
-                 <!-- 語言 -->
+                 <!-- 12國語言選單 -->
                  <div class="relative">
                     <i class="fa-solid fa-globe absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
                     <select id="ui-lang" onchange="changeUILanguage()" class="pl-9 pr-8 py-2 bg-white border border-slate-200 text-sm rounded-lg focus:ring-2 focus:ring-student outline-none cursor-pointer shadow-sm text-slate-600 font-medium appearance-none">
@@ -130,39 +98,47 @@
                         <option value="ja">日本語</option>
                         <option value="ko">한국어</option>
                         <option value="zh-CN">简体中文</option>
+                        <option value="es">Español</option>
+                        <option value="pt">Português</option>
+                        <option value="id">Bahasa Indonesia</option>
+                        <option value="th">ไทย</option>
+                        <option value="vi">Tiếng Việt</option>
+                        <option value="hi">हिन्दी</option>
+                        <option value="ms">Bahasa Melayu</option>
                     </select>
                  </div>
                  
-                 <button onclick="window.location.href='unit_summary.html'" class="flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-xl hover:bg-green-100 transition font-bold border border-green-200 shadow-sm">
+                 <!-- 單元重點整理 (右側) -->
+                 <button onclick="window.location.href='unitkeyidea.html'" class="flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-xl hover:bg-green-100 transition font-bold border border-green-200 shadow-sm">
                     <i class="fa-solid fa-list-check"></i> <span data-i18n="btn_summary">單元重點整理</span>
                 </button>
             </div>
         </div>
 
-        <!-- Row 2: 篩選器 (核心功能區) -->
+        <!-- Row 2: 篩選器 -->
         <div class="px-6 py-4 bg-white/60 backdrop-blur flex flex-wrap items-center gap-3">
             <div class="flex items-center gap-2 text-sm font-bold text-slate-600 mr-2">
                 <i class="fa-solid fa-filter text-student"></i> <span data-i18n="label_filter">教材篩選：</span>
             </div>
             
-            <!-- 級聯選單 -->
-            <select id="sel-stage" class="filter-select bg-white border border-slate-300 text-sm rounded-xl p-2.5 min-w-[120px] font-medium text-slate-700" onchange="updateDropdowns('stage')">
-                <option value="" disabled selected data-i18n="opt_stage">學習階段</option>
+            <!-- 級聯選單 (連動邏輯) -->
+            <select id="sel-stage" class="filter-select bg-white border border-slate-300 text-sm rounded-xl p-2.5 min-w-[120px] font-medium text-slate-700 shadow-sm" onchange="updateDropdowns('stage')">
+                <option value="" disabled selected data-i18n="opt_stage">載入中...</option>
             </select>
 
-            <select id="sel-grade" class="filter-select bg-white border border-slate-300 text-sm rounded-xl p-2.5 min-w-[100px] font-medium text-slate-700" onchange="updateDropdowns('grade')" disabled>
+            <select id="sel-grade" class="filter-select bg-white border border-slate-300 text-sm rounded-xl p-2.5 min-w-[100px] font-medium text-slate-700 shadow-sm" onchange="updateDropdowns('grade')" disabled>
                 <option value="" data-i18n="opt_grade">年級</option>
             </select>
 
-            <select id="sel-version" class="filter-select bg-white border border-slate-300 text-sm rounded-xl p-2.5 min-w-[100px] font-medium text-slate-700" onchange="updateDropdowns('version')" disabled>
+            <select id="sel-version" class="filter-select bg-white border border-slate-300 text-sm rounded-xl p-2.5 min-w-[100px] font-medium text-slate-700 shadow-sm" onchange="updateDropdowns('version')" disabled>
                 <option value="" data-i18n="opt_version">版本</option>
             </select>
 
-            <select id="sel-semester" class="filter-select bg-white border border-slate-300 text-sm rounded-xl p-2.5 min-w-[100px] font-medium text-slate-700" onchange="updateDropdowns('semester')" disabled>
+            <select id="sel-semester" class="filter-select bg-white border border-slate-300 text-sm rounded-xl p-2.5 min-w-[100px] font-medium text-slate-700 shadow-sm" onchange="updateDropdowns('semester')" disabled>
                 <option value="" data-i18n="opt_semester">學期</option>
             </select>
 
-            <select id="sel-unit" class="filter-select bg-white border border-slate-300 text-sm rounded-xl p-2.5 min-w-[250px] flex-1 font-medium text-slate-700" onchange="document.getElementById('btn-load').disabled = !this.value" disabled>
+            <select id="sel-unit" class="filter-select bg-white border border-slate-300 text-sm rounded-xl p-2.5 min-w-[250px] flex-1 font-medium text-slate-700 shadow-sm" onchange="document.getElementById('btn-load').disabled = !this.value" disabled>
                 <option value="" data-i18n="opt_unit">單元名稱</option>
             </select>
 
@@ -193,11 +169,10 @@
             </div>
             <div id="content-zh" class="flex-1 overflow-y-auto p-10 custom-scroll reader-content selection:bg-blue-100">
                 <div class="h-full flex flex-col items-center justify-center text-slate-300 select-none animate-fade-in-up">
-                    <div class="bg-slate-50 p-6 rounded-full mb-4">
-                        <i class="fa-solid fa-arrow-up text-4xl text-slate-400"></i>
+                    <div class="bg-slate-50 p-6 rounded-full mb-4 border border-slate-100 shadow-inner">
+                        <i class="fa-solid fa-arrow-up text-4xl text-slate-400 animate-bounce"></i>
                     </div>
                     <p data-i18n="msg_hint" class="text-lg font-medium">請先選擇上方的教材單元</p>
-                    <p class="text-sm mt-2 text-slate-400">Select a unit to start reading</p>
                 </div>
             </div>
         </div>
@@ -218,6 +193,9 @@
                         <option value="vi">Tiếng Việt</option>
                         <option value="th">ไทย</option>
                         <option value="id">Bahasa Indonesia</option>
+                        <option value="hi">हिन्दी</option>
+                        <option value="ms">Bahasa Melayu</option>
+                        <option value="pt">Português</option>
                     </select>
                 </div>
                 <div class="flex items-center gap-3">
@@ -244,6 +222,7 @@
 
     <!-- 4. 小科機器人 -->
     <div class="fixed bottom-8 right-8 z-50 flex flex-col items-end">
+        <!-- Chat Window -->
         <div id="chat-window" class="chat-window chat-hidden mb-4 w-80 md:w-96 h-[500px] bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col ring-1 ring-black/5">
             <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 flex justify-between items-center text-white shadow-md">
                 <div class="flex items-center gap-3">
@@ -274,62 +253,96 @@
                 </button>
             </div>
         </div>
+
         <button onclick="toggleChat()" class="group relative flex items-center justify-center outline-none transition transform hover:scale-105 active:scale-95">
             <div class="relative w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full shadow-xl flex items-center justify-center text-white text-3xl border-4 border-white hover:shadow-2xl">
                 <i class="fa-solid fa-robot"></i>
             </div>
         </button>
     </div>
+    
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-slate-800/90 backdrop-blur text-white px-6 py-3 rounded-full shadow-xl transition-all duration-300 opacity-0 translate-y-10 z-50 flex items-center gap-3 pointer-events-none">
+        <i id="toast-icon" class="fa-solid fa-circle-info text-yellow-400"></i>
+        <span id="toast-msg">系統提示</span>
+    </div>
 
     <script>
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbzcDKkz8Tilzb3qbx0_fDR7QoG4-c2JCtsa4p9V8_1gBjZaEMlvQHd72OD0kZq_jW8H/exec";
+        // *** 重要：後端 GAS 網址 ***
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbzcDKkz8Tilzb3qbx0_fDR7QoG4-c2JCtsa4p9V8_1gBjZaEMlvQHd72OD0kZq_jW8H/exec"; 
         
         let allOptions = {}; 
         let currentRawText = ""; 
         let currentTerms = {}; 
         let isSpeaking = false;
         
-        // UI 翻譯字典
+        // 完整 12 國語言翻譯字典
         const uiTranslations = {
             "zh-TW": {
-                page_title: "科學雙語閱讀器", back_student: "返回學生專區", btn_summary: "單元重點整理",
+                page_title: "科學雙語閱讀器", back_student: "返回學習中心", btn_summary: "單元重點整理",
                 label_filter: "教材篩選：", opt_stage: "學習階段", opt_grade: "年級", opt_version: "版本", opt_semester: "學期", opt_unit: "單元名稱",
                 val_elem: "國小", val_junior: "國中", val_senior: "高中",
-                btn_read: "開始閱讀", label_original: "繁體中文 (原文)", label_target: "翻譯語言：",
+                btn_read: "閱讀課文", label_original: "繁體中文 (原文)", label_target: "翻譯語言：",
                 msg_hint: "請先選擇上方的教材單元", msg_trans_hint: "翻譯內容將顯示於此", msg_translating: "翻譯中...",
                 bot_name: "小科 (SciBot)", bot_welcome: "嗨！我是小科 👋<br>閱讀課文時有任何不懂的科學概念，都可以問我喔！"
             },
             "en": {
-                page_title: "Bilingual Science Reader", back_student: "Back to Student Zone", btn_summary: "Unit Summary",
+                page_title: "Bilingual Science Reader", back_student: "Back to Learning Hub", btn_summary: "Unit Summary",
                 label_filter: "Filter:", opt_stage: "Stage", opt_grade: "Grade", opt_version: "Edition", opt_semester: "Semester", opt_unit: "Unit",
                 val_elem: "Elementary", val_junior: "Junior High", val_senior: "Senior High",
-                btn_read: "Read", label_original: "Original (Traditional Chinese)", label_target: "Translate to:",
-                msg_hint: "Please select a unit above", msg_trans_hint: "Translation will appear here", msg_translating: "Translating...",
+                btn_read: "Read", label_original: "Original (TC)", label_target: "Translate to:",
+                msg_hint: "Select a unit above", msg_trans_hint: "Translation appears here", msg_translating: "Translating...",
                 bot_name: "SciBot", bot_welcome: "Hi! I'm SciBot 👋<br>Ask me anything about the text!"
             },
             "ja": {
-                page_title: "科学バイリンガルリーダー", back_student: "学生エリアに戻る", btn_summary: "単元のまとめ",
+                page_title: "科学バイリンガルリーダー", back_student: "学習ハブへ戻る", btn_summary: "単元のまとめ",
                 label_filter: "教材フィルタ:", opt_stage: "学習段階", opt_grade: "学年", opt_version: "版", opt_semester: "学期", opt_unit: "単元名",
                 val_elem: "小学校", val_junior: "中学校", val_senior: "高校",
-                btn_read: "読む", label_original: "原文 (繁体字中国語)", label_target: "翻訳言語:",
+                btn_read: "読む", label_original: "原文 (繁体字)", label_target: "翻訳言語:",
                 msg_hint: "上のメニューから単元を選んでください", msg_trans_hint: "翻訳はここに表示されます", msg_translating: "翻訳中...",
                 bot_name: "サイボット", bot_welcome: "こんにちは！サイボットです 👋<br>わからないことがあれば聞いてください！"
             },
+            "ko": {
+                page_title: "이중 언어 과학 독서기", back_student: "학습 허브로 돌아가기", btn_summary: "단원 요약",
+                label_filter: "필터:", opt_stage: "단계", opt_grade: "학년", opt_version: "버전", opt_semester: "학기", opt_unit: "단원명",
+                val_elem: "초등", val_junior: "중등", val_senior: "고등",
+                btn_read: "읽기", label_original: "원본 (번체)", label_target: "번역 언어:",
+                msg_hint: "위에서 단원을 선택하세요", msg_trans_hint: "번역이 여기에 표시됩니다", msg_translating: "번역 중...",
+                bot_name: "사이봇", bot_welcome: "안녕하세요! 사이봇입니다 👋<br>궁금한 점이 있으면 물어보세요!"
+            },
             "zh-CN": {
-                page_title: "科学双语阅读器", back_student: "返回学生专区", btn_summary: "单元重点整理",
+                page_title: "科学双语阅读器", back_student: "返回学习中心", btn_summary: "单元重点整理",
                 label_filter: "教材筛选：", opt_stage: "学习阶段", opt_grade: "年级", opt_version: "版本", opt_semester: "学期", opt_unit: "单元名称",
                 val_elem: "小学", val_junior: "初中", val_senior: "高中",
                 btn_read: "阅读", label_original: "繁体中文 (原文)", label_target: "翻译语言：",
                 msg_hint: "请先选择上方的教材单元", msg_trans_hint: "翻译内容将显示于此", msg_translating: "翻译中...",
                 bot_name: "小科 (SciBot)", bot_welcome: "嗨！我是小科 👋<br>阅读课文时有任何不懂的科学概念，都可以问我喔！"
-            }
+            },
+            "es": { page_title: "Lector de Ciencias Bilingüe", back_student: "Volver al Centro", btn_summary: "Resumen", label_filter: "Filtro:", opt_stage: "Etapa", opt_grade: "Grado", opt_version: "Edición", opt_semester: "Semestre", opt_unit: "Unidad", val_elem: "Primaria", val_junior: "Secundaria", val_senior: "Preparatoria", btn_read: "Leer", label_original: "Original", label_target: "Traducir a:", msg_hint: "Seleccionar unidad", msg_trans_hint: "La traducción aparecerá aquí", msg_translating: "Traduciendo...", bot_name: "SciBot", bot_welcome: "¡Hola! Soy SciBot 👋" },
+            "pt": { page_title: "Leitor de Ciências Bilíngue", back_student: "Voltar ao Centro", btn_summary: "Resumo", label_filter: "Filtro:", opt_stage: "Etapa", opt_grade: "Série", opt_version: "Edição", opt_semester: "Semestre", opt_unit: "Unidade", val_elem: "Fundamental", val_junior: "Médio", val_senior: "Superior", btn_read: "Ler", label_original: "Original", label_target: "Traduzir para:", msg_hint: "Selecione a unidade", msg_trans_hint: "A tradução aparecerá aqui", msg_translating: "Traduzindo...", bot_name: "SciBot", bot_welcome: "Olá! Sou SciBot 👋" },
+            "id": { page_title: "Pembaca Sains Bilingual", back_student: "Kembali ke Hub", btn_summary: "Ringkasan", label_filter: "Filter:", opt_stage: "Tahap", opt_grade: "Kelas", opt_version: "Edisi", opt_semester: "Semester", opt_unit: "Unit", val_elem: "SD", val_junior: "SMP", val_senior: "SMA", btn_read: "Baca", label_original: "Asli", label_target: "Terjemahkan ke:", msg_hint: "Pilih unit di atas", msg_trans_hint: "Terjemahan muncul di sini", msg_translating: "Menerjemahkan...", bot_name: "SciBot", bot_welcome: "Hai! Saya SciBot 👋" },
+            "th": { page_title: "ผู้อ่านวิทยาศาสตร์สองภาษา", back_student: "กลับสู่ศูนย์การเรียนรู้", btn_summary: "สรุปหน่วย", label_filter: "ตัวกรอง:", opt_stage: "ระดับ", opt_grade: "ชั้นปี", opt_version: "ฉบับ", opt_semester: "ภาคเรียน", opt_unit: "หน่วย", val_elem: "ประถม", val_junior: "มัธยมต้น", val_senior: "มัธยมปลาย", btn_read: "อ่าน", label_original: "ต้นฉบับ", label_target: "แปลเป็น:", msg_hint: "โปรดเลือกหน่วย", msg_trans_hint: "คำแปลจะปรากฏที่นี่", msg_translating: "กำลังแปล...", bot_name: "SciBot", bot_welcome: "สวัสดี! ฉันคือ SciBot 👋" },
+            "vi": { page_title: "Trình đọc Khoa học Song ngữ", back_student: "Trở lại Trung tâm", btn_summary: "Tóm tắt", label_filter: "Bộ lọc:", opt_stage: "Cấp học", opt_grade: "Lớp", opt_version: "Phiên bản", opt_semester: "Học kỳ", opt_unit: "Đơn vị", val_elem: "Tiểu học", val_junior: "THCS", val_senior: "THPT", btn_read: "Đọc", label_original: "Gốc", label_target: "Dịch sang:", msg_hint: "Vui lòng chọn đơn vị", msg_trans_hint: "Bản dịch sẽ xuất hiện ở đây", msg_translating: "Đang dịch...", bot_name: "SciBot", bot_welcome: "Chào! Tôi là SciBot 👋" },
+            "hi": { page_title: "द्विभाषी विज्ञान पाठक", back_student: "हब पर वापस जाएं", btn_summary: "सारांश", label_filter: "फ़िल्टर:", opt_stage: "चरण", opt_grade: "कक्षा", opt_version: "संस्करण", opt_semester: "सत्र", opt_unit: "इकाई", val_elem: "प्राथमिक", val_junior: "जूनियर", val_senior: "सीनियर", btn_read: "पढ़ें", label_original: "मूल", label_target: "अनुवाद करें:", msg_hint: "कृपया इकाई चुनें", msg_trans_hint: "अनुवाद यहाँ दिखाई देगा", msg_translating: "अनुवाद हो रहा है...", bot_name: "SciBot", bot_welcome: "नमस्ते! मैं SciBot हूँ 👋" },
+            "ms": { page_title: "Pembaca Sains Dwibahasa", back_student: "Kembali ke Hab", btn_summary: "Ringkasan", label_filter: "Penapis:", opt_stage: "Tahap", opt_grade: "Darjah", opt_version: "Edisi", opt_semester: "Semester", opt_unit: "Unit", val_elem: "Rendah", val_junior: "Menengah Rendah", val_senior: "Menengah Atas", btn_read: "Baca", label_original: "Asal", label_target: "Terjemah ke:", msg_hint: "Sila pilih unit", msg_trans_hint: "Terjemahan muncul di sini", msg_translating: "Menterjemah...", bot_name: "SciBot", bot_welcome: "Hai! Saya SciBot 👋" }
         };
 
         // 初始化
         document.addEventListener('DOMContentLoaded', () => {
-            fetchTextbookOptions();
-            changeUILanguage();
+            fetchTextbookOptions(); // 啟動後即載入選單資料
+            changeUILanguage();     // 應用預設語言
         });
+
+        function showToast(msg, type="info") {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.classList.remove('opacity-0', 'translate-y-10');
+            if(type === 'error') toast.classList.replace('bg-slate-800/90', 'bg-red-800/90');
+            setTimeout(() => { 
+                toast.classList.add('opacity-0', 'translate-y-10'); 
+                toast.classList.replace('bg-red-800/90', 'bg-slate-800/90');
+            }, 3000);
+        }
 
         function changeUILanguage() {
             const lang = document.getElementById('ui-lang').value;
@@ -340,7 +353,7 @@
                 if (t[key]) el.innerHTML = t[key];
             });
             
-            // 更新選單文字
+            // 更新下拉選單的預設文字
             updateDropdownLabels(t);
         }
 
@@ -348,15 +361,18 @@
             const map = { 'sel-stage': 'opt_stage', 'sel-grade': 'opt_grade', 'sel-version': 'opt_version', 'sel-semester': 'opt_semester', 'sel-unit': 'opt_unit' };
             for(const [id, key] of Object.entries(map)) {
                 const sel = document.getElementById(id);
+                // 只更新 placeholder (第一個 disabled option)
                 if(sel.options.length > 0 && sel.options[0].disabled) {
                     sel.options[0].text = t[key];
                 }
             }
         }
 
-        // 1. 獲取選單資料 (真實請求)
+        // 1. 獲取選單資料 (使用 text/plain 避開 CORS)
         function fetchTextbookOptions() {
-            // 這裡使用 'text/plain' 避免 GAS 的 CORS 預檢問題
+            const stageSel = document.getElementById('sel-stage');
+            stageSel.options[0].text = "載入資料庫中...";
+
             fetch(GAS_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -365,28 +381,40 @@
             .then(res => res.json())
             .then(response => {
                 if(response.result === "success") {
-                    allOptions = response.data || response; // 兼容舊格式，若 response 本身就是資料
-                    // 如果後端回傳的結構是 {result:..., message:..., 國小:{...}}
-                    // 我們需要過濾掉 result 和 message 欄位
+                    allOptions = response.data || response; 
+                    // 清理非資料欄位
                     delete allOptions.result;
                     delete allOptions.message;
-                    
                     initStageSelect();
+                    showToast("資料庫連結成功");
+                } else {
+                    showToast("資料載入失敗: " + response.message, "error");
                 }
             })
-            .catch(err => console.error("Fetch options failed:", err));
+            .catch(err => {
+                console.error("Fetch failed:", err);
+                showToast("無法連接資料庫", "error");
+            });
         }
 
         function initStageSelect() {
             const sel = document.getElementById('sel-stage');
-            const placeholder = sel.options[0].text;
-            sel.innerHTML = `<option value="" disabled selected>${placeholder}</option>`;
-            // 只顯示有效的學習階段
-            const stages = Object.keys(allOptions).filter(k => k !== 'result' && k !== 'message');
-            stages.forEach(key => sel.add(new Option(key, key)));
+            const t = uiTranslations[document.getElementById('ui-lang').value] || uiTranslations['en'];
+            sel.innerHTML = `<option value="" disabled selected>${t.opt_stage}</option>`;
+            
+            // 填充 Stage (只顯示有的資料)
+            Object.keys(allOptions).forEach(key => {
+                // 這裡可以做簡單的語言對應，例如 "國小" -> t.val_elem
+                let label = key;
+                if (key === '國小') label = t.val_elem || key;
+                if (key === '國中') label = t.val_junior || key;
+                // 實際 value 必須保持中文以對應後端資料
+                sel.add(new Option(label, key));
+            });
+            sel.disabled = false;
         }
 
-        // 2. 級聯選單更新邏輯
+        // 2. 級聯選單更新邏輯 (修正版)
         function updateDropdowns(source) {
             const stage = document.getElementById('sel-stage');
             const grade = document.getElementById('sel-grade');
@@ -394,15 +422,13 @@
             const semester = document.getElementById('sel-semester');
             const unit = document.getElementById('sel-unit');
             const btn = document.getElementById('btn-load');
+            const t = uiTranslations[document.getElementById('ui-lang').value] || uiTranslations['en'];
 
             const reset = (el, key) => {
-                // 保留目前的 placeholder 文字 (支援多語系)
-                const txt = uiTranslations[document.getElementById('ui-lang').value][key] || el.options[0].text;
-                el.innerHTML = `<option value="" disabled selected>${txt}</option>`;
+                el.innerHTML = `<option value="" disabled selected>${t[key]}</option>`;
                 el.disabled = true;
                 el.value = "";
             };
-
             const fill = (el, items) => {
                 items.forEach(i => el.add(new Option(i, i)));
                 el.disabled = false;
@@ -410,24 +436,16 @@
 
             if (source === 'stage') {
                 reset(grade, 'opt_grade'); reset(version, 'opt_version'); reset(semester, 'opt_semester'); reset(unit, 'opt_unit');
-                if (stage.value && allOptions[stage.value]) {
-                    fill(grade, Object.keys(allOptions[stage.value]));
-                }
+                if (stage.value && allOptions[stage.value]) fill(grade, Object.keys(allOptions[stage.value]));
             } else if (source === 'grade') {
                 reset(version, 'opt_version'); reset(semester, 'opt_semester'); reset(unit, 'opt_unit');
-                if (grade.value && allOptions[stage.value][grade.value]) {
-                    fill(version, Object.keys(allOptions[stage.value][grade.value]));
-                }
+                if (grade.value && allOptions[stage.value][grade.value]) fill(version, Object.keys(allOptions[stage.value][grade.value]));
             } else if (source === 'version') {
                 reset(semester, 'opt_semester'); reset(unit, 'opt_unit');
-                if (version.value && allOptions[stage.value][grade.value][version.value]) {
-                    fill(semester, Object.keys(allOptions[stage.value][grade.value][version.value]));
-                }
+                if (version.value && allOptions[stage.value][grade.value][version.value]) fill(semester, Object.keys(allOptions[stage.value][grade.value][version.value]));
             } else if (source === 'semester') {
                 reset(unit, 'opt_unit');
-                if (semester.value && allOptions[stage.value][grade.value][version.value][semester.value]) {
-                    fill(unit, allOptions[stage.value][grade.value][version.value][semester.value]);
-                }
+                if (semester.value && allOptions[stage.value][grade.value][version.value][semester.value]) fill(unit, allOptions[stage.value][grade.value][version.value][semester.value]);
             }
             
             btn.disabled = !unit.value;
@@ -454,37 +472,35 @@
             .then(res => res.json())
             .then(response => {
                 if (response.result === "success") {
-                    renderContent(response); // Response 本身包含 title, content, terms
+                    renderContent(response.data || response); 
                 } else {
                     document.getElementById('content-zh').innerHTML = `<p class="text-red-500 text-center p-4">Error: ${response.message}</p>`;
                 }
             })
-            .catch(err => console.error(err));
+            .catch(err => {
+                showToast("讀取失敗", "error");
+                console.error(err);
+            });
         }
 
         function renderContent(data) {
             currentRawText = data.content;
-            currentTerms = data.terms;
+            currentTerms = data.terms || {};
 
             let html = `<h1>${data.title}</h1>`;
-            
-            // 簡單的分段與詞彙標記
-            const paragraphs = data.content.split('\n');
-            paragraphs.forEach(p => {
+            data.content.split('\n').forEach(p => {
                 if(!p.trim()) return;
                 let text = p;
-                // 詞彙標記 (簡單替換)
-                if (data.terms) {
-                    for (let [zh, en] of Object.entries(data.terms)) {
-                        const regex = new RegExp(zh, 'g');
-                        text = text.replace(regex, `<span class="sci-term" title="${en}">${zh}<span class="text-sm font-normal ml-1 opacity-70">(${en})</span></span>`);
-                    }
+                // 詞彙高亮
+                for (let [zh, en] of Object.entries(currentTerms)) {
+                    // 簡單替換 (注意：這只會替換第一個出現的，若要全部替換可改用 RegExp Global)
+                    const regex = new RegExp(zh, "g");
+                    text = text.replace(regex, `<span class="sci-term" title="${en}">${zh}<span class="text-sm font-normal ml-1 opacity-70">(${en})</span></span>`);
                 }
                 html += `<p>${text}</p>`;
             });
-            
+
             document.getElementById('content-zh').innerHTML = html;
-            
             // 自動翻譯
             translateContent();
         }
@@ -508,7 +524,7 @@
                     const mdText = response.translatedText;
                     document.getElementById('content-target').innerHTML = marked.parse(mdText);
                 } else {
-                    document.getElementById('content-target').innerHTML = "<p>Translation failed.</p>";
+                    document.getElementById('content-target').innerHTML = "<p class='text-red-400'>Translation failed.</p>";
                 }
                 document.getElementById('trans-loading').classList.add('hidden');
             });
@@ -541,12 +557,10 @@
             const u = new SpeechSynthesisUtterance(text);
             u.lang = lang;
             u.rate = rate;
-            
             u.onend = () => {
                 btn.innerHTML = originalIcon;
                 btn.classList.remove('bg-red-500', 'text-white', 'hover:bg-red-600');
             };
-            
             window.speechSynthesis.speak(u);
             isSpeaking = true;
         }
@@ -564,11 +578,9 @@
             
             addMsg(msg, 'user');
             input.value = '';
-
+            
             const loadingId = 'load-' + Date.now();
-            const container = document.getElementById('chat-messages');
-            container.insertAdjacentHTML('beforeend', `<div id="${loadingId}" class="flex items-start gap-2"><div class="w-8 h-8 rounded-full bg-white text-student flex items-center justify-center border border-slate-200"><i class="fa-solid fa-robot text-xs"></i></div><div class="bg-white px-4 py-2 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 text-slate-400 text-sm"><i class="fa-solid fa-ellipsis fa-bounce"></i></div></div>`);
-            container.scrollTop = container.scrollHeight;
+            document.getElementById('chat-messages').insertAdjacentHTML('beforeend', `<div id="${loadingId}" class="flex items-start gap-2"><div class="w-8 h-8 rounded-full bg-white text-student flex items-center justify-center border border-slate-200"><i class="fa-solid fa-robot text-xs"></i></div><div class="bg-white px-4 py-2 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 text-slate-400 text-sm"><i class="fa-solid fa-ellipsis fa-bounce"></i></div></div>`);
 
             fetch(GAS_URL, {
                 method: 'POST',
@@ -581,7 +593,7 @@
                 if (response.result === "success") {
                     addMsg(response.reply, 'bot');
                 } else {
-                    addMsg("抱歉，我現在無法回答。", 'bot');
+                    addMsg("抱歉，小科連線中斷。", 'bot');
                 }
             });
         }
@@ -589,16 +601,10 @@
         function addMsg(text, role) {
             const container = document.getElementById('chat-messages');
             let html = '';
-            // 使用 marked 解析 Markdown 回應
-            const parsedText = marked.parse(text);
-            
             if (role === 'user') {
                 html = `<div class="flex justify-end"><div class="bg-student text-white px-4 py-2 rounded-2xl rounded-tr-none shadow-sm max-w-[85%] text-sm">${text}</div></div>`;
             } else {
-                html = `<div class="flex items-start gap-2">
-                            <div class="w-8 h-8 rounded-full bg-white text-student flex items-center justify-center shrink-0 border border-slate-200 shadow-sm"><i class="fa-solid fa-robot text-xs"></i></div>
-                            <div class="bg-white px-4 py-2 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 text-slate-700 max-w-[85%] text-sm leading-relaxed prose prose-sm">${parsedText}</div>
-                        </div>`;
+                html = `<div class="flex items-start gap-2"><div class="w-8 h-8 rounded-full bg-white text-student flex items-center justify-center shrink-0 border border-slate-200 shadow-sm"><i class="fa-solid fa-robot text-xs"></i></div><div class="bg-white px-4 py-2 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 text-slate-700 max-w-[85%] text-sm leading-relaxed prose prose-sm">${marked.parse(text)}</div></div>`;
             }
             container.insertAdjacentHTML('beforeend', html);
             container.scrollTop = container.scrollHeight;
