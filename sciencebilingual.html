@@ -63,7 +63,7 @@
         .custom-scroll::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
         .loader { border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #3b82f6; width: 20px; height: 20px; animation: spin 1s linear infinite; }
         
-        /* Google 四色漸層 */
+        /* Google 四色樣式 */
         .google-gradient-text {
             background: linear-gradient(135deg, #4285F4 25%, #EA4335 25%, #EA4335 50%, #FBBC05 50%, #FBBC05 75%, #34A853 75%);
             -webkit-background-clip: text;
@@ -100,7 +100,7 @@
     <header class="glass-panel z-40 flex flex-col shadow-sm relative">
         <div class="px-6 py-3 flex justify-between items-center border-b border-slate-100/50">
             <div class="flex items-center gap-4">
-                <button onclick="window.location.href='?page=student'" class="flex items-center gap-2 text-slate-500 hover:text-student font-bold transition bg-white/80 px-4 py-2 rounded-xl shadow-sm hover:shadow border border-slate-200 hover:border-student/30">
+                <button onclick="window.location.href='student.html'" class="flex items-center gap-2 text-slate-500 hover:text-student font-bold transition bg-white/80 px-4 py-2 rounded-xl shadow-sm hover:shadow border border-slate-200 hover:border-student/30">
                     <i class="fa-solid fa-chevron-left"></i> <span data-i18n="back_student">返回學習中心</span>
                 </button>
                 <div class="h-6 w-px bg-slate-300 hidden md:block"></div>
@@ -131,7 +131,7 @@
                     </select>
                  </div>
                  
-                 <button onclick="window.location.href='?page=unitkeyidea'" class="flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-xl hover:bg-green-100 transition font-bold border border-green-200 shadow-sm">
+                 <button onclick="window.location.href='unitkeyidea.html'" class="flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-xl hover:bg-green-100 transition font-bold border border-green-200 shadow-sm">
                     <i class="fa-solid fa-list-check"></i> <span data-i18n="btn_summary">單元重點整理</span>
                 </button>
             </div>
@@ -283,7 +283,8 @@
     </div>
 
     <script>
-        // *** 這裡請填入您的 GAS 網址 (確認是最後一次部署的網址) ***
+        // *** 【重要！！】請將下方的 URL 換成您剛剛複製的後台網址 ***
+        // *** 範例格式：https://script.google.com/macros/s/xxxxxxxxx/exec ***
         const GAS_URL = "https://script.google.com/macros/s/AKfycbwaqb_hmKvQEgVKCI-9W8zmU85vh_ielL0Kb6TGQq1dg52PfDozWzgYtnRMwRVXqyZk/exec"; 
         
         let allOptions = {}; 
@@ -291,11 +292,9 @@
         let currentTerms = {}; 
         let isSpeaking = false;
         
-        // ** 重要：翻譯快取物件 (Cache) **
-        // 用來儲存已經翻譯過的內容，避免重複呼叫 API
+        // 翻譯快取 (核心功能：避免重複翻譯)
         let translationCache = {};
 
-        // 完整 12 國語言翻譯字典
         const uiTranslations = {
             "zh-TW": {
                 page_title: "科學雙語閱讀器", back_student: "返回學習中心", btn_summary: "單元重點整理",
@@ -348,8 +347,8 @@
 
         // 初始化
         document.addEventListener('DOMContentLoaded', () => {
-            fetchTextbookOptions(); // 啟動後即載入選單資料
-            changeUILanguage();     // 應用預設語言
+            fetchTextbookOptions(); 
+            changeUILanguage();     
         });
 
         function showToast(msg, type="info") {
@@ -408,7 +407,7 @@
             })
             .catch(err => {
                 console.error("Fetch failed:", err);
-                showToast("無法連接資料庫", "error");
+                showToast("無法連接資料庫，請檢查程式碼中的網址", "error");
             });
         }
 
@@ -426,7 +425,7 @@
             sel.disabled = false;
         }
 
-        // 2. 級聯選單更新邏輯
+        // 2. 級聯選單
         function updateDropdowns(source) {
             const stage = document.getElementById('sel-stage');
             const grade = document.getElementById('sel-grade');
@@ -463,7 +462,7 @@
             btn.disabled = !unit.value;
         }
 
-        // 3. 獲取課文
+        // 3. 獲取課文 (快取重置點)
         function fetchLessonContent() {
             const criteria = {
                 stage: document.getElementById('sel-stage').value,
@@ -473,10 +472,9 @@
                 unit: document.getElementById('sel-unit').value
             };
 
-            // 重置翻譯快取 (新的一課，舊快取失效)
+            // ** 關鍵修改：換課時重置快取 **
             translationCache = {};
 
-            // 顯示左側載入中，右側等待
             document.getElementById('content-zh').innerHTML = '<div class="h-full flex items-center justify-center"><div class="loader"></div></div>';
             document.getElementById('content-target').innerHTML = '<div class="h-full flex items-center justify-center text-slate-400">...</div>';
 
@@ -514,10 +512,10 @@
                 html += `<p>${text}</p>`;
             });
 
-            // 更新左側 (原文)
+            // ** 關鍵修改：立刻顯示中文，不等待翻譯 **
             document.getElementById('content-zh').innerHTML = html;
             
-            // 觸發右側 (翻譯) - 根據當前選擇的語言
+            // 接著再觸發翻譯
             translateContent();
         }
 
@@ -526,20 +524,20 @@
             const lang = document.getElementById('target-lang').value;
             if(!currentRawText) return;
 
-            // 1. 如果選擇繁體中文，直接複製左邊內容 (不用翻譯)
+            // 情況1: 選中文，直接複製
             if (lang === 'zh-TW') {
                 document.getElementById('content-target').innerHTML = document.getElementById('content-zh').innerHTML;
                 return;
             }
 
-            // 2. 檢查快取：如果這課的這個語言已經翻譯過，直接用快取的
+            // 情況2: 快取有資料，直接顯示 (秒開)
             if (translationCache[lang]) {
                 document.getElementById('content-target').innerHTML = marked.parse(translationCache[lang]);
-                console.log("Loaded from cache:", lang);
+                console.log("Loaded from cache:", lang); // Debug用
                 return;
             }
 
-            // 3. 沒快取才呼叫 API
+            // 情況3: 沒資料，呼叫 API
             document.getElementById('trans-loading').classList.remove('hidden');
             document.getElementById('content-target').innerHTML = '<div class="h-full flex items-center justify-center"><div class="loader"></div></div>';
 
@@ -552,9 +550,8 @@
             .then(response => {
                 if (response.result === "success") {
                     const mdText = response.translatedText;
-                    // 存入快取
+                    // ** 存入快取 **
                     translationCache[lang] = mdText;
-                    // 顯示
                     document.getElementById('content-target').innerHTML = marked.parse(mdText);
                 } else {
                     document.getElementById('content-target').innerHTML = "<p class='text-red-400'>Translation failed.</p>";
