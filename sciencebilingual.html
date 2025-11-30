@@ -450,11 +450,6 @@
             });
         }
 
-        // ★ 新增：避免科學詞彙含有正規表達式特殊字元時出錯
-        function escapeRegExp(str) {
-            return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        }
-
         function renderContent(data) {
             currentRawText = data.content;
             currentTerms = data.terms || {};
@@ -465,13 +460,8 @@
                     if(!p.trim()) return;
                     let text = p;
                     for (let [zh, en] of Object.entries(currentTerms)) {
-                        if (!zh) continue; // ★ 避免空字串
-                        const safeZh = escapeRegExp(zh); // ★ 先 escape
-                        const regex = new RegExp(safeZh, "g");
-                        text = text.replace(
-                          regex,
-                          `<span class="sci-term" title="${en}">${zh}<span class="text-sm font-normal ml-1 opacity-70">(${en})</span></span>`
-                        );
+                        const regex = new RegExp(zh, "g");
+                        text = text.replace(regex, `<span class="sci-term" title="${en}">${zh}<span class="text-sm font-normal ml-1 opacity-70">(${en})</span></span>`);
                     }
                     html += `<p>${text}</p>`;
                 });
@@ -547,7 +537,6 @@
             u.lang = lang;
             u.rate = rate;
             u.onend = () => {
-                isSpeaking = false; // ★ 自然結束時重置狀態
                 btn.innerHTML = originalIcon;
                 btn.classList.remove('bg-red-500', 'text-white', 'hover:bg-red-600');
             };
@@ -560,10 +549,8 @@
                 window.speechSynthesis.cancel();
                 isSpeaking = false;
                 document.querySelectorAll('.fa-stop').forEach(el => {
-                    const btn = el.closest('button');
-                    if (!btn) return;
-                    btn.innerHTML = '<i class="fa-solid fa-play ml-0.5"></i>';
-                    btn.classList.remove('bg-red-500', 'text-white', 'hover:bg-red-600'); // ★ 樣式完整還原
+                    el.closest('button').innerHTML = '<i class="fa-solid fa-play ml-0.5"></i>';
+                    el.closest('button').classList.remove('bg-red-500', 'text-white');
                 });
             } else {
                 speakText(side);
