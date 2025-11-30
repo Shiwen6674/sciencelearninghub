@@ -13,107 +13,135 @@
             theme: {
                 extend: {
                     colors: {
-                        student: { light: '#bfdbfe', DEFAULT: '#3b82f6', dark: '#1d4ed8' },
-                        glass: { 100: 'rgba(255, 255, 255, 0.2)', 900: 'rgba(255, 255, 255, 0.9)' }
+                        student: { light: '#e0f2fe', DEFAULT: '#0ea5e9', dark: '#0284c7' }, // 更柔和的藍色
+                        paper: '#ffffff',
                     },
                     fontFamily: {
-                        sans: ['Noto Sans TC', 'sans-serif'],
+                        sans: ['"Noto Sans TC"', '"Microsoft JhengHei"', 'sans-serif'], // 強制微軟正黑或 Noto
                     },
                     animation: {
-                        "spin-slow": "spin 3s linear infinite",
-                        "fade-in-up": "fadeInUp 0.5s ease-out forwards"
+                        "fade-in-up": "fadeInUp 0.6s ease-out forwards"
                     },
                     keyframes: {
-                        "fadeInUp": { "0%": { opacity: "0", transform: "translateY(10px)" }, "100%": { opacity: "1", transform: "translateY(0)" } }
+                        "fadeInUp": { "0%": { opacity: "0", transform: "translateY(15px)" }, "100%": { opacity: "1", transform: "translateY(0)" } }
                     }
                 }
             }
         }
     </script>
     <style>
-        body { background-color: #f0f9ff; font-family: 'Noto Sans TC', sans-serif; }
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            box-shadow: 0 8px 32px 0 rgba(59, 130, 246, 0.1);
+        body { background-color: #f8fafc; font-family: 'Noto Sans TC', sans-serif; }
+        
+        /* 玻璃擬態 header */
+        .glass-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         }
-        .filter-select {
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+
+        /* 閱讀區塊優化：仿書本排版 */
+        .reader-container {
+            font-size: 1.25rem; /* 增大字體適合學生 */
+            line-height: 1.8;   /* 舒適行高 */
+            color: #334155;
+            text-align: justify;
+        }
+        
+        /* 單元標題樣式 */
+        .reader-container h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 1.5rem;
+            padding-left: 1rem;
+            border-left: 5px solid #0ea5e9; /* 左側飾條 */
+            line-height: 1.4;
+        }
+
+        /* 內文段落 */
+        .reader-container p {
+            margin-bottom: 1.5rem; /* 段落間距加大 */
+            background-color: white;
+            padding: 1.25rem;
+            border-radius: 1rem;
+            box-shadow: 0 2px 4px rgba(148, 163, 184, 0.1); /* 輕微卡片感 */
+            border: 1px solid #f1f5f9;
+        }
+
+        /* 科學詞彙標註 */
+        .sci-term {
+            font-weight: 700;
+            color: #0284c7;
+            background-color: #e0f2fe;
+            padding: 2px 6px;
+            border-radius: 6px;
+            border-bottom: 2px solid #7dd3fc;
+            cursor: help;
+            transition: all 0.2s;
+            display: inline-block;
+        }
+        .sci-term:hover { background-color: #0284c7; color: white; }
+
+        /* 下拉選單美化 */
+        .custom-select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
             background-position: right 0.5rem center;
             background-repeat: no-repeat;
             background-size: 1.5em 1.5em;
-            padding-right: 2.5rem;
-            -webkit-appearance: none;
             appearance: none;
-            transition: all 0.2s;
         }
-        .filter-select:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); outline: none; }
-        .filter-select:disabled { background-color: #f8fafc; color: #cbd5e1; cursor: not-allowed; border-color: #e2e8f0; }
-        .reader-content { font-size: 1.15rem; line-height: 2.2; color: #334155; text-align: justify; }
-        .reader-content h1 { font-size: 2rem; font-weight: 900; color: #1e293b; margin-bottom: 1.5rem; border-bottom: 2px solid #bfdbfe; padding-bottom: 1rem; text-align: center; }
-        .reader-content p { margin-bottom: 2rem; }
-        .sci-term { font-weight: 700; color: #2563eb; background-color: #eff6ff; padding: 2px 6px; border-radius: 6px; border-bottom: 2px solid #93c5fd; cursor: help; transition: all 0.2s; display: inline-block; }
-        .sci-term:hover { background-color: #2563eb; color: white; border-color: #1d4ed8; }
-        .chat-window { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform-origin: bottom right; }
-        .chat-hidden { transform: scale(0.9) translateY(20px); opacity: 0; pointer-events: none; }
+
+        /* 卷軸美化 */
         .custom-scroll::-webkit-scrollbar { width: 8px; }
         .custom-scroll::-webkit-scrollbar-track { background: transparent; }
-        .custom-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; border: 2px solid #f8fafc; }
         .custom-scroll::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
-        .loader { border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #3b82f6; width: 20px; height: 20px; animation: spin 1s linear infinite; }
-        
-        .google-gradient-text {
-            background: linear-gradient(135deg, #4285F4 25%, #EA4335 25%, #EA4335 50%, #FBBC05 50%, #FBBC05 75%, #34A853 75%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
+
+        /* Google 小科樣式 */
         .google-border {
-            position: relative;
-            z-index: 0;
-            overflow: hidden;
+            position: relative; z-index: 0; overflow: hidden;
         }
         .google-border::before {
-            content: "";
-            position: absolute;
-            z-index: -1;
-            inset: 0;
-            padding: 2px;
-            border-radius: 50%;
+            content: ""; position: absolute; z-index: -1; inset: 0; padding: 2px; border-radius: 50%;
             background: linear-gradient(135deg, #4285F4, #EA4335, #FBBC05, #34A853);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
+            -webkit-mask-composite: xor; mask-composite: exclude;
         }
+        .google-text {
+            background: linear-gradient(135deg, #4285F4, #EA4335, #34A853);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        .loader { border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #3b82f6; width: 24px; height: 24px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        #canvas-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -10; background: linear-gradient(135deg, #eff6ff 0%, #e0f2fe 100%); }
+        
+        .chat-window { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform-origin: bottom right; }
+        .chat-hidden { transform: scale(0.9) translateY(20px); opacity: 0; pointer-events: none; }
     </style>
 </head>
-<body class="h-screen flex flex-col overflow-hidden text-slate-800">
+<body class="h-screen flex flex-col overflow-hidden text-slate-800 bg-slate-50">
 
-    <div id="canvas-container"><canvas id="network-canvas"></canvas></div>
-
-    <header class="glass-panel z-40 flex flex-col shadow-sm relative">
-        <div class="px-6 py-3 flex justify-between items-center border-b border-slate-100/50">
+    <header class="glass-header z-40 flex flex-col shadow-sm relative">
+        <div class="px-6 py-3 flex justify-between items-center border-b border-slate-100">
             <div class="flex items-center gap-4">
-                <button onclick="window.location.href='student.html'" class="flex items-center gap-2 text-slate-500 hover:text-student font-bold transition bg-white/80 px-4 py-2 rounded-xl shadow-sm hover:shadow border border-slate-200 hover:border-student/30">
+                <button onclick="window.location.href='student.html'" class="flex items-center gap-2 text-slate-500 hover:text-student font-bold transition bg-slate-50 px-4 py-2 rounded-full border border-slate-200 hover:border-student shadow-sm">
                     <i class="fa-solid fa-chevron-left"></i> <span data-i18n="back_student">返回學習中心</span>
                 </button>
                 <div class="h-6 w-px bg-slate-300 hidden md:block"></div>
                 <div class="flex items-center gap-3">
-                    <div class="bg-student-light p-2 rounded-xl text-student-dark hidden md:block">
+                    <div class="bg-blue-50 p-2 rounded-xl text-blue-600 hidden md:block">
                         <i class="fa-solid fa-book-open-reader text-xl"></i>
                     </div>
-                    <h1 class="text-lg font-bold text-slate-800" data-i18n="page_title">科學雙語文本閱讀</h1>
+                    <h1 class="text-xl font-bold text-slate-800 tracking-tight" data-i18n="page_title">科學雙語文本閱讀</h1>
                 </div>
             </div>
             
             <div class="flex items-center gap-3">
                  <div class="relative">
                     <i class="fa-solid fa-globe absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                    <select id="ui-lang" onchange="changeUILanguage()" class="pl-9 pr-8 py-2 bg-white border border-slate-200 text-sm rounded-lg focus:ring-2 focus:ring-student outline-none cursor-pointer shadow-sm text-slate-600 font-medium appearance-none">
+                    <select id="ui-lang" onchange="changeUILanguage()" class="custom-select pl-9 pr-10 py-2 bg-white border border-slate-200 text-sm rounded-full focus:ring-2 focus:ring-student outline-none cursor-pointer shadow-sm text-slate-600 font-bold hover:bg-slate-50 transition">
                         <option value="zh-TW">繁體中文</option>
                         <option value="en">English</option>
                         <option value="ja">日本語</option>
@@ -128,71 +156,78 @@
                         <option value="ms">Bahasa Melayu</option>
                     </select>
                  </div>
-                 <button onclick="window.location.href='unitkeyidea.html'" class="flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-xl hover:bg-green-100 transition font-bold border border-green-200 shadow-sm">
-                    <i class="fa-solid fa-list-check"></i> <span data-i18n="btn_summary">單元重點整理</span>
+                 <button onclick="window.location.href='unitkeyidea.html'" class="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-5 py-2 rounded-full hover:bg-emerald-100 transition font-bold border border-emerald-200 shadow-sm">
+                    <i class="fa-solid fa-list-check"></i> <span data-i18n="btn_summary">重點整理</span>
                 </button>
             </div>
         </div>
 
-        <div class="px-6 py-4 bg-white/60 backdrop-blur flex flex-wrap items-center gap-3">
-            <div class="flex items-center gap-2 text-sm font-bold text-slate-600 mr-2">
-                <i class="fa-solid fa-filter text-student"></i> <span data-i18n="label_filter">教材篩選：</span>
+        <div class="px-6 py-4 bg-white/80 backdrop-blur flex flex-wrap items-center gap-3 shadow-inner">
+            <div class="flex items-center gap-2 text-sm font-bold text-slate-500 mr-2 uppercase tracking-wide">
+                <i class="fa-solid fa-filter text-student"></i> <span data-i18n="label_filter">教材篩選</span>
             </div>
             
-            <select id="sel-stage" class="filter-select bg-white border border-slate-300 text-sm rounded-xl p-2.5 min-w-[120px] font-medium text-slate-700 shadow-sm" onchange="updateDropdowns('stage')">
+            <select id="sel-stage" class="custom-select bg-white border border-slate-300 text-sm rounded-lg p-2.5 min-w-[120px] font-medium text-slate-700 shadow-sm focus:border-student focus:ring-1 focus:ring-student" onchange="updateDropdowns('stage')">
                 <option value="" disabled selected data-i18n="opt_stage">載入中...</option>
             </select>
-            <select id="sel-grade" class="filter-select bg-white border border-slate-300 text-sm rounded-xl p-2.5 min-w-[100px] font-medium text-slate-700 shadow-sm" onchange="updateDropdowns('grade')" disabled>
+            <select id="sel-grade" class="custom-select bg-white border border-slate-300 text-sm rounded-lg p-2.5 min-w-[100px] font-medium text-slate-700 shadow-sm" onchange="updateDropdowns('grade')" disabled>
                 <option value="" data-i18n="opt_grade">年級</option>
             </select>
-            <select id="sel-version" class="filter-select bg-white border border-slate-300 text-sm rounded-xl p-2.5 min-w-[100px] font-medium text-slate-700 shadow-sm" onchange="updateDropdowns('version')" disabled>
+            <select id="sel-version" class="custom-select bg-white border border-slate-300 text-sm rounded-lg p-2.5 min-w-[100px] font-medium text-slate-700 shadow-sm" onchange="updateDropdowns('version')" disabled>
                 <option value="" data-i18n="opt_version">版本</option>
             </select>
-            <select id="sel-semester" class="filter-select bg-white border border-slate-300 text-sm rounded-xl p-2.5 min-w-[100px] font-medium text-slate-700 shadow-sm" onchange="updateDropdowns('semester')" disabled>
+            <select id="sel-semester" class="custom-select bg-white border border-slate-300 text-sm rounded-lg p-2.5 min-w-[100px] font-medium text-slate-700 shadow-sm" onchange="updateDropdowns('semester')" disabled>
                 <option value="" data-i18n="opt_semester">學期</option>
             </select>
-            <select id="sel-unit" class="filter-select bg-white border border-slate-300 text-sm rounded-xl p-2.5 min-w-[250px] flex-1 font-medium text-slate-700 shadow-sm" onchange="document.getElementById('btn-load').disabled = !this.value" disabled>
+            <select id="sel-unit" class="custom-select bg-white border border-slate-300 text-sm rounded-lg p-2.5 min-w-[250px] flex-1 font-medium text-slate-700 shadow-sm" onchange="document.getElementById('btn-load').disabled = !this.value" disabled>
                 <option value="" data-i18n="opt_unit">單元名稱</option>
             </select>
 
-            <button id="btn-load" onclick="fetchLessonContent()" class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-2.5 rounded-xl font-bold hover:shadow-lg hover:shadow-blue-500/30 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 ml-2 transform active:scale-95" disabled>
-                <i class="fa-solid fa-book-open"></i> <span data-i18n="btn_read">開始閱讀</span>
+            <button id="btn-load" onclick="fetchLessonContent()" class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-2.5 rounded-xl font-bold shadow-md hover:shadow-lg hover:shadow-blue-500/30 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 ml-2 transform active:scale-95">
+                <i class="fa-solid fa-book-open"></i> <span data-i18n="btn_read">閱讀課文</span>
             </button>
         </div>
     </header>
 
     <div class="flex-1 flex flex-col md:flex-row overflow-hidden relative z-10">
         
-        <div class="w-full md:w-1/2 flex flex-col border-r border-slate-200 bg-white h-full shadow-xl z-10">
-            <div class="px-6 py-3 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 shrink-0">
-                <span class="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2 bg-white px-3 py-1 rounded-lg border border-slate-200 shadow-sm">
+        <div class="w-full md:w-1/2 flex flex-col border-r border-slate-200 bg-[#f8fafc] h-full shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-10">
+            <div class="px-6 py-3 border-b border-slate-200 flex justify-between items-center bg-white shrink-0 shadow-sm">
+                <span class="text-xs font-extrabold text-slate-500 uppercase tracking-widest flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
                     <span class="w-2 h-2 rounded-full bg-blue-500"></span> <span data-i18n="label_original">繁體中文 (原文)</span>
                 </span>
                 <div class="flex items-center gap-3">
-                    <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full border border-slate-200 shadow-sm group hover:border-blue-300 transition">
-                        <i class="fa-solid fa-gauge-high text-slate-400 text-xs group-hover:text-blue-500"></i>
-                        <input type="range" id="rate-zh" min="0.5" max="2" step="0.1" value="1" class="w-20 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                    <div class="flex items-center bg-slate-50 rounded-lg border border-slate-200 px-2">
+                        <i class="fa-solid fa-gauge-high text-slate-400 text-xs pl-2"></i>
+                        <select id="rate-zh" class="bg-transparent text-xs font-bold text-slate-600 p-1.5 outline-none cursor-pointer">
+                            <option value="0.5">0.5x</option>
+                            <option value="0.75">0.75x</option>
+                            <option value="1" selected>1.0x</option>
+                            <option value="1.25">1.25x</option>
+                            <option value="1.5">1.5x</option>
+                            <option value="2">2.0x</option>
+                        </select>
                     </div>
-                    <button id="btn-play-zh" onclick="toggleSpeech('zh-TW')" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition shadow-sm" title="朗讀">
-                        <i class="fa-solid fa-play ml-0.5"></i>
+                    <button id="btn-play-zh" onclick="toggleSpeech('zh-TW')" class="w-10 h-10 flex items-center justify-center rounded-full bg-red-600 text-white hover:bg-red-700 transition shadow-md hover:shadow-lg transform active:scale-95" title="播放 (自然音)">
+                        <i class="fa-brands fa-youtube text-lg"></i>
                     </button>
                 </div>
             </div>
-            <div id="content-zh" class="flex-1 overflow-y-auto p-10 custom-scroll reader-content selection:bg-blue-100">
+            <div id="content-zh" class="flex-1 overflow-y-auto p-8 custom-scroll reader-container selection:bg-blue-100">
                 <div class="h-full flex flex-col items-center justify-center text-slate-300 select-none animate-fade-in-up">
-                    <div class="bg-slate-50 p-6 rounded-full mb-4 border border-slate-100 shadow-inner">
-                        <i class="fa-solid fa-arrow-up text-4xl text-slate-400 animate-bounce"></i>
+                    <div class="bg-white p-8 rounded-full mb-6 border border-slate-100 shadow-sm">
+                        <i class="fa-solid fa-arrow-up text-5xl text-blue-100 animate-bounce"></i>
                     </div>
-                    <p data-i18n="msg_hint" class="text-lg font-medium">請先選擇上方的教材單元</p>
+                    <p data-i18n="msg_hint" class="text-xl font-bold text-slate-400">請先選擇上方的教材單元</p>
                 </div>
             </div>
         </div>
 
-        <div class="w-full md:w-1/2 flex flex-col h-full bg-slate-50/30 backdrop-blur-sm">
-            <div class="px-6 py-3 border-b border-slate-200 flex justify-between items-center bg-white/80 shrink-0">
+        <div class="w-full md:w-1/2 flex flex-col h-full bg-white">
+            <div class="px-6 py-3 border-b border-slate-200 flex justify-between items-center bg-white shrink-0 shadow-sm">
                 <div class="flex items-center gap-3">
                     <span class="text-xs font-bold text-slate-500 uppercase tracking-widest" data-i18n="label_target">翻譯語言：</span>
-                    <select id="target-lang" class="text-sm border border-slate-200 bg-white rounded-lg py-1.5 px-3 focus:ring-2 focus:ring-indigo-500 font-bold text-slate-700 cursor-pointer hover:border-indigo-300 transition shadow-sm">
+                    <select id="target-lang" class="custom-select text-sm border border-slate-200 bg-slate-50 rounded-lg py-1.5 px-3 pr-8 focus:ring-2 focus:ring-indigo-500 font-bold text-slate-700 cursor-pointer hover:border-indigo-300 transition shadow-sm">
                         <option value="zh-TW">繁體中文</option>
                         <option value="en" selected>English</option>
                         <option value="ja">日本語</option>
@@ -206,26 +241,33 @@
                         <option value="hi">हिन्दी</option>
                         <option value="ms">Bahasa Melayu</option>
                     </select>
-                    <button onclick="translateContent()" class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm font-bold shadow hover:bg-indigo-700 transition flex items-center gap-1 active:scale-95">
+                    <button onclick="translateContent()" class="bg-indigo-600 text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow hover:bg-indigo-700 transition flex items-center gap-1 active:scale-95">
                          <i class="fa-solid fa-language"></i> 翻譯
                     </button>
                 </div>
                 <div class="flex items-center gap-3">
-                    <div id="trans-loading" class="hidden flex items-center gap-2 text-xs text-indigo-600 font-bold bg-indigo-50 px-3 py-1 rounded-full">
+                    <div id="trans-loading" class="hidden flex items-center gap-2 text-xs text-indigo-600 font-bold bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">
                         <div class="loader w-3 h-3 border-t-indigo-600"></div> <span data-i18n="msg_translating">翻譯中...</span>
                     </div>
-                    <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full border border-slate-200 shadow-sm group hover:border-indigo-300 transition">
-                        <i class="fa-solid fa-gauge-high text-slate-400 text-xs group-hover:text-indigo-500"></i>
-                        <input type="range" id="rate-target" min="0.5" max="2" step="0.1" value="1" class="w-20 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                    <div class="flex items-center bg-slate-50 rounded-lg border border-slate-200 px-2">
+                        <i class="fa-solid fa-gauge-high text-slate-400 text-xs pl-2"></i>
+                        <select id="rate-target" class="bg-transparent text-xs font-bold text-slate-600 p-1.5 outline-none cursor-pointer">
+                            <option value="0.5">0.5x</option>
+                            <option value="0.75">0.75x</option>
+                            <option value="1" selected>1.0x</option>
+                            <option value="1.25">1.25x</option>
+                            <option value="1.5">1.5x</option>
+                            <option value="2">2.0x</option>
+                        </select>
                     </div>
-                    <button id="btn-play-target" onclick="toggleSpeech('target')" class="w-9 h-9 flex items-center justify-center rounded-full bg-indigo-100 text-indigo-600 hover:bg-indigo-600 hover:text-white transition shadow-sm" title="朗讀">
+                    <button id="btn-play-target" onclick="toggleSpeech('target')" class="w-10 h-10 flex items-center justify-center rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition shadow-md hover:shadow-lg transform active:scale-95" title="播放 (自然音)">
                         <i class="fa-brands fa-youtube text-lg"></i>
                     </button>
                 </div>
             </div>
-            <div id="content-target" class="flex-1 overflow-y-auto p-10 custom-scroll reader-content selection:bg-indigo-100 bg-white/50">
+            <div id="content-target" class="flex-1 overflow-y-auto p-8 custom-scroll reader-container selection:bg-indigo-100 bg-white">
                 <div class="h-full flex flex-col items-center justify-center text-slate-300 select-none">
-                    <p data-i18n="msg_trans_hint">請選擇語言並點擊翻譯按鈕</p>
+                    <p data-i18n="msg_trans_hint" class="font-medium">請選擇語言並點擊翻譯按鈕</p>
                 </div>
             </div>
         </div>
@@ -236,7 +278,7 @@
             <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 flex justify-between items-center text-white shadow-md">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md google-border">
-                        <i class="fa-solid fa-robot text-lg google-gradient-text"></i>
+                        <i class="fa-solid fa-robot text-lg google-text"></i>
                     </div>
                     <div>
                         <h3 class="font-bold text-base" data-i18n="bot_name">小科 (SciBot)</h3>
@@ -250,7 +292,7 @@
             <div id="chat-messages" class="flex-1 overflow-y-auto p-4 bg-slate-50 space-y-4 custom-scroll">
                 <div class="flex items-start gap-3">
                     <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm mt-1 google-border">
-                        <i class="fa-solid fa-robot text-xs google-gradient-text"></i>
+                        <i class="fa-solid fa-robot text-xs google-text"></i>
                     </div>
                     <div class="bg-white p-3.5 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 text-slate-700 text-sm leading-relaxed" data-i18n="bot_welcome">
                         嗨！我是小科 👋<br>閱讀課文時有任何不懂的科學概念，都可以問我喔！
@@ -267,7 +309,7 @@
 
         <button onclick="toggleChat()" class="group relative flex items-center justify-center outline-none transition transform hover:scale-105 active:scale-95">
             <div class="relative w-16 h-16 bg-white rounded-full shadow-xl flex items-center justify-center text-3xl google-border hover:shadow-2xl">
-                <i class="fa-solid fa-robot google-gradient-text"></i>
+                <i class="fa-solid fa-robot google-text"></i>
             </div>
         </button>
     </div>
@@ -278,7 +320,7 @@
     </div>
 
     <script>
-        // *** 重要：請貼入您的後台新網址 ***
+        // *** 記得確認您的 GAS URL ***
         const GAS_URL = "https://script.google.com/macros/s/AKfycbx3MW-IOcU-38IqgawidSakL9nVwARmov4cuK0S6Jcqbv3SJFyHUbrvrI43Y6nskJAx/exec"; 
         
         let allOptions = {}; 
@@ -287,19 +329,18 @@
         let isSpeaking = false;
         let translationCache = {};
 
+        // UI 翻譯設定
         const uiTranslations = {
             "zh-TW": {
-                page_title: "科學雙語閱讀器", back_student: "返回學習中心", btn_summary: "單元重點整理",
-                label_filter: "教材篩選：", opt_stage: "學習階段", opt_grade: "年級", opt_version: "版本", opt_semester: "學期", opt_unit: "單元名稱",
-                val_elem: "國小", val_junior: "國中", val_senior: "高中",
+                page_title: "科學雙語閱讀器", back_student: "返回學習中心", btn_summary: "重點整理",
+                label_filter: "教材篩選", opt_stage: "學習階段", opt_grade: "年級", opt_version: "版本", opt_semester: "學期", opt_unit: "單元名稱",
                 btn_read: "閱讀課文", label_original: "繁體中文 (原文)", label_target: "翻譯語言：",
                 msg_hint: "請先選擇上方的教材單元", msg_trans_hint: "請選擇語言並點擊翻譯按鈕", msg_translating: "翻譯中...",
                 bot_name: "小科 (SciBot)", bot_welcome: "嗨！我是小科 👋<br>閱讀課文時有任何不懂的科學概念，都可以問我喔！"
             },
             "en": {
-                page_title: "Bilingual Science Reader", back_student: "Back to Learning Hub", btn_summary: "Unit Summary",
-                label_filter: "Filter:", opt_stage: "Stage", opt_grade: "Grade", opt_version: "Edition", opt_semester: "Semester", opt_unit: "Unit",
-                val_elem: "Elementary", val_junior: "Junior High", val_senior: "Senior High",
+                page_title: "Bilingual Science Reader", back_student: "Back to Hub", btn_summary: "Summary",
+                label_filter: "Filter", opt_stage: "Stage", opt_grade: "Grade", opt_version: "Edition", opt_semester: "Semester", opt_unit: "Unit",
                 btn_read: "Read", label_original: "Original (TC)", label_target: "Translate to:",
                 msg_hint: "Select a unit above", msg_trans_hint: "Select language and click translate", msg_translating: "Translating...",
                 bot_name: "SciBot", bot_welcome: "Hi! I'm SciBot 👋<br>Ask me anything about the text!"
@@ -308,8 +349,79 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             fetchTextbookOptions(); 
-            changeUILanguage();     
+            changeUILanguage();
+            // 預載語音
+            if(window.speechSynthesis) {
+                window.speechSynthesis.getVoices();
+            }
         });
+
+        // 核心功能 1: 尋找自然語音
+        function getBestVoice(lang) {
+            const voices = window.speechSynthesis.getVoices();
+            // 優先尋找 Google 或 Microsoft 的自然音
+            let voice = voices.find(v => v.lang.includes(lang) && (v.name.includes("Google") || v.name.includes("Natural")));
+            if (!voice) voice = voices.find(v => v.lang.includes(lang)); // 次選：符合語言即可
+            return voice;
+        }
+
+        // 核心功能 2: 播放語音 (使用倍速)
+        function speakText(side) {
+            window.speechSynthesis.cancel(); 
+            let text = "", lang = "zh-TW", rate = 1, btnId = "";
+
+            if (side === 'zh-TW') {
+                text = document.getElementById('content-zh').innerText;
+                rate = parseFloat(document.getElementById('rate-zh').value); // 讀取下拉選單倍速
+                btnId = "btn-play-zh";
+            } else {
+                text = document.getElementById('content-target').innerText;
+                lang = document.getElementById('target-lang').value;
+                rate = parseFloat(document.getElementById('rate-target').value);
+                btnId = "btn-play-target";
+            }
+
+            if (!text || text.includes("請先選擇") || text.includes("翻譯中")) {
+                showToast("沒有可朗讀的文字", "error");
+                return;
+            }
+
+            const btn = document.getElementById(btnId);
+            btn.innerHTML = '<i class="fa-solid fa-stop"></i>'; // 變更為停止圖示
+            btn.classList.add('bg-slate-800', 'border-transparent'); // 視覺回饋
+
+            const u = new SpeechSynthesisUtterance(text);
+            const voice = getBestVoice(lang === 'zh-TW' ? 'zh-TW' : lang);
+            if (voice) u.voice = voice;
+            
+            u.lang = lang;
+            u.rate = rate; // 設定倍速
+
+            u.onend = () => {
+                btn.innerHTML = '<i class="fa-brands fa-youtube text-lg"></i>'; // 恢復 YT 圖示
+                btn.classList.remove('bg-slate-800', 'border-transparent');
+                isSpeaking = false;
+            };
+            
+            window.speechSynthesis.speak(u);
+            isSpeaking = true;
+        }
+
+        function toggleSpeech(side) {
+            if (isSpeaking) {
+                window.speechSynthesis.cancel();
+                isSpeaking = false;
+                // 重置所有播放按鈕
+                document.querySelectorAll('#btn-play-zh, #btn-play-target').forEach(btn => {
+                    btn.innerHTML = '<i class="fa-brands fa-youtube text-lg"></i>';
+                    btn.classList.remove('bg-slate-800', 'border-transparent');
+                });
+            } else {
+                speakText(side);
+            }
+        }
+
+        // --- 下方為標準邏輯 (fetch, render, translate, chat) ---
 
         function showToast(msg, type="info") {
             const toast = document.getElementById('toast');
@@ -325,7 +437,6 @@
         function changeUILanguage() {
             const lang = document.getElementById('ui-lang').value;
             const t = uiTranslations[lang] || uiTranslations['zh-TW'];
-            
             if(t) {
                  document.querySelectorAll("[data-i18n]").forEach(el => {
                     const key = el.getAttribute("data-i18n");
@@ -339,45 +450,31 @@
             const map = { 'sel-stage': 'opt_stage', 'sel-grade': 'opt_grade', 'sel-version': 'opt_version', 'sel-semester': 'opt_semester', 'sel-unit': 'opt_unit' };
             for(const [id, key] of Object.entries(map)) {
                 const sel = document.getElementById(id);
-                if(sel.options.length > 0 && sel.options[0].disabled) {
-                    sel.options[0].text = t[key];
-                }
+                if(sel.options.length > 0 && sel.options[0].disabled) sel.options[0].text = t[key];
             }
         }
 
         function fetchTextbookOptions() {
             const stageSel = document.getElementById('sel-stage');
             stageSel.options[0].text = "載入資料庫中...";
-
             fetch(GAS_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({ action: "get_textbook_options" })
-            })
-            .then(res => res.json())
-            .then(response => {
+            }).then(res => res.json()).then(response => {
                 if(response.result === "success") {
                     allOptions = response.data || response; 
-                    delete allOptions.result;
-                    delete allOptions.message;
+                    delete allOptions.result; delete allOptions.message;
                     initStageSelect();
                     showToast("資料庫連結成功");
-                } else {
-                    showToast("資料載入失敗: " + response.message, "error");
-                }
-            })
-            .catch(err => {
-                console.error("Fetch failed:", err);
-                showToast("無法連接資料庫", "error");
-            });
+                } else { showToast("資料載入失敗", "error"); }
+            }).catch(err => showToast("無法連接資料庫", "error"));
         }
 
         function initStageSelect() {
             const sel = document.getElementById('sel-stage');
             sel.innerHTML = `<option value="" disabled selected>學習階段</option>`;
-            Object.keys(allOptions).forEach(key => {
-                sel.add(new Option(key, key));
-            });
+            Object.keys(allOptions).forEach(key => sel.add(new Option(key, key)));
             sel.disabled = false;
         }
 
@@ -389,15 +486,8 @@
             const unit = document.getElementById('sel-unit');
             const btn = document.getElementById('btn-load');
 
-            const reset = (el, txt) => {
-                el.innerHTML = `<option value="" disabled selected>${txt}</option>`;
-                el.disabled = true;
-                el.value = "";
-            };
-            const fill = (el, items) => {
-                items.forEach(i => el.add(new Option(i, i)));
-                el.disabled = false;
-            };
+            const reset = (el, txt) => { el.innerHTML = `<option value="" disabled selected>${txt}</option>`; el.disabled = true; el.value = ""; };
+            const fill = (el, items) => { items.forEach(i => el.add(new Option(i, i))); el.disabled = false; };
 
             if (source === 'stage') {
                 reset(grade, '年級'); reset(version, '版本'); reset(semester, '學期'); reset(unit, '單元名稱');
@@ -412,15 +502,13 @@
                 reset(unit, '單元名稱');
                 if (semester.value && allOptions[stage.value][grade.value][version.value][semester.value]) fill(unit, allOptions[stage.value][grade.value][version.value][semester.value]);
             }
-            
             btn.disabled = !unit.value;
         }
 
         function fetchLessonContent() {
-            // 強制清空快取與畫面
             translationCache = {};
             document.getElementById('content-zh').innerHTML = '<div class="h-full flex items-center justify-center"><div class="loader"></div></div>';
-            document.getElementById('content-target').innerHTML = '<div class="h-full flex items-center justify-center text-slate-400">...</div>';
+            document.getElementById('content-target').innerHTML = '<div class="h-full flex items-center justify-center text-slate-300">請選擇語言並點擊翻譯按鈕</div>';
 
             const criteria = {
                 stage: document.getElementById('sel-stage').value,
@@ -434,19 +522,15 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({ action: "get_lesson_content", criteria: criteria })
-            })
-            .then(res => res.json())
-            .then(response => {
+            }).then(res => res.json()).then(response => {
                 if (response.result === "success") {
                     renderContent(response.data || response); 
                 } else {
                     document.getElementById('content-zh').innerHTML = `<p class="text-red-500 text-center p-4">Error: ${response.message}</p>`;
                 }
-            })
-            .catch(err => {
-                document.getElementById('content-zh').innerHTML = `<p class="text-red-500 text-center p-4">讀取失敗，請檢查網路</p>`;
+            }).catch(err => {
+                document.getElementById('content-zh').innerHTML = `<p class="text-red-500 text-center p-4">讀取失敗</p>`;
                 showToast("讀取失敗", "error");
-                console.error(err);
             });
         }
 
@@ -459,35 +543,24 @@
                  data.content.split('\n').forEach(p => {
                     if(!p.trim()) return;
                     let text = p;
+                    // 科學詞彙高亮
                     for (let [zh, en] of Object.entries(currentTerms)) {
                         const regex = new RegExp(zh, "g");
-                        text = text.replace(regex, `<span class="sci-term" title="${en}">${zh}<span class="text-sm font-normal ml-1 opacity-70">(${en})</span></span>`);
+                        text = text.replace(regex, `<span class="sci-term" title="${en}">${zh}</span>`);
                     }
                     html += `<p>${text}</p>`;
                 });
             } else {
                 html += "<div class='text-center text-slate-400 py-10'><p>本單元目前沒有課文內容。</p></div>";
             }
-           
             document.getElementById('content-zh').innerHTML = html;
         }
 
         function translateContent() {
             const lang = document.getElementById('target-lang').value;
-            if(!currentRawText) {
-                showToast("請先載入課文", "error");
-                return;
-            }
-
-            if (lang === 'zh-TW') {
-                document.getElementById('content-target').innerHTML = document.getElementById('content-zh').innerHTML;
-                return;
-            }
-
-            if (translationCache[lang]) {
-                document.getElementById('content-target').innerHTML = marked.parse(translationCache[lang]);
-                return;
-            }
+            if(!currentRawText) { showToast("請先載入課文", "error"); return; }
+            if (lang === 'zh-TW') { document.getElementById('content-target').innerHTML = document.getElementById('content-zh').innerHTML; return; }
+            if (translationCache[lang]) { document.getElementById('content-target').innerHTML = marked.parse(translationCache[lang]); return; }
 
             document.getElementById('trans-loading').classList.remove('hidden');
             document.getElementById('content-target').innerHTML = '<div class="h-full flex items-center justify-center"><div class="loader"></div></div>';
@@ -496,76 +569,16 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({ action: "translate_text", text: currentRawText, targetLang: lang })
-            })
-            .then(res => res.json())
-            .then(response => {
+            }).then(res => res.json()).then(response => {
                 if (response.result === "success") {
                     const mdText = response.translatedText;
                     translationCache[lang] = mdText;
                     document.getElementById('content-target').innerHTML = marked.parse(mdText);
                 } else {
-                    document.getElementById('content-target').innerHTML = "<p class='text-red-400'>Translation failed.</p>";
+                    document.getElementById('content-target').innerHTML = `<p class="text-red-400 text-center">${response.message || '翻譯失敗'}</p>`;
                 }
                 document.getElementById('trans-loading').classList.add('hidden');
             });
-        }
-
-        function speakText(side) {
-            window.speechSynthesis.cancel(); 
-            let text = "", lang = "zh-TW", rate = 1, btnId = "";
-
-            if (side === 'zh-TW') {
-                text = document.getElementById('content-zh').innerText;
-                rate = document.getElementById('rate-zh').value;
-                btnId = "btn-play-zh";
-            } else {
-                text = document.getElementById('content-target').innerText;
-                lang = document.getElementById('target-lang').value;
-                rate = document.getElementById('rate-target').value;
-                btnId = "btn-play-target";
-            }
-
-            if (!text.trim()) {
-                showToast("沒有可朗讀的文字", "error");
-                return;
-            }
-
-            const btn = document.getElementById(btnId);
-            
-            btn.innerHTML = '<i class="fa-solid fa-stop"></i>';
-            btn.classList.add('bg-red-500', 'text-white', 'hover:bg-red-600');
-
-            const u = new SpeechSynthesisUtterance(text);
-            u.lang = lang;
-            u.rate = rate;
-            u.onend = () => {
-                if (btnId === "btn-play-target") {
-                    btn.innerHTML = '<i class="fa-brands fa-youtube text-lg"></i>';
-                } else {
-                    btn.innerHTML = '<i class="fa-solid fa-play ml-0.5"></i>';
-                }
-                btn.classList.remove('bg-red-500', 'text-white', 'hover:bg-red-600');
-            };
-            window.speechSynthesis.speak(u);
-            isSpeaking = true;
-        }
-        
-        function toggleSpeech(side) {
-            if (isSpeaking) {
-                window.speechSynthesis.cancel();
-                isSpeaking = false;
-                
-                const btnZh = document.getElementById('btn-play-zh');
-                btnZh.innerHTML = '<i class="fa-solid fa-play ml-0.5"></i>';
-                btnZh.classList.remove('bg-red-500', 'text-white', 'hover:bg-red-600');
-
-                const btnTarget = document.getElementById('btn-play-target');
-                btnTarget.innerHTML = '<i class="fa-brands fa-youtube text-lg"></i>';
-                btnTarget.classList.remove('bg-red-500', 'text-white', 'hover:bg-red-600');
-
-            } else {
-                speakText(side);
-            }
         }
 
         function toggleChat() {
@@ -577,26 +590,20 @@
             const input = document.getElementById('chat-input');
             const msg = input.value.trim();
             if(!msg) return;
-            
             addMsg(msg, 'user');
             input.value = '';
             
             const loadingId = 'load-' + Date.now();
-            document.getElementById('chat-messages').insertAdjacentHTML('beforeend', `<div id="${loadingId}" class="flex items-start gap-2"><div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm mt-1 google-border"><i class="fa-solid fa-robot text-xs google-gradient-text"></i></div><div class="bg-white px-4 py-2 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 text-slate-400 text-sm"><i class="fa-solid fa-ellipsis fa-bounce"></i></div></div>`);
+            document.getElementById('chat-messages').insertAdjacentHTML('beforeend', `<div id="${loadingId}" class="flex items-start gap-2"><div class="w-8 h-8 rounded-full bg-white flex items-center justify-center border border-slate-200"><div class="loader w-4 h-4 border-t-student"></div></div></div>`);
 
             fetch(GAS_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({ action: "chat_bot", message: msg, context: currentRawText.substring(0, 10000) })
-            })
-            .then(res => res.json())
-            .then(response => {
+            }).then(res => res.json()).then(response => {
                 document.getElementById(loadingId).remove();
-                if (response.result === "success") {
-                    addMsg(response.reply, 'bot');
-                } else {
-                    addMsg("抱歉，小科連線中斷。", 'bot');
-                }
+                if (response.result === "success") addMsg(response.reply, 'bot');
+                else addMsg("抱歉，小科連線中斷。", 'bot');
             });
         }
 
@@ -604,9 +611,9 @@
             const container = document.getElementById('chat-messages');
             let html = '';
             if (role === 'user') {
-                html = `<div class="flex justify-end"><div class="bg-student text-white px-4 py-2 rounded-2xl rounded-tr-none shadow-sm max-w-[85%] text-sm">${text}</div></div>`;
+                html = `<div class="flex justify-end"><div class="bg-student text-white px-4 py-2 rounded-2xl rounded-tr-none shadow-sm max-w-[85%] text-sm leading-relaxed">${text}</div></div>`;
             } else {
-                html = `<div class="flex items-start gap-2"><div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm mt-1 google-border"><i class="fa-solid fa-robot text-xs google-gradient-text"></i></div><div class="bg-white px-4 py-2 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 text-slate-700 max-w-[85%] text-sm leading-relaxed prose prose-sm">${marked.parse(text)}</div></div>`;
+                html = `<div class="flex items-start gap-2"><div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm mt-1 google-border"><i class="fa-solid fa-robot text-xs google-text"></i></div><div class="bg-white px-4 py-2 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 text-slate-700 max-w-[85%] text-sm leading-relaxed prose prose-sm">${marked.parse(text)}</div></div>`;
             }
             container.insertAdjacentHTML('beforeend', html);
             container.scrollTop = container.scrollHeight;
