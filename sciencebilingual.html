@@ -13,77 +13,78 @@
             theme: {
                 extend: {
                     colors: {
-                        student: { light: '#e0f2fe', DEFAULT: '#0ea5e9', dark: '#0284c7' }, // 更柔和的藍色
-                        paper: '#ffffff',
+                        student: { light: '#e0f2fe', DEFAULT: '#0ea5e9', dark: '#0284c7' },
+                        paper: '#ffffff', // 純白紙張
+                        page: '#f7f6f3',  // 溫暖的背景色 (米灰)
                     },
                     fontFamily: {
-                        sans: ['"Noto Sans TC"', '"Microsoft JhengHei"', 'sans-serif'], // 強制微軟正黑或 Noto
+                        // 使用襯線體 (Serif) 營造書籍感
+                        serif: ['"Noto Serif TC"', '"Songti TC"', 'serif'],
+                        sans: ['"Noto Sans TC"', 'sans-serif'],
                     },
                     animation: {
-                        "fade-in-up": "fadeInUp 0.6s ease-out forwards"
+                        "fade-in": "fadeIn 0.8s ease-out forwards"
                     },
                     keyframes: {
-                        "fadeInUp": { "0%": { opacity: "0", transform: "translateY(15px)" }, "100%": { opacity: "1", transform: "translateY(0)" } }
+                        "fadeIn": { "0%": { opacity: "0" }, "100%": { opacity: "1" } }
                     }
                 }
             }
         }
     </script>
     <style>
-        body { background-color: #f8fafc; font-family: 'Noto Sans TC', sans-serif; }
+        /* 整體背景改為溫暖色調 */
+        body { background-color: #f7f6f3; font-family: 'Noto Sans TC', sans-serif; }
         
-        /* 玻璃擬態 header */
         .glass-header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
         }
 
-        /* 閱讀區塊優化：仿書本排版 */
-        .reader-container {
-            font-size: 1.25rem; /* 增大字體適合學生 */
-            line-height: 1.8;   /* 舒適行高 */
-            color: #334155;
-            text-align: justify;
-        }
-        
-        /* 單元標題樣式 */
-        .reader-container h1 {
-            font-size: 1.8rem;
-            font-weight: 800;
-            color: #0f172a;
-            margin-bottom: 1.5rem;
-            padding-left: 1rem;
-            border-left: 5px solid #0ea5e9; /* 左側飾條 */
-            line-height: 1.4;
-        }
-
-        /* 內文段落 */
-        .reader-container p {
-            margin-bottom: 1.5rem; /* 段落間距加大 */
+        /* 電子書閱讀區樣式 */
+        .book-page {
+            font-family: 'Noto Serif TC', serif; /* 書籍字體 */
+            font-size: 1.25rem;
+            line-height: 2;
+            color: #2d3748;
             background-color: white;
-            padding: 1.25rem;
-            border-radius: 1rem;
-            box-shadow: 0 2px 4px rgba(148, 163, 184, 0.1); /* 輕微卡片感 */
-            border: 1px solid #f1f5f9;
+            padding: 3rem; /* 大留白 */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); /* 輕微浮起 */
+            min-height: 100%;
         }
 
-        /* 科學詞彙標註 */
+        .book-page h1 {
+            font-family: 'Noto Sans TC', sans-serif;
+            font-size: 2rem;
+            font-weight: 900;
+            color: #1a202c;
+            margin-bottom: 2rem;
+            text-align: center;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 1rem;
+        }
+
+        .book-page p {
+            margin-bottom: 1.5rem;
+            text-align: justify; /* 左右對齊 */
+        }
+
+        /* 詞彙標註：像螢光筆劃記 */
         .sci-term {
             font-weight: 700;
-            color: #0284c7;
-            background-color: #e0f2fe;
-            padding: 2px 6px;
-            border-radius: 6px;
-            border-bottom: 2px solid #7dd3fc;
+            color: #2b6cb0;
+            background: linear-gradient(120deg, #bee3f8 0%, #bee3f8 100%);
+            background-repeat: no-repeat;
+            background-size: 100% 40%;
+            background-position: 0 88%;
             cursor: help;
             transition: all 0.2s;
-            display: inline-block;
+            padding: 0 2px;
         }
-        .sci-term:hover { background-color: #0284c7; color: white; }
+        .sci-term:hover { background-size: 100% 100%; color: #2c5282; }
 
-        /* 下拉選單美化 */
         .custom-select {
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
             background-position: right 0.5rem center;
@@ -92,56 +93,36 @@
             appearance: none;
         }
 
-        /* 卷軸美化 */
-        .custom-scroll::-webkit-scrollbar { width: 8px; }
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
         .custom-scroll::-webkit-scrollbar-track { background: transparent; }
-        .custom-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; border: 2px solid #f8fafc; }
+        .custom-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
         .custom-scroll::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
 
-        /* Google 小科樣式 */
-        .google-border {
-            position: relative; z-index: 0; overflow: hidden;
-        }
-        .google-border::before {
-            content: ""; position: absolute; z-index: -1; inset: 0; padding: 2px; border-radius: 50%;
-            background: linear-gradient(135deg, #4285F4, #EA4335, #FBBC05, #34A853);
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor; mask-composite: exclude;
-        }
-        .google-text {
-            background: linear-gradient(135deg, #4285F4, #EA4335, #34A853);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        }
-
-        .loader { border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #3b82f6; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+        .loader { border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #3b82f6; width: 20px; height: 20px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
         .chat-window { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform-origin: bottom right; }
         .chat-hidden { transform: scale(0.9) translateY(20px); opacity: 0; pointer-events: none; }
     </style>
 </head>
-<body class="h-screen flex flex-col overflow-hidden text-slate-800 bg-slate-50">
+<body class="h-screen flex flex-col overflow-hidden text-slate-800">
 
-    <header class="glass-header z-40 flex flex-col shadow-sm relative">
-        <div class="px-6 py-3 flex justify-between items-center border-b border-slate-100">
+    <div id="canvas-container" class="fixed top-0 left-0 w-full h-full -z-10 bg-[#f7f6f3]"></div>
+
+    <header class="glass-header z-40 flex flex-col relative">
+        <div class="px-6 py-3 flex justify-between items-center border-b border-slate-200/50">
             <div class="flex items-center gap-4">
-                <button onclick="window.location.href='student.html'" class="flex items-center gap-2 text-slate-500 hover:text-student font-bold transition bg-slate-50 px-4 py-2 rounded-full border border-slate-200 hover:border-student shadow-sm">
-                    <i class="fa-solid fa-chevron-left"></i> <span data-i18n="back_student">返回學習中心</span>
+                <button onclick="window.location.href='student.html'" class="flex items-center gap-2 text-slate-500 hover:text-blue-600 font-bold transition bg-white/50 px-4 py-2 rounded-full border border-slate-200 hover:border-blue-400 shadow-sm">
+                    <i class="fa-solid fa-chevron-left"></i> <span data-i18n="back_student">返回</span>
                 </button>
                 <div class="h-6 w-px bg-slate-300 hidden md:block"></div>
-                <div class="flex items-center gap-3">
-                    <div class="bg-blue-50 p-2 rounded-xl text-blue-600 hidden md:block">
-                        <i class="fa-solid fa-book-open-reader text-xl"></i>
-                    </div>
-                    <h1 class="text-xl font-bold text-slate-800 tracking-tight" data-i18n="page_title">科學雙語文本閱讀</h1>
-                </div>
+                <h1 class="text-lg font-bold text-slate-700 tracking-wide" data-i18n="page_title">科學雙語文本閱讀</h1>
             </div>
             
             <div class="flex items-center gap-3">
                  <div class="relative">
                     <i class="fa-solid fa-globe absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                    <select id="ui-lang" onchange="changeUILanguage()" class="custom-select pl-9 pr-10 py-2 bg-white border border-slate-200 text-sm rounded-full focus:ring-2 focus:ring-student outline-none cursor-pointer shadow-sm text-slate-600 font-bold hover:bg-slate-50 transition">
+                    <select id="ui-lang" onchange="changeUILanguage()" class="custom-select pl-9 pr-8 py-1.5 bg-white border border-slate-200 text-sm rounded-full focus:ring-2 focus:ring-blue-400 outline-none cursor-pointer shadow-sm text-slate-600 font-medium">
                         <option value="zh-TW">繁體中文</option>
                         <option value="en">English</option>
                         <option value="ja">日本語</option>
@@ -156,50 +137,50 @@
                         <option value="ms">Bahasa Melayu</option>
                     </select>
                  </div>
-                 <button onclick="window.location.href='unitkeyidea.html'" class="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-5 py-2 rounded-full hover:bg-emerald-100 transition font-bold border border-emerald-200 shadow-sm">
+                 <button onclick="window.location.href='unitkeyidea.html'" class="flex items-center gap-2 bg-emerald-50 text-emerald-600 px-4 py-1.5 rounded-full hover:bg-emerald-100 transition font-bold border border-emerald-200 shadow-sm text-sm">
                     <i class="fa-solid fa-list-check"></i> <span data-i18n="btn_summary">重點整理</span>
                 </button>
             </div>
         </div>
 
-        <div class="px-6 py-4 bg-white/80 backdrop-blur flex flex-wrap items-center gap-3 shadow-inner">
-            <div class="flex items-center gap-2 text-sm font-bold text-slate-500 mr-2 uppercase tracking-wide">
-                <i class="fa-solid fa-filter text-student"></i> <span data-i18n="label_filter">教材篩選</span>
+        <div class="px-6 py-3 bg-white/60 backdrop-blur flex flex-wrap items-center gap-3 shadow-sm">
+            <div class="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest mr-1">
+                <i class="fa-solid fa-filter"></i> <span data-i18n="label_filter">篩選</span>
             </div>
             
-            <select id="sel-stage" class="custom-select bg-white border border-slate-300 text-sm rounded-lg p-2.5 min-w-[120px] font-medium text-slate-700 shadow-sm focus:border-student focus:ring-1 focus:ring-student" onchange="updateDropdowns('stage')">
+            <select id="sel-stage" class="custom-select bg-white border border-slate-300 text-sm rounded-lg p-2 min-w-[100px] font-medium text-slate-700 shadow-sm" onchange="updateDropdowns('stage')">
                 <option value="" disabled selected data-i18n="opt_stage">載入中...</option>
             </select>
-            <select id="sel-grade" class="custom-select bg-white border border-slate-300 text-sm rounded-lg p-2.5 min-w-[100px] font-medium text-slate-700 shadow-sm" onchange="updateDropdowns('grade')" disabled>
+            <select id="sel-grade" class="custom-select bg-white border border-slate-300 text-sm rounded-lg p-2 min-w-[80px] font-medium text-slate-700 shadow-sm" onchange="updateDropdowns('grade')" disabled>
                 <option value="" data-i18n="opt_grade">年級</option>
             </select>
-            <select id="sel-version" class="custom-select bg-white border border-slate-300 text-sm rounded-lg p-2.5 min-w-[100px] font-medium text-slate-700 shadow-sm" onchange="updateDropdowns('version')" disabled>
+            <select id="sel-version" class="custom-select bg-white border border-slate-300 text-sm rounded-lg p-2 min-w-[80px] font-medium text-slate-700 shadow-sm" onchange="updateDropdowns('version')" disabled>
                 <option value="" data-i18n="opt_version">版本</option>
             </select>
-            <select id="sel-semester" class="custom-select bg-white border border-slate-300 text-sm rounded-lg p-2.5 min-w-[100px] font-medium text-slate-700 shadow-sm" onchange="updateDropdowns('semester')" disabled>
+            <select id="sel-semester" class="custom-select bg-white border border-slate-300 text-sm rounded-lg p-2 min-w-[80px] font-medium text-slate-700 shadow-sm" onchange="updateDropdowns('semester')" disabled>
                 <option value="" data-i18n="opt_semester">學期</option>
             </select>
-            <select id="sel-unit" class="custom-select bg-white border border-slate-300 text-sm rounded-lg p-2.5 min-w-[250px] flex-1 font-medium text-slate-700 shadow-sm" onchange="document.getElementById('btn-load').disabled = !this.value" disabled>
+            <select id="sel-unit" class="custom-select bg-white border border-slate-300 text-sm rounded-lg p-2 min-w-[200px] flex-1 font-medium text-slate-700 shadow-sm" onchange="document.getElementById('btn-load').disabled = !this.value" disabled>
                 <option value="" data-i18n="opt_unit">單元名稱</option>
             </select>
 
-            <button id="btn-load" onclick="fetchLessonContent()" class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-2.5 rounded-xl font-bold shadow-md hover:shadow-lg hover:shadow-blue-500/30 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 ml-2 transform active:scale-95">
-                <i class="fa-solid fa-book-open"></i> <span data-i18n="btn_read">閱讀課文</span>
+            <button id="btn-load" onclick="fetchLessonContent()" class="bg-blue-600 text-white px-5 py-2 rounded-lg font-bold shadow hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transform active:scale-95 text-sm">
+                <i class="fa-solid fa-book-open"></i> <span data-i18n="btn_read">閱讀</span>
             </button>
         </div>
     </header>
 
     <div class="flex-1 flex flex-col md:flex-row overflow-hidden relative z-10">
         
-        <div class="w-full md:w-1/2 flex flex-col border-r border-slate-200 bg-[#f8fafc] h-full shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-10">
-            <div class="px-6 py-3 border-b border-slate-200 flex justify-between items-center bg-white shrink-0 shadow-sm">
-                <span class="text-xs font-extrabold text-slate-500 uppercase tracking-widest flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
-                    <span class="w-2 h-2 rounded-full bg-blue-500"></span> <span data-i18n="label_original">繁體中文 (原文)</span>
+        <div class="w-full md:w-1/2 flex flex-col border-r border-slate-200 h-full relative">
+            <div class="absolute top-0 left-0 w-full px-6 py-2 flex justify-between items-center bg-white/90 backdrop-blur z-20 border-b border-slate-100">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> <span data-i18n="label_original">原文</span>
                 </span>
                 <div class="flex items-center gap-3">
-                    <div class="flex items-center bg-slate-50 rounded-lg border border-slate-200 px-2">
-                        <i class="fa-solid fa-gauge-high text-slate-400 text-xs pl-2"></i>
-                        <select id="rate-zh" class="bg-transparent text-xs font-bold text-slate-600 p-1.5 outline-none cursor-pointer">
+                    <div class="flex items-center bg-slate-100 rounded-full px-2 py-0.5">
+                        <span class="text-[10px] font-bold text-slate-400 mr-1">SPEED</span>
+                        <select id="rate-zh" class="bg-transparent text-xs font-bold text-slate-600 p-1 outline-none cursor-pointer">
                             <option value="0.5">0.5x</option>
                             <option value="0.75">0.75x</option>
                             <option value="1" selected>1.0x</option>
@@ -208,26 +189,24 @@
                             <option value="2">2.0x</option>
                         </select>
                     </div>
-                    <button id="btn-play-zh" onclick="toggleSpeech('zh-TW')" class="w-10 h-10 flex items-center justify-center rounded-full bg-red-600 text-white hover:bg-red-700 transition shadow-md hover:shadow-lg transform active:scale-95" title="播放 (自然音)">
-                        <i class="fa-brands fa-youtube text-lg"></i>
+                    <button id="btn-play-zh" onclick="toggleSpeech('zh-TW')" class="w-8 h-8 flex items-center justify-center rounded-full bg-blue-600 text-white hover:bg-blue-700 transition shadow-sm" title="播放">
+                        <i class="fa-brands fa-youtube text-sm"></i>
                     </button>
                 </div>
             </div>
-            <div id="content-zh" class="flex-1 overflow-y-auto p-8 custom-scroll reader-container selection:bg-blue-100">
-                <div class="h-full flex flex-col items-center justify-center text-slate-300 select-none animate-fade-in-up">
-                    <div class="bg-white p-8 rounded-full mb-6 border border-slate-100 shadow-sm">
-                        <i class="fa-solid fa-arrow-up text-5xl text-blue-100 animate-bounce"></i>
-                    </div>
-                    <p data-i18n="msg_hint" class="text-xl font-bold text-slate-400">請先選擇上方的教材單元</p>
+            
+            <div id="content-zh" class="flex-1 overflow-y-auto p-4 md:p-8 custom-scroll bg-[#f7f6f3]">
+                <div class="h-full flex flex-col items-center justify-center text-slate-300 select-none">
+                    <i class="fa-solid fa-book-open text-4xl mb-2 text-slate-200"></i>
+                    <p data-i18n="msg_hint" class="font-medium">請選擇教材開始閱讀</p>
                 </div>
             </div>
         </div>
 
-        <div class="w-full md:w-1/2 flex flex-col h-full bg-white">
-            <div class="px-6 py-3 border-b border-slate-200 flex justify-between items-center bg-white shrink-0 shadow-sm">
-                <div class="flex items-center gap-3">
-                    <span class="text-xs font-bold text-slate-500 uppercase tracking-widest" data-i18n="label_target">翻譯語言：</span>
-                    <select id="target-lang" class="custom-select text-sm border border-slate-200 bg-slate-50 rounded-lg py-1.5 px-3 pr-8 focus:ring-2 focus:ring-indigo-500 font-bold text-slate-700 cursor-pointer hover:border-indigo-300 transition shadow-sm">
+        <div class="w-full md:w-1/2 flex flex-col h-full bg-white relative">
+            <div class="absolute top-0 left-0 w-full px-6 py-2 flex justify-between items-center bg-white/90 backdrop-blur z-20 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                    <select id="target-lang" class="custom-select text-xs font-bold text-slate-600 border border-slate-200 bg-slate-50 rounded-full py-1 px-3 pr-6 focus:ring-1 focus:ring-blue-400 cursor-pointer hover:bg-white transition">
                         <option value="zh-TW">繁體中文</option>
                         <option value="en" selected>English</option>
                         <option value="ja">日本語</option>
@@ -241,17 +220,17 @@
                         <option value="hi">हिन्दी</option>
                         <option value="ms">Bahasa Melayu</option>
                     </select>
-                    <button onclick="translateContent()" class="bg-indigo-600 text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow hover:bg-indigo-700 transition flex items-center gap-1 active:scale-95">
+                    <button onclick="translateContent()" class="text-xs bg-blue-50 text-blue-600 px-3 py-1 rounded-full font-bold hover:bg-blue-100 transition border border-blue-100 flex items-center gap-1">
                          <i class="fa-solid fa-language"></i> 翻譯
                     </button>
                 </div>
                 <div class="flex items-center gap-3">
-                    <div id="trans-loading" class="hidden flex items-center gap-2 text-xs text-indigo-600 font-bold bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">
-                        <div class="loader w-3 h-3 border-t-indigo-600"></div> <span data-i18n="msg_translating">翻譯中...</span>
+                    <div id="trans-loading" class="hidden flex items-center gap-2 text-xs text-blue-500 font-bold bg-blue-50 px-2 py-0.5 rounded-full">
+                        <div class="loader w-3 h-3 border-t-blue-500"></div> 翻譯中...
                     </div>
-                    <div class="flex items-center bg-slate-50 rounded-lg border border-slate-200 px-2">
-                        <i class="fa-solid fa-gauge-high text-slate-400 text-xs pl-2"></i>
-                        <select id="rate-target" class="bg-transparent text-xs font-bold text-slate-600 p-1.5 outline-none cursor-pointer">
+                    <div class="flex items-center bg-slate-100 rounded-full px-2 py-0.5">
+                        <span class="text-[10px] font-bold text-slate-400 mr-1">SPEED</span>
+                        <select id="rate-target" class="bg-transparent text-xs font-bold text-slate-600 p-1 outline-none cursor-pointer">
                             <option value="0.5">0.5x</option>
                             <option value="0.75">0.75x</option>
                             <option value="1" selected>1.0x</option>
@@ -260,67 +239,57 @@
                             <option value="2">2.0x</option>
                         </select>
                     </div>
-                    <button id="btn-play-target" onclick="toggleSpeech('target')" class="w-10 h-10 flex items-center justify-center rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition shadow-md hover:shadow-lg transform active:scale-95" title="播放 (自然音)">
-                        <i class="fa-brands fa-youtube text-lg"></i>
+                    <button id="btn-play-target" onclick="toggleSpeech('target')" class="w-8 h-8 flex items-center justify-center rounded-full bg-blue-600 text-white hover:bg-blue-700 transition shadow-sm" title="播放">
+                        <i class="fa-brands fa-youtube text-sm"></i>
                     </button>
                 </div>
             </div>
-            <div id="content-target" class="flex-1 overflow-y-auto p-8 custom-scroll reader-container selection:bg-indigo-100 bg-white">
+            <div id="content-target" class="flex-1 overflow-y-auto p-4 md:p-8 custom-scroll bg-white">
                 <div class="h-full flex flex-col items-center justify-center text-slate-300 select-none">
-                    <p data-i18n="msg_trans_hint" class="font-medium">請選擇語言並點擊翻譯按鈕</p>
+                    <p data-i18n="msg_trans_hint" class="text-sm">點擊上方按鈕進行翻譯</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="fixed bottom-8 right-8 z-50 flex flex-col items-end">
-        <div id="chat-window" class="chat-window chat-hidden mb-4 w-80 md:w-96 h-[500px] bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col ring-1 ring-black/5">
-            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 flex justify-between items-center text-white shadow-md">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md google-border">
-                        <i class="fa-solid fa-robot text-lg google-text"></i>
+    <div class="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+        <div id="chat-window" class="chat-window chat-hidden mb-4 w-80 h-[450px] bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col ring-1 ring-black/5">
+            <div class="bg-gradient-to-r from-blue-500 to-indigo-600 p-3 flex justify-between items-center text-white shadow-sm">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                        <i class="fa-solid fa-robot text-sm"></i>
                     </div>
-                    <div>
-                        <h3 class="font-bold text-base" data-i18n="bot_name">小科 (SciBot)</h3>
-                        <p class="text-xs text-white/90 flex items-center gap-1">
-                            <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span> 線上為您解惑
-                        </p>
-                    </div>
+                    <span class="font-bold text-sm">小科 (SciBot)</span>
                 </div>
-                <button onclick="toggleChat()" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/20 transition"><i class="fa-solid fa-xmark"></i></button>
+                <button onclick="toggleChat()" class="w-6 h-6 flex items-center justify-center rounded-full hover:bg-white/20 transition"><i class="fa-solid fa-xmark text-xs"></i></button>
             </div>
-            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 bg-slate-50 space-y-4 custom-scroll">
-                <div class="flex items-start gap-3">
-                    <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm mt-1 google-border">
-                        <i class="fa-solid fa-robot text-xs google-text"></i>
-                    </div>
-                    <div class="bg-white p-3.5 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 text-slate-700 text-sm leading-relaxed" data-i18n="bot_welcome">
-                        嗨！我是小科 👋<br>閱讀課文時有任何不懂的科學概念，都可以問我喔！
+            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 bg-slate-50 space-y-3 custom-scroll">
+                <div class="flex items-start gap-2">
+                    <div class="w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-sm text-blue-500 border border-blue-100"><i class="fa-solid fa-robot text-[10px]"></i></div>
+                    <div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 text-slate-600 text-xs leading-relaxed">
+                        嗨！閱讀時有問題都可以問我喔！
                     </div>
                 </div>
             </div>
-            <div class="p-3 bg-white border-t border-slate-100 flex gap-2 items-center">
-                <input type="text" id="chat-input" class="flex-1 bg-slate-50 border border-slate-200 rounded-full px-4 py-2.5 text-sm focus:outline-none focus:border-student focus:ring-2 focus:ring-student/20 transition" placeholder="輸入問題..." onkeypress="if(event.key==='Enter') sendMessage()">
-                <button onclick="sendMessage()" class="w-10 h-10 bg-student text-white rounded-full flex items-center justify-center hover:bg-student-dark transition shadow-md hover:shadow-lg transform active:scale-95">
-                    <i class="fa-solid fa-paper-plane text-sm"></i>
+            <div class="p-3 bg-white border-t border-slate-100 flex gap-2">
+                <input type="text" id="chat-input" class="flex-1 bg-slate-50 border border-slate-200 rounded-full px-3 py-2 text-xs focus:outline-none focus:border-blue-400 transition" placeholder="輸入問題..." onkeypress="if(event.key==='Enter') sendMessage()">
+                <button onclick="sendMessage()" class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center hover:bg-blue-600 transition shadow-sm">
+                    <i class="fa-solid fa-paper-plane text-xs"></i>
                 </button>
             </div>
         </div>
-
-        <button onclick="toggleChat()" class="group relative flex items-center justify-center outline-none transition transform hover:scale-105 active:scale-95">
-            <div class="relative w-16 h-16 bg-white rounded-full shadow-xl flex items-center justify-center text-3xl google-border hover:shadow-2xl">
-                <i class="fa-solid fa-robot google-text"></i>
-            </div>
+        <button onclick="toggleChat()" class="w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center text-xl text-blue-600 hover:scale-105 transition duration-200 border border-slate-100">
+            <i class="fa-solid fa-robot"></i>
         </button>
     </div>
     
-    <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-slate-800/90 backdrop-blur text-white px-6 py-3 rounded-full shadow-xl transition-all duration-300 opacity-0 translate-y-10 z-50 flex items-center gap-3 pointer-events-none">
+    <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-slate-800/90 backdrop-blur text-white px-4 py-2 rounded-full shadow-xl transition-all duration-300 opacity-0 translate-y-10 z-50 flex items-center gap-2 pointer-events-none text-sm">
         <i id="toast-icon" class="fa-solid fa-circle-info text-yellow-400"></i>
         <span id="toast-msg">系統提示</span>
     </div>
 
     <script>
-        // *** 記得確認您的 GAS URL ***
+        // *** 您的 GAS URL (請確認) ***
         const GAS_URL = "https://script.google.com/macros/s/AKfycbx3MW-IOcU-38IqgawidSakL9nVwARmov4cuK0S6Jcqbv3SJFyHUbrvrI43Y6nskJAx/exec"; 
         
         let allOptions = {}; 
@@ -329,50 +298,32 @@
         let isSpeaking = false;
         let translationCache = {};
 
-        // UI 翻譯設定
         const uiTranslations = {
-            "zh-TW": {
-                page_title: "科學雙語閱讀器", back_student: "返回學習中心", btn_summary: "重點整理",
-                label_filter: "教材篩選", opt_stage: "學習階段", opt_grade: "年級", opt_version: "版本", opt_semester: "學期", opt_unit: "單元名稱",
-                btn_read: "閱讀課文", label_original: "繁體中文 (原文)", label_target: "翻譯語言：",
-                msg_hint: "請先選擇上方的教材單元", msg_trans_hint: "請選擇語言並點擊翻譯按鈕", msg_translating: "翻譯中...",
-                bot_name: "小科 (SciBot)", bot_welcome: "嗨！我是小科 👋<br>閱讀課文時有任何不懂的科學概念，都可以問我喔！"
-            },
-            "en": {
-                page_title: "Bilingual Science Reader", back_student: "Back to Hub", btn_summary: "Summary",
-                label_filter: "Filter", opt_stage: "Stage", opt_grade: "Grade", opt_version: "Edition", opt_semester: "Semester", opt_unit: "Unit",
-                btn_read: "Read", label_original: "Original (TC)", label_target: "Translate to:",
-                msg_hint: "Select a unit above", msg_trans_hint: "Select language and click translate", msg_translating: "Translating...",
-                bot_name: "SciBot", bot_welcome: "Hi! I'm SciBot 👋<br>Ask me anything about the text!"
-            }
+            "zh-TW": { btn_read: "閱讀", label_original: "原文", label_target: "翻譯語言", msg_hint: "請選擇教材", msg_trans_hint: "點擊上方翻譯", msg_translating: "翻譯中..." },
+            "en": { btn_read: "Read", label_original: "Original", label_target: "Translate to", msg_hint: "Select Unit", msg_trans_hint: "Click Translate", msg_translating: "Translating..." }
         };
 
         document.addEventListener('DOMContentLoaded', () => {
             fetchTextbookOptions(); 
-            changeUILanguage();
-            // 預載語音
-            if(window.speechSynthesis) {
-                window.speechSynthesis.getVoices();
-            }
+            if(window.speechSynthesis) window.speechSynthesis.getVoices();
         });
 
-        // 核心功能 1: 尋找自然語音
+        // 核心修正 1: 自然語音
         function getBestVoice(lang) {
             const voices = window.speechSynthesis.getVoices();
-            // 優先尋找 Google 或 Microsoft 的自然音
             let voice = voices.find(v => v.lang.includes(lang) && (v.name.includes("Google") || v.name.includes("Natural")));
-            if (!voice) voice = voices.find(v => v.lang.includes(lang)); // 次選：符合語言即可
+            if (!voice) voice = voices.find(v => v.lang.includes(lang));
             return voice;
         }
 
-        // 核心功能 2: 播放語音 (使用倍速)
+        // 核心修正 2: 播放按鈕變色 (藍 -> 紅)
         function speakText(side) {
             window.speechSynthesis.cancel(); 
             let text = "", lang = "zh-TW", rate = 1, btnId = "";
 
             if (side === 'zh-TW') {
                 text = document.getElementById('content-zh').innerText;
-                rate = parseFloat(document.getElementById('rate-zh').value); // 讀取下拉選單倍速
+                rate = parseFloat(document.getElementById('rate-zh').value);
                 btnId = "btn-play-zh";
             } else {
                 text = document.getElementById('content-target').innerText;
@@ -381,48 +332,51 @@
                 btnId = "btn-play-target";
             }
 
-            if (!text || text.includes("請先選擇") || text.includes("翻譯中")) {
+            if (!text || text.includes("請選擇") || text.includes("翻譯中")) {
                 showToast("沒有可朗讀的文字", "error");
                 return;
             }
 
             const btn = document.getElementById(btnId);
-            btn.innerHTML = '<i class="fa-solid fa-stop"></i>'; // 變更為停止圖示
-            btn.classList.add('bg-slate-800', 'border-transparent'); // 視覺回饋
+            
+            // 變更為紅色停止鍵
+            btn.innerHTML = '<i class="fa-solid fa-stop"></i>';
+            btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            btn.classList.add('bg-red-500', 'hover:bg-red-600');
 
             const u = new SpeechSynthesisUtterance(text);
             const voice = getBestVoice(lang === 'zh-TW' ? 'zh-TW' : lang);
             if (voice) u.voice = voice;
-            
             u.lang = lang;
-            u.rate = rate; // 設定倍速
+            u.rate = rate;
 
             u.onend = () => {
-                btn.innerHTML = '<i class="fa-brands fa-youtube text-lg"></i>'; // 恢復 YT 圖示
-                btn.classList.remove('bg-slate-800', 'border-transparent');
+                // 恢復為藍色播放鍵
+                btn.innerHTML = '<i class="fa-brands fa-youtube text-sm"></i>';
+                btn.classList.remove('bg-red-500', 'hover:bg-red-600');
+                btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
                 isSpeaking = false;
             };
-            
             window.speechSynthesis.speak(u);
             isSpeaking = true;
         }
-
+        
         function toggleSpeech(side) {
             if (isSpeaking) {
                 window.speechSynthesis.cancel();
                 isSpeaking = false;
-                // 重置所有播放按鈕
+                // 強制重置所有按鈕
                 document.querySelectorAll('#btn-play-zh, #btn-play-target').forEach(btn => {
-                    btn.innerHTML = '<i class="fa-brands fa-youtube text-lg"></i>';
-                    btn.classList.remove('bg-slate-800', 'border-transparent');
+                    btn.innerHTML = '<i class="fa-brands fa-youtube text-sm"></i>';
+                    btn.classList.remove('bg-red-500', 'hover:bg-red-600');
+                    btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
                 });
             } else {
                 speakText(side);
             }
         }
 
-        // --- 下方為標準邏輯 (fetch, render, translate, chat) ---
-
+        // 標準邏輯
         function showToast(msg, type="info") {
             const toast = document.getElementById('toast');
             document.getElementById('toast-msg').innerText = msg;
@@ -450,13 +404,13 @@
             const map = { 'sel-stage': 'opt_stage', 'sel-grade': 'opt_grade', 'sel-version': 'opt_version', 'sel-semester': 'opt_semester', 'sel-unit': 'opt_unit' };
             for(const [id, key] of Object.entries(map)) {
                 const sel = document.getElementById(id);
-                if(sel.options.length > 0 && sel.options[0].disabled) sel.options[0].text = t[key];
+                if(sel.options.length > 0 && sel.options[0].disabled) sel.options[0].text = t[key]; // 簡單 fallback
             }
         }
 
         function fetchTextbookOptions() {
             const stageSel = document.getElementById('sel-stage');
-            stageSel.options[0].text = "載入資料庫中...";
+            stageSel.options[0].text = "載入中...";
             fetch(GAS_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -466,9 +420,9 @@
                     allOptions = response.data || response; 
                     delete allOptions.result; delete allOptions.message;
                     initStageSelect();
-                    showToast("資料庫連結成功");
+                    showToast("已連結資料庫");
                 } else { showToast("資料載入失敗", "error"); }
-            }).catch(err => showToast("無法連接資料庫", "error"));
+            }).catch(err => showToast("連線失敗", "error"));
         }
 
         function initStageSelect() {
@@ -508,7 +462,7 @@
         function fetchLessonContent() {
             translationCache = {};
             document.getElementById('content-zh').innerHTML = '<div class="h-full flex items-center justify-center"><div class="loader"></div></div>';
-            document.getElementById('content-target').innerHTML = '<div class="h-full flex items-center justify-center text-slate-300">請選擇語言並點擊翻譯按鈕</div>';
+            document.getElementById('content-target').innerHTML = '<div class="h-full flex items-center justify-center text-slate-300">點擊上方按鈕進行翻譯</div>';
 
             const criteria = {
                 stage: document.getElementById('sel-stage').value,
@@ -534,25 +488,26 @@
             });
         }
 
+        // 核心修正 3: 電子書排版 (移除 card div，直接渲染 p)
         function renderContent(data) {
             currentRawText = data.content;
             currentTerms = data.terms || {};
 
-            let html = `<h1>${data.title}</h1>`;
+            let html = `<div class="book-page"><h1>${data.title}</h1>`; // 包裹在 book-page 內
             if (data.content && data.content.trim() !== "") {
                  data.content.split('\n').forEach(p => {
                     if(!p.trim()) return;
                     let text = p;
-                    // 科學詞彙高亮
                     for (let [zh, en] of Object.entries(currentTerms)) {
                         const regex = new RegExp(zh, "g");
                         text = text.replace(regex, `<span class="sci-term" title="${en}">${zh}</span>`);
                     }
-                    html += `<p>${text}</p>`;
+                    html += `<p>${text}</p>`; // 簡單的 P 標籤，樣式由 CSS 控制
                 });
             } else {
-                html += "<div class='text-center text-slate-400 py-10'><p>本單元目前沒有課文內容。</p></div>";
+                html += "<p>無課文內容。</p>";
             }
+            html += "</div>";
             document.getElementById('content-zh').innerHTML = html;
         }
 
@@ -560,7 +515,12 @@
             const lang = document.getElementById('target-lang').value;
             if(!currentRawText) { showToast("請先載入課文", "error"); return; }
             if (lang === 'zh-TW') { document.getElementById('content-target').innerHTML = document.getElementById('content-zh').innerHTML; return; }
-            if (translationCache[lang]) { document.getElementById('content-target').innerHTML = marked.parse(translationCache[lang]); return; }
+            
+            // 如果快取有，也要套用 book-page 樣式
+            if (translationCache[lang]) { 
+                document.getElementById('content-target').innerHTML = `<div class="book-page">${marked.parse(translationCache[lang])}</div>`; 
+                return; 
+            }
 
             document.getElementById('trans-loading').classList.remove('hidden');
             document.getElementById('content-target').innerHTML = '<div class="h-full flex items-center justify-center"><div class="loader"></div></div>';
@@ -573,7 +533,8 @@
                 if (response.result === "success") {
                     const mdText = response.translatedText;
                     translationCache[lang] = mdText;
-                    document.getElementById('content-target').innerHTML = marked.parse(mdText);
+                    // 套用 book-page 樣式
+                    document.getElementById('content-target').innerHTML = `<div class="book-page">${marked.parse(mdText)}</div>`;
                 } else {
                     document.getElementById('content-target').innerHTML = `<p class="text-red-400 text-center">${response.message || '翻譯失敗'}</p>`;
                 }
@@ -594,7 +555,7 @@
             input.value = '';
             
             const loadingId = 'load-' + Date.now();
-            document.getElementById('chat-messages').insertAdjacentHTML('beforeend', `<div id="${loadingId}" class="flex items-start gap-2"><div class="w-8 h-8 rounded-full bg-white flex items-center justify-center border border-slate-200"><div class="loader w-4 h-4 border-t-student"></div></div></div>`);
+            document.getElementById('chat-messages').insertAdjacentHTML('beforeend', `<div id="${loadingId}" class="flex items-start gap-2"><div class="w-6 h-6 rounded-full bg-white flex items-center justify-center border border-slate-200"><div class="loader w-3 h-3 border-t-blue-500"></div></div></div>`);
 
             fetch(GAS_URL, {
                 method: 'POST',
@@ -611,25 +572,13 @@
             const container = document.getElementById('chat-messages');
             let html = '';
             if (role === 'user') {
-                html = `<div class="flex justify-end"><div class="bg-student text-white px-4 py-2 rounded-2xl rounded-tr-none shadow-sm max-w-[85%] text-sm leading-relaxed">${text}</div></div>`;
+                html = `<div class="flex justify-end"><div class="bg-blue-50 text-blue-800 px-3 py-2 rounded-2xl rounded-tr-none shadow-sm max-w-[85%] text-xs leading-relaxed border border-blue-100">${text}</div></div>`;
             } else {
-                html = `<div class="flex items-start gap-2"><div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm mt-1 google-border"><i class="fa-solid fa-robot text-xs google-text"></i></div><div class="bg-white px-4 py-2 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 text-slate-700 max-w-[85%] text-sm leading-relaxed prose prose-sm">${marked.parse(text)}</div></div>`;
+                html = `<div class="flex items-start gap-2"><div class="w-6 h-6 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm mt-1 border border-slate-100 text-blue-500"><i class="fa-solid fa-robot text-xs"></i></div><div class="bg-white px-3 py-2 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 text-slate-600 max-w-[85%] text-xs leading-relaxed prose prose-sm">${marked.parse(text)}</div></div>`;
             }
             container.insertAdjacentHTML('beforeend', html);
             container.scrollTop = container.scrollHeight;
         }
-
-        (function() {
-            const canvas = document.getElementById('network-canvas');
-            const ctx = canvas.getContext('2d');
-            let width, height, orbits = [], centerX, centerY, mouse = { x: null, y: null };
-            window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
-            function resize() { width = window.innerWidth; height = window.innerHeight; canvas.width = width; canvas.height = height; centerX = width / 2; centerY = height / 2; initOrbits(); }
-            class Orbit { constructor(rx, ry, a, c, s) { this.rx=rx; this.ry=ry; this.a=a; this.c=c; this.s=s; this.r=0; this.ea=Math.random()*Math.PI*2; } update(){ this.r+=this.s; this.ea+=0.002; } draw(){ ctx.save(); ctx.translate(centerX,centerY); ctx.rotate(this.a); ctx.beginPath(); ctx.ellipse(0,0,this.rx,this.ry,this.r,0,Math.PI*2); ctx.strokeStyle=this.c; ctx.lineWidth=1; ctx.stroke(); ctx.beginPath(); ctx.arc(this.rx*Math.cos(this.ea), this.ry*Math.sin(this.ea), 3, 0, Math.PI*2); ctx.fillStyle=this.c; ctx.fill(); ctx.restore(); } }
-            function initOrbits() { orbits=[]; const br=width<height?width*0.2:height*0.25; orbits.push(new Orbit(br*2.2, br*2.2, 0, 'rgba(59,130,246,0.1)', 0.0005)); orbits.push(new Orbit(br*1.3, br*0.5, Math.PI/6, 'rgba(59,130,246,0.1)', 0.001)); }
-            function animate() { ctx.clearRect(0,0,width,height); if(mouse.x){ centerX+=(width/2+(mouse.x-width/2)*0.03-centerX)*0.05; centerY+=(height/2+(mouse.y-height/2)*0.03-centerY)*0.05; } else { centerX+=(width/2-centerX)*0.05; centerY+=(height/2-centerY)*0.05; } orbits.forEach(o=>{o.update();o.draw()}); ctx.beginPath(); ctx.arc(centerX,centerY,5,0,Math.PI*2); ctx.fillStyle='rgba(59,130,246,0.2)'; ctx.fill(); requestAnimationFrame(animate); }
-            window.addEventListener('resize', resize); resize(); animate();
-        })();
     </script>
 </body>
 </html>
