@@ -13,15 +13,14 @@
             theme: {
                 extend: {
                     colors: {
-                        // 活潑的學生色系
-                        paper: '#fffbeb', // 暖暖的米黃紙張色
-                        accent1: '#ffedd5', // 橘色底
-                        accent2: '#dcfce7', // 綠色底
-                        accent3: '#fce7f3', // 粉色底
-                        primary: '#4f46e5', // 主色調 (Indigo)
+                        student: { light: '#e0f2fe', DEFAULT: '#0ea5e9', dark: '#0284c7' },
+                        paper: '#fffbeb',
+                        accent1: '#ffedd5', accent2: '#dcfce7', accent3: '#fce7f3',
+                        primary: '#4f46e5',
                     },
                     fontFamily: {
-                        sans: ['"Microsoft JhengHei"', '"Rounded Mplus 1c"', 'sans-serif'], // 圓潤感
+                        sans: ['"Microsoft JhengHei"', '"Heiti TC"', 'sans-serif'],
+                        serif: ['"Microsoft JhengHei"', 'serif'],
                     }
                 }
             }
@@ -29,76 +28,23 @@
     </script>
     <style>
         body { background-color: #fdfbf7; font-family: 'Microsoft JhengHei', sans-serif; }
-        
-        /* 像書本一樣的容器 */
-        .reader-card {
-            background-color: white;
-            border-radius: 1.5rem;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-            padding: 2rem;
-            margin-bottom: 1.5rem;
-            border: 2px solid #f3f4f6;
-        }
-
-        /* 單元大標題 */
-        .unit-title {
-            font-size: 2.2rem;
-            font-weight: 900;
-            color: #3730a3;
-            text-align: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 4px dashed #c7d2fe;
-        }
-
-        /* 活動標題卡片 */
-        .activity-card {
-            padding: 1.5rem;
-            border-radius: 1rem;
-            margin-bottom: 1.5rem;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        /* 不同活動的顏色循環 */
-        .act-color-0 { background-color: #fff7ed; border-left: 6px solid #fb923c; } /* 橘 */
-        .act-color-1 { background-color: #f0fdf4; border-left: 6px solid #4ade80; } /* 綠 */
-        .act-color-2 { background-color: #fdf2f8; border-left: 6px solid #f472b6; } /* 粉 */
-
-        .activity-title {
-            font-size: 1.4rem;
-            font-weight: 800;
-            color: #1f2937;
-            margin-bottom: 1rem;
-            display: block;
-        }
-
-        .content-p {
-            font-size: 1.25rem;
-            line-height: 1.8;
-            color: #4b5563;
-            margin-bottom: 1rem;
-            text-align: justify;
-        }
-
-        /* 詞彙高亮 */
-        .sci-term {
-            color: #4f46e5;
-            font-weight: 800;
-            background-color: #e0e7ff;
-            padding: 0 6px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .sci-term:hover { background-color: #4f46e5; color: white; transform: scale(1.05); }
-
-        /* 圓潤按鈕 */
-        .btn-rounded { border-radius: 9999px; font-weight: 700; transition: all 0.2s; }
-        .btn-rounded:active { transform: scale(0.95); }
-
-        .loader { border: 3px solid #e5e7eb; border-top: 3px solid #4f46e5; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
+        .reader-card { background-color: white; border-radius: 1.5rem; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); padding: 2.5rem; margin-bottom: 2rem; border: 2px solid #f3f4f6; }
+        .unit-title { font-size: 2.5rem; font-weight: 900; color: #3730a3; text-align: center; margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 4px dashed #c7d2fe; line-height: 1.2; }
+        .activity-card { padding: 2rem; border-radius: 1rem; margin-bottom: 2rem; position: relative; overflow: hidden; }
+        .act-color-0 { background-color: #fff7ed; border-left: 8px solid #fb923c; } 
+        .act-color-1 { background-color: #f0fdf4; border-left: 8px solid #4ade80; } 
+        .act-color-2 { background-color: #fdf2f8; border-left: 8px solid #f472b6; } 
+        .activity-title { font-size: 1.6rem; font-weight: 800; color: #1f2937; margin-bottom: 1.5rem; display: block; }
+        .content-p { font-size: 1.35rem; line-height: 1.8; color: #374151; margin-bottom: 1.5rem; text-align: justify; }
+        .sci-term { color: #4f46e5; font-weight: 800; background-color: #e0e7ff; padding: 0 6px; border-radius: 6px; cursor: help; border-bottom: 2px solid #818cf8; }
+        .custom-select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; appearance: none; }
+        .custom-scroll::-webkit-scrollbar { width: 8px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
+        .loader { border: 3px solid #e5e7eb; border-top: 3px solid #4f46e5; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .chat-window { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform-origin: bottom right; }
+        .chat-hidden { transform: scale(0.9) translateY(20px); opacity: 0; pointer-events: none; }
     </style>
 </head>
 <body class="h-screen flex flex-col overflow-hidden text-slate-800">
@@ -106,7 +52,7 @@
     <header class="bg-white/90 backdrop-blur-md z-40 flex flex-col border-b border-slate-100 shadow-sm">
         <div class="px-6 py-3 flex justify-between items-center">
             <div class="flex items-center gap-4">
-                <button onclick="window.location.href='?page=student'" class="flex items-center gap-2 text-slate-500 hover:text-indigo-600 font-bold transition bg-slate-50 px-4 py-2 rounded-full border border-slate-200 hover:border-indigo-200">
+                <button onclick="window.location.href='?page=student'" class="flex items-center gap-2 text-slate-500 hover:text-indigo-600 font-bold transition bg-slate-50 px-4 py-2 rounded-full border border-slate-200 hover:border-indigo-200 shadow-sm">
                     <i class="fa-solid fa-chevron-left"></i> <span data-i18n="back_student">返回學習中心</span>
                 </button>
                 <div class="h-6 w-px bg-slate-300 hidden md:block"></div>
@@ -114,13 +60,13 @@
             </div>
             
             <div class="flex items-center gap-3">
-                 <select id="ui-lang" onchange="changeUILanguage()" class="px-4 py-1.5 bg-white border-2 border-indigo-100 text-indigo-700 text-sm rounded-full font-bold focus:outline-none focus:border-indigo-400">
+                 <select id="ui-lang" onchange="changeUILanguage()" class="px-4 py-1.5 bg-white border-2 border-indigo-100 text-indigo-700 text-sm rounded-full font-bold focus:outline-none focus:border-indigo-400 cursor-pointer">
                     <option value="zh-TW">繁體中文</option>
                     <option value="en">English</option>
                     <option value="ja">日本語</option>
                     <option value="ko">한국어</option>
                  </select>
-                 <button onclick="window.location.href='page=unitkeyidea'" class="flex items-center gap-2 bg-emerald-100 text-emerald-700 px-4 py-1.5 rounded-full hover:bg-emerald-200 transition font-bold text-sm">
+                 <button onclick="window.location.href='?page=unitkeyidea'" class="flex items-center gap-2 bg-emerald-100 text-emerald-700 px-4 py-1.5 rounded-full hover:bg-emerald-200 transition font-bold text-sm">
                     <i class="fa-solid fa-star"></i> 重點整理
                 </button>
             </div>
@@ -130,11 +76,12 @@
             <div class="flex items-center gap-2 text-xs font-bold text-indigo-400 uppercase tracking-widest mr-1">
                 <i class="fa-solid fa-shapes"></i> 教材篩選
             </div>
-            <select id="sel-stage" class="bg-white border border-indigo-100 text-sm rounded-xl p-2 font-bold text-slate-700 shadow-sm outline-none focus:ring-2 focus:ring-indigo-300" onchange="updateDropdowns('stage')"><option value="" disabled selected>載入中...</option></select>
-            <select id="sel-grade" class="bg-white border border-indigo-100 text-sm rounded-xl p-2 font-bold text-slate-700 shadow-sm outline-none focus:ring-2 focus:ring-indigo-300" onchange="updateDropdowns('grade')" disabled><option value="">年級</option></select>
-            <select id="sel-version" class="bg-white border border-indigo-100 text-sm rounded-xl p-2 font-bold text-slate-700 shadow-sm outline-none focus:ring-2 focus:ring-indigo-300" onchange="updateDropdowns('version')" disabled><option value="">版本</option></select>
-            <select id="sel-semester" class="bg-white border border-indigo-100 text-sm rounded-xl p-2 font-bold text-slate-700 shadow-sm outline-none focus:ring-2 focus:ring-indigo-300" onchange="updateDropdowns('semester')" disabled><option value="">學期</option></select>
-            <select id="sel-unit" class="bg-white border border-indigo-100 text-sm rounded-xl p-2 min-w-[200px] font-bold text-slate-700 shadow-sm outline-none focus:ring-2 focus:ring-indigo-300" onchange="document.getElementById('btn-load').disabled = !this.value" disabled><option value="">請選擇單元</option></select>
+            
+            <select id="sel-stage" class="bg-white border border-indigo-100 text-sm rounded-xl p-2 font-bold text-slate-700 shadow-sm outline-none focus:ring-2 focus:ring-indigo-300 custom-select" onchange="updateDropdowns('stage')"><option value="" disabled selected>載入中...</option></select>
+            <select id="sel-grade" class="bg-white border border-indigo-100 text-sm rounded-xl p-2 font-bold text-slate-700 shadow-sm outline-none focus:ring-2 focus:ring-indigo-300 custom-select" onchange="updateDropdowns('grade')" disabled><option value="">年級</option></select>
+            <select id="sel-version" class="bg-white border border-indigo-100 text-sm rounded-xl p-2 font-bold text-slate-700 shadow-sm outline-none focus:ring-2 focus:ring-indigo-300 custom-select" onchange="updateDropdowns('version')" disabled><option value="">版本</option></select>
+            <select id="sel-semester" class="bg-white border border-indigo-100 text-sm rounded-xl p-2 font-bold text-slate-700 shadow-sm outline-none focus:ring-2 focus:ring-indigo-300 custom-select" onchange="updateDropdowns('semester')" disabled><option value="">學期</option></select>
+            <select id="sel-unit" class="bg-white border border-indigo-100 text-sm rounded-xl p-2 min-w-[200px] font-bold text-slate-700 shadow-sm outline-none focus:ring-2 focus:ring-indigo-300 custom-select" onchange="document.getElementById('btn-load').disabled = !this.value" disabled><option value="">請選擇單元</option></select>
 
             <button id="btn-load" onclick="fetchLessonContent()" class="bg-indigo-600 text-white px-6 py-2 rounded-xl font-bold shadow-md hover:bg-indigo-700 transition disabled:opacity-50 flex items-center gap-2 transform active:scale-95">
                 <i class="fa-solid fa-book-open"></i> 閱讀
@@ -143,97 +90,49 @@
     </header>
 
     <div class="flex-1 flex flex-col md:flex-row overflow-hidden relative z-10">
-        
         <div class="w-full md:w-1/2 flex flex-col border-r border-slate-100 h-full relative bg-[#fffbeb]">
-            <div class="absolute top-0 left-0 w-full px-6 py-2 flex justify-between items-center bg-white/80 backdrop-blur z-20 border-b border-indigo-50">
+            <div class="absolute top-0 left-0 w-full px-6 py-2 flex justify-between items-center bg-white/80 backdrop-blur z-20 border-b border-indigo-50 shadow-sm">
                 <span class="text-xs font-bold text-indigo-400 uppercase tracking-widest">原文</span>
                 <div class="flex items-center gap-3">
-                    <select id="rate-zh" class="bg-indigo-50 text-xs font-bold text-indigo-600 p-1 rounded outline-none cursor-pointer">
-                        <option value="0.75">0.75x</option>
-                        <option value="1" selected>1.0x</option>
-                        <option value="1.25">1.25x</option>
-                    </select>
-                    <button id="btn-play-zh" onclick="toggleSpeech('zh-TW')" class="w-9 h-9 flex items-center justify-center rounded-full bg-indigo-500 text-white hover:bg-indigo-600 transition shadow-sm">
-                        <i class="fa-brands fa-youtube text-lg"></i>
-                    </button>
+                    <select id="rate-zh" class="bg-indigo-50 text-xs font-bold text-indigo-600 p-1 rounded outline-none cursor-pointer"><option value="0.75">0.75x</option><option value="1" selected>1.0x</option><option value="1.25">1.25x</option></select>
+                    <button id="btn-play-zh" onclick="toggleSpeech('zh-TW')" class="w-9 h-9 flex items-center justify-center rounded-full bg-indigo-500 text-white hover:bg-indigo-600 transition shadow-sm"><i class="fa-brands fa-youtube text-lg"></i></button>
                 </div>
             </div>
-            <div id="content-zh" class="flex-1 overflow-y-auto p-4 md:p-8 custom-scroll">
-                <div class="h-full flex flex-col items-center justify-center text-indigo-200 select-none">
-                    <i class="fa-solid fa-book-open text-6xl mb-4"></i>
-                    <p class="font-bold text-xl">請選擇教材開始閱讀</p>
-                </div>
-            </div>
+            <div id="content-zh" class="flex-1 overflow-y-auto p-4 md:p-8 custom-scroll"><div class="h-full flex flex-col items-center justify-center text-indigo-200 select-none"><i class="fa-solid fa-book-open text-6xl mb-4"></i><p class="font-bold text-xl">請選擇教材開始閱讀</p></div></div>
         </div>
 
         <div class="w-full md:w-1/2 flex flex-col h-full bg-white relative">
-            <div class="absolute top-0 left-0 w-full px-6 py-2 flex justify-between items-center bg-white/80 backdrop-blur z-20 border-b border-indigo-50">
+            <div class="absolute top-0 left-0 w-full px-6 py-2 flex justify-between items-center bg-white/80 backdrop-blur z-20 border-b border-indigo-50 shadow-sm">
                 <div class="flex items-center gap-2">
-                    <select id="target-lang" class="text-xs font-bold text-slate-600 border-2 border-indigo-100 bg-white rounded-full py-1 px-3 focus:outline-none">
-                        <option value="en">English (英文)</option>
-                        <option value="ja">日本語 (日文)</option>
-                        <option value="ko">한국어 (韓文)</option>
-                        <option value="zh-CN">简体中文</option>
-                    </select>
-                    <button onclick="translateContent()" class="text-xs bg-indigo-100 text-indigo-700 px-4 py-1 rounded-full font-bold hover:bg-indigo-200 transition">
-                         <i class="fa-solid fa-language"></i> 翻譯
-                    </button>
+                    <select id="target-lang" class="custom-select text-xs font-bold text-slate-600 border-2 border-indigo-100 bg-white rounded-full py-1 px-3 pr-6 focus:ring-1 focus:ring-blue-400 cursor-pointer"><option value="en">English (英文)</option><option value="ja">日本語 (日文)</option><option value="ko">한국어 (韓文)</option></select>
+                    <button onclick="translateContent()" class="text-xs bg-indigo-100 text-indigo-700 px-4 py-1 rounded-full font-bold hover:bg-indigo-200 transition border border-blue-100 flex items-center gap-1 shadow-sm"><i class="fa-solid fa-language"></i> 翻譯</button>
                 </div>
                 <div class="flex items-center gap-3">
-                    <div id="trans-loading" class="hidden flex items-center gap-2 text-xs text-indigo-500 font-bold">
-                        <div class="loader w-3 h-3 border-t-indigo-500"></div> 翻譯中...
-                    </div>
-                    <select id="rate-target" class="bg-indigo-50 text-xs font-bold text-indigo-600 p-1 rounded outline-none cursor-pointer">
-                        <option value="0.75">0.75x</option>
-                        <option value="1" selected>1.0x</option>
-                        <option value="1.25">1.25x</option>
-                    </select>
-                    <button id="btn-play-target" onclick="toggleSpeech('target')" class="w-9 h-9 flex items-center justify-center rounded-full bg-indigo-500 text-white hover:bg-indigo-600 transition shadow-sm">
-                        <i class="fa-brands fa-youtube text-lg"></i>
-                    </button>
+                    <div id="trans-loading" class="hidden flex items-center gap-2 text-xs text-indigo-500 font-bold"><div class="loader w-3 h-3 border-t-indigo-500"></div> 翻譯中...</div>
+                    <select id="rate-target" class="bg-indigo-50 text-xs font-bold text-indigo-600 p-1 rounded outline-none cursor-pointer"><option value="0.75">0.75x</option><option value="1" selected>1.0x</option><option value="1.25">1.25x</option></select>
+                    <button id="btn-play-target" onclick="toggleSpeech('target')" class="w-9 h-9 flex items-center justify-center rounded-full bg-indigo-500 text-white hover:bg-indigo-600 transition shadow-sm"><i class="fa-brands fa-youtube text-lg"></i></button>
                 </div>
             </div>
-            <div id="content-target" class="flex-1 overflow-y-auto p-4 md:p-8 custom-scroll">
-                <div class="h-full flex flex-col items-center justify-center text-slate-300 select-none">
-                    <p class="text-sm font-bold">點擊上方按鈕進行翻譯</p>
-                </div>
-            </div>
+            <div id="content-target" class="flex-1 overflow-y-auto p-4 md:p-8 custom-scroll bg-white"><div class="h-full flex flex-col items-center justify-center text-slate-300 select-none"><p class="text-sm font-bold">點擊上方按鈕進行翻譯</p></div></div>
         </div>
     </div>
 
     <div class="fixed bottom-6 right-6 z-50 flex flex-col items-end">
         <div id="chat-window" class="chat-hidden mb-4 w-80 h-[450px] bg-white rounded-3xl shadow-2xl border border-indigo-50 overflow-hidden flex flex-col transition-all duration-300">
             <div class="bg-indigo-600 p-4 flex justify-between items-center text-white shadow-md">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                        <i class="fa-solid fa-robot text-sm"></i>
-                    </div>
-                    <span class="font-bold">小科 (SciBot)</span>
-                </div>
+                <div class="flex items-center gap-2"><span class="font-bold">小科 (SciBot)</span></div>
                 <button onclick="toggleChat()" class="hover:bg-white/20 rounded-full w-6 h-6 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 bg-indigo-50/30 space-y-3 custom-scroll">
-                <div class="flex items-start gap-2">
-                    <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm"><i class="fa-solid fa-robot text-sm"></i></div>
-                    <div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-indigo-50 text-slate-700 text-sm font-bold">
-                        嗨！我是小科，有問題都可以問我喔！👋
-                    </div>
-                </div>
-            </div>
-            <div class="p-3 bg-white border-t border-slate-100 flex gap-2">
-                <input type="text" id="chat-input" class="flex-1 bg-slate-50 border-0 rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-200 transition" placeholder="問問小科..." onkeypress="if(event.key==='Enter') sendMessage()">
-                <button onclick="sendMessage()" class="w-10 h-10 bg-indigo-600 text-white rounded-full flex items-center justify-center hover:bg-indigo-700 transition shadow-lg transform active:scale-90">
-                    <i class="fa-solid fa-paper-plane text-sm"></i>
-                </button>
-            </div>
+            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 bg-indigo-50/30 space-y-3 custom-scroll"><div class="flex items-start gap-2"><div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm"><i class="fa-solid fa-robot text-sm"></i></div><div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-indigo-50 text-slate-700 text-sm font-bold">嗨！我是小科，有問題都可以問我喔！👋</div></div></div>
+            <div class="p-3 bg-white border-t border-slate-100 flex gap-2"><input type="text" id="chat-input" class="flex-1 bg-slate-50 border-0 rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-200 transition" placeholder="問問小科..." onkeypress="if(event.key==='Enter') sendMessage()"><button onclick="sendMessage()" class="w-10 h-10 bg-indigo-600 text-white rounded-full flex items-center justify-center hover:bg-indigo-700 transition shadow-lg transform active:scale-90"><i class="fa-solid fa-paper-plane text-sm"></i></button></div>
         </div>
-        <button onclick="toggleChat()" class="w-14 h-14 bg-white rounded-full shadow-xl flex items-center justify-center text-2xl text-indigo-600 hover:scale-110 transition duration-200 border-4 border-indigo-50">
-            <i class="fa-solid fa-robot"></i>
-        </button>
+        <button onclick="toggleChat()" class="w-14 h-14 bg-white rounded-full shadow-xl flex items-center justify-center text-2xl text-indigo-600 hover:scale-110 transition duration-200 border-4 border-indigo-50"><i class="fa-solid fa-robot"></i></button>
     </div>
+    
+    <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-slate-800/90 backdrop-blur text-white px-4 py-2 rounded-full shadow-xl transition-all duration-300 opacity-0 translate-y-10 z-50 flex items-center gap-2 pointer-events-none text-sm"><i id="toast-icon" class="fa-solid fa-circle-info text-yellow-400"></i><span id="toast-msg">系統提示</span></div>
 
     <script>
-        // *** 貼上您的新 GAS 網址 ***
+        // *** 重要：請貼上「新建版本」後的網址 ***
         const GAS_URL = "https://script.google.com/macros/s/AKfycbx3MW-IOcU-38IqgawidSakL9nVwARmov4cuK0S6Jcqbv3SJFyHUbrvrI43Y6nskJAx/exec"; 
         
         let allOptions = {}; 
@@ -247,184 +146,22 @@
             if(window.speechSynthesis) window.speechSynthesis.getVoices();
         });
 
-        // 核心：語音播放
-        function speakText(side) {
-            window.speechSynthesis.cancel();
-            let text = side === 'zh-TW' ? document.getElementById('content-zh').innerText : document.getElementById('content-target').innerText;
-            let lang = side === 'zh-TW' ? 'zh-TW' : document.getElementById('target-lang').value;
-            let rate = parseFloat(document.getElementById(side === 'zh-TW' ? 'rate-zh' : 'rate-target').value);
-            let btnId = side === 'zh-TW' ? 'btn-play-zh' : 'btn-play-target';
-
-            if (!text || text.includes("請選擇") || text.includes("翻譯中")) return;
-
-            const btn = document.getElementById(btnId);
-            btn.innerHTML = '<i class="fa-solid fa-stop"></i>';
-            btn.classList.replace('bg-indigo-500', 'bg-red-500');
-            btn.classList.replace('hover:bg-indigo-600', 'hover:bg-red-600');
-
-            const u = new SpeechSynthesisUtterance(text);
-            u.lang = lang;
-            u.rate = rate;
-            
-            // 語音修正
-            const voices = window.speechSynthesis.getVoices();
-            let voice = voices.find(v => v.lang.includes(lang) && (v.name.includes("Google") || v.name.includes("Natural")));
-            if (!voice) voice = voices.find(v => v.lang.includes(lang));
-            if (voice) u.voice = voice;
-
-            u.onend = u.onerror = () => {
-                btn.innerHTML = '<i class="fa-brands fa-youtube text-lg"></i>';
-                btn.classList.replace('bg-red-500', 'bg-indigo-500');
-                btn.classList.replace('hover:bg-red-600', 'hover:bg-indigo-600');
-                isSpeaking = false;
-            };
-            window.speechSynthesis.speak(u);
-            isSpeaking = true;
-        }
-
-        function toggleSpeech(side) {
-            if (isSpeaking) {
-                window.speechSynthesis.cancel();
-                isSpeaking = false;
-                document.querySelectorAll('#btn-play-zh, #btn-play-target').forEach(btn => {
-                    btn.innerHTML = '<i class="fa-brands fa-youtube text-lg"></i>';
-                    btn.className = "w-9 h-9 flex items-center justify-center rounded-full bg-indigo-500 text-white hover:bg-indigo-600 transition shadow-sm";
-                });
-            } else {
-                speakText(side);
-            }
-        }
-
-        // 核心：彩色卡片渲染邏輯
-        function renderContent(data) {
-            currentRawText = data.content;
-            currentTerms = data.terms || {};
-
-            let html = `<div class="unit-title">${data.title}</div>`; // 大標題
-            
-            if (data.content && data.content.trim() !== "") {
-                 const lines = data.content.split('\n');
-                 let colorIndex = 0;
-                 let inActivity = false;
-
-                 lines.forEach(line => {
-                    line = line.trim();
-                    if(!line) return;
-
-                    // 處理詞彙高亮
-                    let processedLine = line;
-                    for (let [zh, en] of Object.entries(currentTerms)) {
-                        const regex = new RegExp(zh, "g");
-                        processedLine = processedLine.replace(regex, `<span class="sci-term" title="${en}">${zh}</span>`);
-                    }
-
-                    // 智慧分段邏輯：如果是「活動」或很短的標題，做成新卡片
-                    if (line.includes("活動") || (line.length < 20 && !/[。！？.!?]$/.test(line))) {
-                        if (inActivity) html += `</div>`; // 關閉上一個卡片
-                        html += `<div class="activity-card act-color-${colorIndex % 3}">`; // 開啟新卡片
-                        html += `<span class="activity-title">${processedLine}</span>`;
-                        colorIndex++;
-                        inActivity = true;
-                    } else {
-                        // 如果還沒開始卡片，就先開一個預設的
-                        if (!inActivity) {
-                            html += `<div class="reader-card">`;
-                            inActivity = true;
-                        }
-                        html += `<p class="content-p">${processedLine}</p>`;
-                    }
-                });
-                if (inActivity) html += `</div>`; // 關閉最後一個卡片
-            } else {
-                html += "<p class='text-center text-slate-400 py-10'>本單元目前沒有課文內容。</p>";
-            }
-            document.getElementById('content-zh').innerHTML = html;
-        }
-
-        // 翻譯 (保持結構一致)
-        function translateContent() {
-            const lang = document.getElementById('target-lang').value;
-            if(!currentRawText) return;
-            
-            if (translationCache[lang]) { 
-                document.getElementById('content-target').innerHTML = `<div class="p-6 text-lg leading-loose text-slate-700">${marked.parse(translationCache[lang])}</div>`; 
-                return; 
-            }
-
-            document.getElementById('trans-loading').classList.remove('hidden');
-            document.getElementById('content-target').innerHTML = '<div class="h-full flex items-center justify-center"><div class="loader"></div></div>';
-
-            fetch(GAS_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ action: "translate_text", text: currentRawText, targetLang: lang })
-            }).then(res => res.json()).then(response => {
-                if (response.result === "success") {
-                    const mdText = response.translatedText;
-                    translationCache[lang] = mdText;
-                    document.getElementById('content-target').innerHTML = `<div class="p-6 text-lg leading-loose text-slate-700">${marked.parse(mdText)}</div>`;
-                } else {
-                    document.getElementById('content-target').innerHTML = `<p class="text-red-400 text-center font-bold px-4 mt-10">${response.message || '翻譯失敗'}</p>`;
-                }
-                document.getElementById('trans-loading').classList.add('hidden');
-            });
-        }
-
-        // 標準 API 呼叫與 UI 互動 (省略重複細節，保持功能不變)
-        function fetchTextbookOptions() {
-            const stageSel = document.getElementById('sel-stage');
-            stageSel.options[0].text = "載入資料庫中...";
-            fetch(GAS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: "get_textbook_options" }) })
-            .then(res => res.json()).then(res => {
-                if(res.result === "success") { allOptions = res.data; initStageSelect(); }
-            });
-        }
-        function initStageSelect() {
-            const sel = document.getElementById('sel-stage');
-            sel.innerHTML = `<option value="" disabled selected>學習階段</option>`;
-            Object.keys(allOptions).forEach(key => sel.add(new Option(key, key)));
-            sel.disabled = false;
-        }
-        function updateDropdowns(source) {
-            const stage = document.getElementById('sel-stage');
-            const grade = document.getElementById('sel-grade');
-            const version = document.getElementById('sel-version');
-            const semester = document.getElementById('sel-semester');
-            const unit = document.getElementById('sel-unit');
-            const btn = document.getElementById('btn-load');
-            const reset = (el, txt) => { el.innerHTML = `<option value="" disabled selected>${txt}</option>`; el.disabled = true; el.value = ""; };
-            const fill = (el, items) => { items.forEach(i => el.add(new Option(i, i))); el.disabled = false; };
-
-            if (source === 'stage') { reset(grade,'年級');reset(version,'版本');reset(semester,'學期');reset(unit,'單元'); if(stage.value) fill(grade, Object.keys(allOptions[stage.value])); }
-            else if (source === 'grade') { reset(version,'版本');reset(semester,'學期');reset(unit,'單元'); if(grade.value) fill(version, Object.keys(allOptions[stage.value][grade.value])); }
-            else if (source === 'version') { reset(semester,'學期');reset(unit,'單元'); if(version.value) fill(semester, Object.keys(allOptions[stage.value][grade.value][version.value])); }
-            else if (source === 'semester') { reset(unit,'單元'); if(semester.value) fill(unit, allOptions[stage.value][grade.value][version.value][semester.value]); }
-            btn.disabled = !unit.value;
-        }
-        function fetchLessonContent() {
-            translationCache = {};
-            document.getElementById('content-zh').innerHTML = '<div class="h-full flex items-center justify-center"><div class="loader"></div></div>';
-            const criteria = { stage: document.getElementById('sel-stage').value, grade: document.getElementById('sel-grade').value, version: document.getElementById('sel-version').value, semester: document.getElementById('sel-semester').value, unit: document.getElementById('sel-unit').value };
-            fetch(GAS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: "get_lesson_content", criteria: criteria }) })
-            .then(res => res.json()).then(res => { if(res.result === "success") renderContent(res.data); });
-        }
+        // 以下為其他 JavaScript 函式 (speakText, toggleSpeech, renderContent, translateContent, fetchTextbookOptions, etc.)
+        // 請確保所有函式都包含在內 (與上一個版本相同)
+        function getBestVoice(lang) { const voices = window.speechSynthesis.getVoices(); if (!voices || voices.length === 0) return null; let voice = voices.find(v => v.lang.includes(lang) && (v.name.includes("Google") || v.name.includes("Natural"))); if (!voice) voice = voices.find(v => v.lang.includes(lang)); if (!voice && lang === 'zh-TW') voice = voices.find(v => v.lang.includes('zh')); return voice; }
+        function speakText(side) { window.speechSynthesis.cancel(); let text = side === 'zh-TW' ? document.getElementById('content-zh').innerText : document.getElementById('content-target').innerText; let lang = side === 'zh-TW' ? 'zh-TW' : document.getElementById('target-lang').value; let rate = parseFloat(document.getElementById(side === 'zh-TW' ? 'rate-zh' : 'rate-target').value); let btnId = side === 'zh-TW' ? 'btn-play-zh' : 'btn-play-target'; if (!text || text.includes("請選擇") || text.includes("翻譯中")) return; const btn = document.getElementById(btnId); btn.innerHTML = '<i class="fa-solid fa-stop"></i>'; btn.classList.replace('bg-indigo-500', 'bg-red-500'); btn.classList.replace('hover:bg-indigo-600', 'hover:bg-red-600'); const u = new SpeechSynthesisUtterance(text); const voice = getBestVoice(lang === 'zh-TW' ? 'zh-TW' : lang); if (voice) { u.voice = voice; u.lang = voice.lang; } else { u.lang = lang; } u.rate = rate; u.onend = u.onerror = () => { btn.innerHTML = '<i class="fa-brands fa-youtube text-lg"></i>'; btn.classList.replace('bg-red-500', 'bg-indigo-500'); btn.classList.replace('hover:bg-red-600', 'hover:bg-indigo-600'); isSpeaking = false; }; window.speechSynthesis.speak(u); isSpeaking = true; }
+        function toggleSpeech(side) { if (isSpeaking) { window.speechSynthesis.cancel(); isSpeaking = false; document.querySelectorAll('#btn-play-zh, #btn-play-target').forEach(btn => { btn.innerHTML = '<i class="fa-brands fa-youtube text-lg"></i>'; btn.className = "w-9 h-9 flex items-center justify-center rounded-full bg-indigo-500 text-white hover:bg-indigo-600 transition shadow-sm"; }); } else { speakText(side); } }
+        function renderContent(data) { currentRawText = data.content; currentTerms = data.terms || {}; let html = `<div class="unit-title">${data.title}</div>`; if (data.content && data.content.trim() !== "") { const lines = data.content.split('\n'); let colorIndex = 0; let inActivity = false; lines.forEach(line => { line = line.trim(); if(!line) return; let processedLine = line; for (let [zh, en] of Object.entries(currentTerms)) { const regex = new RegExp(zh, "g"); processedLine = processedLine.replace(regex, `<span class="sci-term" title="${en}">${zh}</span>`); } if (line.includes("活動") || (line.length < 20 && !/[。！？.!?]$/.test(line))) { if (inActivity) html += `</div>`; html += `<div class="activity-card act-color-${colorIndex % 3}">`; html += `<span class="activity-title">${processedLine}</span>`; colorIndex++; inActivity = true; } else { if (!inActivity) { html += `<div class="reader-card">`; inActivity = true; } html += `<p class="content-p">${processedLine}</p>`; } }); if (inActivity) html += `</div>`; } else { html += "<p class='text-center text-slate-400 py-10'>本單元目前沒有課文內容。</p>"; } document.getElementById('content-zh').innerHTML = html; }
+        function translateContent() { const lang = document.getElementById('target-lang').value; if(!currentRawText) { showToast("請先載入課文", "error"); return; } if (lang === 'zh-TW') { document.getElementById('content-target').innerHTML = document.getElementById('content-zh').innerHTML; return; } if (translationCache[lang]) { document.getElementById('content-target').innerHTML = `<div class="p-6 text-lg leading-loose text-slate-700">${marked.parse(translationCache[lang])}</div>`; return; } document.getElementById('trans-loading').classList.remove('hidden'); document.getElementById('content-target').innerHTML = '<div class="h-full flex items-center justify-center"><div class="loader"></div></div>'; fetch(GAS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: "translate_text", text: currentRawText, targetLang: lang }) }).then(res => res.json()).then(response => { if (response.result === "success") { const mdText = response.translatedText; translationCache[lang] = mdText; document.getElementById('content-target').innerHTML = `<div class="p-6 text-lg leading-loose text-slate-700">${marked.parse(mdText)}</div>`; } else { document.getElementById('content-target').innerHTML = `<p class="text-red-400 text-center font-bold px-4 mt-10">${response.message || '翻譯失敗'}</p>`; } document.getElementById('trans-loading').classList.add('hidden'); }); }
+        function fetchTextbookOptions() { const stageSel = document.getElementById('sel-stage'); stageSel.options[0].text = "載入資料庫中..."; fetch(GAS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: "get_textbook_options" }) }).then(res => res.json()).then(res => { if(res.result === "success") { allOptions = res.data; initStageSelect(); showToast("已連結資料庫"); } else { showToast("資料載入失敗: " + res.message, "error"); } }).catch(err => showToast("連線失敗", "error")); }
+        function initStageSelect() { const sel = document.getElementById('sel-stage'); sel.innerHTML = `<option value="" disabled selected>學習階段</option>`; Object.keys(allOptions).forEach(key => sel.add(new Option(key, key))); sel.disabled = false; }
+        function updateDropdowns(source) { const stage = document.getElementById('sel-stage'); const grade = document.getElementById('sel-grade'); const version = document.getElementById('sel-version'); const semester = document.getElementById('sel-semester'); const unit = document.getElementById('sel-unit'); const btn = document.getElementById('btn-load'); const reset = (el, txt) => { el.innerHTML = `<option value="" disabled selected>${txt}</option>`; el.disabled = true; el.value = ""; }; const fill = (el, items) => { items.forEach(i => el.add(new Option(i, i))); el.disabled = false; }; if (source === 'stage') { reset(grade,'年級');reset(version,'版本');reset(semester,'學期');reset(unit,'單元'); if(stage.value) fill(grade, Object.keys(allOptions[stage.value])); } else if (source === 'grade') { reset(version,'版本');reset(semester,'學期');reset(unit,'單元'); if(grade.value) fill(version, Object.keys(allOptions[stage.value][grade.value])); } else if (source === 'version') { reset(semester,'學期');reset(unit,'單元'); if(version.value) fill(semester, Object.keys(allOptions[stage.value][grade.value][version.value])); } else if (source === 'semester') { reset(unit,'單元'); if(semester.value) fill(unit, allOptions[stage.value][grade.value][version.value][semester.value]); } btn.disabled = !unit.value; }
+        function fetchLessonContent() { translationCache = {}; document.getElementById('content-zh').innerHTML = '<div class="h-full flex items-center justify-center"><div class="loader"></div></div>'; const criteria = { stage: document.getElementById('sel-stage').value, grade: document.getElementById('sel-grade').value, version: document.getElementById('sel-version').value, semester: document.getElementById('sel-semester').value, unit: document.getElementById('sel-unit').value }; fetch(GAS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: "get_lesson_content", criteria: criteria }) }).then(res => res.json()).then(res => { if(res.result === "success") renderContent(res.data); else document.getElementById('content-zh').innerHTML = `<p class="text-red-500 text-center p-4">Error: ${res.message}</p>`; }); }
         function toggleChat() { document.getElementById('chat-window').classList.toggle('chat-hidden'); }
-        function sendMessage() {
-            const input = document.getElementById('chat-input');
-            const msg = input.value.trim();
-            if(!msg) return;
-            addMsg(msg, 'user');
-            input.value = '';
-            fetch(GAS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: "chat_bot", message: msg, context: currentRawText.substring(0, 10000) }) })
-            .then(res => res.json()).then(res => { if(res.result === "success") addMsg(res.reply, 'bot'); else addMsg("小科累了...", 'bot'); });
-        }
-        function addMsg(text, role) {
-            const container = document.getElementById('chat-messages');
-            let html = role === 'user' ? `<div class="flex justify-end"><div class="bg-indigo-600 text-white px-3 py-2 rounded-2xl rounded-tr-none shadow-sm max-w-[85%] text-xs">${text}</div></div>` : `<div class="flex items-start gap-2"><div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600"><i class="fa-solid fa-robot text-sm"></i></div><div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-indigo-50 text-slate-700 text-sm font-bold">${marked.parse(text)}</div></div>`;
-            container.insertAdjacentHTML('beforeend', html);
-            container.scrollTop = container.scrollHeight;
-        }
-        function changeUILanguage() {} // 簡化
+        function sendMessage() { const input = document.getElementById('chat-input'); const msg = input.value.trim(); if(!msg) return; addMsg(msg, 'user'); input.value = ''; fetch(GAS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: "chat_bot", message: msg, context: currentRawText.substring(0, 10000) }) }).then(res => res.json()).then(res => { if(res.result === "success") addMsg(res.reply, 'bot'); else addMsg("小科累了...", 'bot'); }); }
+        function addMsg(text, role) { const container = document.getElementById('chat-messages'); let html = role === 'user' ? `<div class="flex justify-end"><div class="bg-indigo-600 text-white px-3 py-2 rounded-2xl rounded-tr-none shadow-sm max-w-[85%] text-xs font-bold">${text}</div></div>` : `<div class="flex items-start gap-2"><div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600"><i class="fa-solid fa-robot text-sm"></i></div><div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-indigo-50 text-slate-700 text-sm font-bold">${marked.parse(text)}</div></div>`; container.insertAdjacentHTML('beforeend', html); container.scrollTop = container.scrollHeight; }
+        function changeUILanguage() {} 
+        function showToast(msg, type="info") { const toast = document.getElementById('toast'); document.getElementById('toast-msg').innerText = msg; toast.classList.remove('opacity-0', 'translate-y-10'); if(type === 'error') toast.classList.replace('bg-slate-800/90', 'bg-red-800/90'); setTimeout(() => { toast.classList.add('opacity-0', 'translate-y-10'); toast.classList.replace('bg-red-800/90', 'bg-slate-800/90'); }, 3000); }
     </script>
 </body>
 </html>
