@@ -16,9 +16,8 @@
                         student: { light: '#e0f2fe', DEFAULT: '#0ea5e9', dark: '#0284c7' },
                     },
                     fontFamily: {
-                        // 強制設定為微軟正黑體
-                        sans: ['"Microsoft JhengHei"', '"Heiti TC"', 'sans-serif'],
-                        serif: ['"Microsoft JhengHei"', 'sans-serif'], // 即使是書本模式也用正黑體
+                        // 修正：跨平台字體堆疊 (Windows優先用正黑體, Mac用蘋方, Android用Noto)
+                        sans: ['"Microsoft JhengHei"', '"Microsoft YaHei"', '"PingFang TC"', '"Heiti TC"', '"Noto Sans TC"', 'sans-serif'],
                     },
                     animation: {
                         "fade-in-up": "fadeInUp 0.5s ease-out forwards"
@@ -40,42 +39,48 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         }
 
-        /* 閱讀區塊樣式修正 */
+        /* 電子書頁面樣式 - 針對閱讀體驗優化 */
         .book-page {
-            font-family: 'Microsoft JhengHei', sans-serif !important; /* 強制正黑體 */
-            font-size: 1.25rem;
-            line-height: 1.6; /* 修正：行距縮小 */
-            color: #334155;
             background-color: white;
-            padding: 2.5rem;
+            padding: 2rem; /* 手機版內距 */
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
             min-height: 100%;
         }
-
-        /* 標題樣式修正 */
-        .book-page h1 {
-            font-size: 2.25rem; /* 標題加大 */
-            font-weight: 900;   /* 最粗體 */
-            color: #0f172a;
-            margin-bottom: 1.5rem;
-            text-align: center;
-            border-bottom: 3px solid #0ea5e9;
-            padding-bottom: 1rem;
-            line-height: 1.3;
+        
+        @media (min-width: 768px) {
+            .book-page { padding: 3.5rem; } /* 電腦版內距加大 */
         }
 
+        /* 標題優化：大、粗、醒目 */
+        .book-page h1 {
+            font-size: 2.25rem; /* 相當於 text-4xl */
+            font-weight: 900;   /* font-black */
+            color: #0f172a;
+            margin-bottom: 2rem;
+            text-align: center;
+            border-bottom: 4px solid #0ea5e9;
+            padding-bottom: 1.5rem;
+            line-height: 1.3;
+            letter-spacing: 0.05em;
+        }
+
+        /* 內文優化：行距適中 */
         .book-page p {
-            margin-bottom: 1.2rem; /* 段落間距 */
+            font-size: 1.25rem; /* text-xl */
+            line-height: 1.8;   /* leading-relaxed */
+            color: #334155;
+            margin-bottom: 2rem; /* 段落間距加大 */
             text-align: justify;
         }
 
         .sci-term {
-            font-weight: 800; /* 詞彙加粗 */
-            color: #0369a1;
+            font-weight: 800;
+            color: #0284c7;
             background-color: #e0f2fe;
-            padding: 0 4px;
-            border-radius: 4px;
+            padding: 2px 6px;
+            border-radius: 6px;
             cursor: help;
+            border-bottom: 2px solid #7dd3fc;
         }
 
         .custom-select {
@@ -91,12 +96,12 @@
         .custom-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
         .custom-scroll::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
 
-        .loader { border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #3b82f6; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+        .loader { border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #3b82f6; width: 20px; height: 20px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
         .google-gradient-text { background: linear-gradient(135deg, #4285F4, #EA4335, #34A853); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .google-border::before { content: ""; position: absolute; z-index: -1; inset: 0; padding: 2px; border-radius: 50%; background: linear-gradient(135deg, #4285F4, #EA4335, #FBBC05, #34A853); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
         .google-border { position: relative; z-index: 0; overflow: hidden; }
+        .google-border::before { content: ""; position: absolute; z-index: -1; inset: 0; padding: 2px; border-radius: 50%; background: linear-gradient(135deg, #4285F4, #EA4335, #FBBC05, #34A853); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
         
         .chat-window { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform-origin: bottom right; }
         .chat-hidden { transform: scale(0.9) translateY(20px); opacity: 0; pointer-events: none; }
@@ -191,7 +196,7 @@
                     </button>
                 </div>
             </div>
-            <div id="content-zh" class="flex-1 overflow-y-auto p-4 md:p-8 custom-scroll bg-[#f7f6f3]">
+            <div id="content-zh" class="flex-1 overflow-y-auto p-0 custom-scroll bg-[#f7f6f3]">
                 <div class="h-full flex flex-col items-center justify-center text-slate-300 select-none">
                     <i class="fa-solid fa-book-open text-4xl mb-2 text-slate-200"></i>
                     <p data-i18n="msg_hint" class="font-bold">請選擇教材開始閱讀</p>
@@ -240,7 +245,7 @@
                     </button>
                 </div>
             </div>
-            <div id="content-target" class="flex-1 overflow-y-auto p-4 md:p-8 custom-scroll bg-white">
+            <div id="content-target" class="flex-1 overflow-y-auto p-0 custom-scroll bg-white">
                 <div class="h-full flex flex-col items-center justify-center text-slate-300 select-none">
                     <p data-i18n="msg_trans_hint" class="text-sm font-bold">點擊上方按鈕進行翻譯</p>
                 </div>
@@ -285,7 +290,7 @@
     </div>
 
     <script>
-        // *** 您的 GAS URL (請確認是否為新部署的版本) ***
+        // *** 重要：請確保這裡填入的是「新建版本」後的網址 ***
         const GAS_URL = "https://script.google.com/macros/s/AKfycbx3MW-IOcU-38IqgawidSakL9nVwARmov4cuK0S6Jcqbv3SJFyHUbrvrI43Y6nskJAx/exec"; 
         
         let allOptions = {}; 
@@ -301,35 +306,37 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             fetchTextbookOptions(); 
-            // 預載語音清單
+            // 預先載入語音
             if(window.speechSynthesis) {
                 window.speechSynthesis.getVoices();
+                // 確保在語音清單變更時也更新
                 window.speechSynthesis.onvoiceschanged = () => {
                     window.speechSynthesis.getVoices();
                 };
             }
         });
 
-        // 核心修正：寬鬆的語音選擇策略，確保有聲音
+        // 核心修正：更強大的語音配對邏輯
         function getBestVoice(lang) {
             const voices = window.speechSynthesis.getVoices();
-            if (voices.length === 0) return null; // 瀏覽器還沒準備好
+            if (!voices || voices.length === 0) return null;
 
-            // 1. 優先找完全符合且是 Google/Microsoft 的自然音
+            // 1. 優先：符合語言 + Google/Microsoft 自然音
             let voice = voices.find(v => v.lang.includes(lang) && (v.name.includes("Google") || v.name.includes("Natural")));
             
-            // 2. 次選：只要語言符合就好
+            // 2. 次選：只要語言代碼對就好 (例如 zh-TW)
             if (!voice) voice = voices.find(v => v.lang.includes(lang));
             
-            // 3. (Fallback) 如果是中文但沒找到 zh-TW，試試 zh-CN
+            // 3. 備案：如果是中文但找不到 TW，就用任意中文
             if (!voice && lang === 'zh-TW') voice = voices.find(v => v.lang.includes('zh'));
 
-            // 4. 真的沒辦法，就回傳 null，讓瀏覽器用預設
+            // 4. 萬一都沒找到，隨便回傳一個該語言的 (防呆)
             return voice;
         }
 
         function speakText(side) {
-            window.speechSynthesis.cancel(); 
+            window.speechSynthesis.cancel(); // 先停止之前的
+            
             let text = "", lang = "zh-TW", rate = 1, btnId = "";
 
             if (side === 'zh-TW') {
@@ -343,36 +350,48 @@
                 btnId = "btn-play-target";
             }
 
-            if (!text || text.includes("請選擇") || text.includes("翻譯中") || text.includes("Translation busy")) {
-                showToast("沒有可朗讀的文字", "error");
+            // 防呆：沒字不念
+            if (!text || text.includes("請選擇") || text.includes("翻譯中") || text.trim() === "") {
+                showToast("沒有內容可朗讀", "error");
                 return;
             }
 
             const btn = document.getElementById(btnId);
-            // 變更為紅色停止鍵
             btn.innerHTML = '<i class="fa-solid fa-stop"></i>';
             btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
             btn.classList.add('bg-red-500', 'hover:bg-red-600');
 
             const u = new SpeechSynthesisUtterance(text);
-            const voice = getBestVoice(lang === 'zh-TW' ? 'zh-TW' : lang);
-            if (voice) u.voice = voice;
             
-            u.lang = lang; // 設定語言代碼
-            u.rate = rate; // 設定倍速
+            // 確保語音物件存在
+            // 有些瀏覽器 (Chrome) 需要在播放前一刻再次呼叫 getVoices 確保不為空
+            if (window.speechSynthesis.getVoices().length === 0) {
+                window.speechSynthesis.getVoices();
+            }
+            
+            const targetLangCode = (lang === 'zh-TW') ? 'zh-TW' : lang;
+            const voice = getBestVoice(targetLangCode);
+            
+            if (voice) {
+                u.voice = voice;
+                u.lang = voice.lang; // 確保 lang 與 voice 一致
+            } else {
+                u.lang = targetLangCode; // 沒有特定 voice 就用預設 lang
+            }
+            
+            u.rate = rate;
 
             u.onend = () => {
-                // 恢復為藍色播放鍵
-                btn.innerHTML = '<i class="fa-brands fa-youtube text-lg"></i>';
+                btn.innerHTML = '<i class="fa-brands fa-youtube text-sm"></i>';
                 btn.classList.remove('bg-red-500', 'hover:bg-red-600');
                 btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
                 isSpeaking = false;
             };
             
-            // 錯誤處理：如果播放失敗，也要恢復按鈕
             u.onerror = (e) => {
-                console.error("Speech error:", e);
-                btn.innerHTML = '<i class="fa-brands fa-youtube text-lg"></i>';
+                console.error("Speech Error:", e);
+                // 發生錯誤也要復原按鈕
+                btn.innerHTML = '<i class="fa-brands fa-youtube text-sm"></i>';
                 btn.classList.remove('bg-red-500', 'hover:bg-red-600');
                 btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
                 isSpeaking = false;
@@ -387,7 +406,7 @@
                 window.speechSynthesis.cancel();
                 isSpeaking = false;
                 document.querySelectorAll('#btn-play-zh, #btn-play-target').forEach(btn => {
-                    btn.innerHTML = '<i class="fa-brands fa-youtube text-lg"></i>';
+                    btn.innerHTML = '<i class="fa-brands fa-youtube text-sm"></i>';
                     btn.classList.remove('bg-red-500', 'hover:bg-red-600');
                     btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
                 });
@@ -430,7 +449,7 @@
 
         function fetchTextbookOptions() {
             const stageSel = document.getElementById('sel-stage');
-            stageSel.options[0].text = "載入資料庫中...";
+            stageSel.options[0].text = "載入中...";
             fetch(GAS_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -440,7 +459,7 @@
                     allOptions = response.data || response; 
                     delete allOptions.result; delete allOptions.message;
                     initStageSelect();
-                    showToast("已連結資料庫");
+                    showToast("資料庫連結成功");
                 } else { showToast("資料載入失敗", "error"); }
             }).catch(err => showToast("連線失敗", "error"));
         }
@@ -508,6 +527,7 @@
             });
         }
 
+        // 核心修正 3: 電子書排版 (移除 card div，直接渲染 p)
         function renderContent(data) {
             currentRawText = data.content;
             currentTerms = data.terms || {};
@@ -551,9 +571,9 @@
                 if (response.result === "success") {
                     const mdText = response.translatedText;
                     translationCache[lang] = mdText;
+                    // 套用 book-page 樣式
                     document.getElementById('content-target').innerHTML = `<div class="book-page">${marked.parse(mdText)}</div>`;
                 } else {
-                    // 如果後端回傳錯誤 (包含 Translation busy)
                     document.getElementById('content-target').innerHTML = `<p class="text-red-400 text-center font-bold px-4">${response.message || '翻譯失敗'}</p>`;
                 }
                 document.getElementById('trans-loading').classList.add('hidden');
@@ -597,6 +617,18 @@
             container.insertAdjacentHTML('beforeend', html);
             container.scrollTop = container.scrollHeight;
         }
+
+        (function() {
+            const canvas = document.getElementById('network-canvas');
+            const ctx = canvas.getContext('2d');
+            let width, height, orbits = [], centerX, centerY, mouse = { x: null, y: null };
+            window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+            function resize() { width = window.innerWidth; height = window.innerHeight; canvas.width = width; canvas.height = height; centerX = width / 2; centerY = height / 2; initOrbits(); }
+            class Orbit { constructor(rx, ry, a, c, s) { this.rx=rx; this.ry=ry; this.a=a; this.c=c; this.s=s; this.r=0; this.ea=Math.random()*Math.PI*2; } update(){ this.r+=this.s; this.ea+=0.002; } draw(){ ctx.save(); ctx.translate(centerX,centerY); ctx.rotate(this.a); ctx.beginPath(); ctx.ellipse(0,0,this.rx,this.ry,this.r,0,Math.PI*2); ctx.strokeStyle=this.c; ctx.lineWidth=1; ctx.stroke(); ctx.beginPath(); ctx.arc(this.rx*Math.cos(this.ea), this.ry*Math.sin(this.ea), 3, 0, Math.PI*2); ctx.fillStyle=this.c; ctx.fill(); ctx.restore(); } }
+            function initOrbits() { orbits=[]; const br=width<height?width*0.2:height*0.25; orbits.push(new Orbit(br*2.2, br*2.2, 0, 'rgba(59,130,246,0.1)', 0.0005)); orbits.push(new Orbit(br*1.3, br*0.5, Math.PI/6, 'rgba(59,130,246,0.1)', 0.001)); }
+            function animate() { ctx.clearRect(0,0,width,height); if(mouse.x){ centerX+=(width/2+(mouse.x-width/2)*0.03-centerX)*0.05; centerY+=(height/2+(mouse.y-height/2)*0.03-centerY)*0.05; } else { centerX+=(width/2-centerX)*0.05; centerY+=(height/2-centerY)*0.05; } orbits.forEach(o=>{o.update();o.draw()}); ctx.beginPath(); ctx.arc(centerX,centerY,5,0,Math.PI*2); ctx.fillStyle='rgba(59,130,246,0.2)'; ctx.fill(); requestAnimationFrame(animate); }
+            window.addEventListener('resize', resize); resize(); animate();
+        })();
     </script>
 </body>
 </html>
