@@ -1,1 +1,332 @@
 
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>單元重點整理 | Science Learning Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #003366; /* Science Hub Deep Blue */
+            --accent-color: #00A8E8; /* Tech Blue */
+            --success-color: #2ECC71;
+            --warning-color: #f39c12;
+            --bg-color: #F4F7F6;
+            --text-color: #333;
+            --card-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        * { box-sizing: border-box; font-family: 'Noto Sans TC', sans-serif; }
+        body { margin: 0; background-color: var(--bg-color); color: var(--text-color); height: 100vh; display: flex; flex-direction: column; }
+
+        /* --- Header --- */
+        header {
+            background: white;
+            padding: 0.8rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            z-index: 100;
+            border-bottom: 1px solid #eee;
+        }
+        
+        /* Navigation Links in Header */
+        .nav-left { display: flex; align-items: center; gap: 20px; }
+        .back-link {
+            text-decoration: none;
+            color: #666;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: 0.2s;
+        }
+        .back-link:hover { background: #f0f0f0; color: var(--primary-color); }
+        
+        .logo { font-weight: 700; font-size: 1.1rem; color: var(--primary-color); display: flex; align-items: center; gap: 10px; }
+        .user-profile { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; color: #666; }
+        .user-avatar { width: 32px; height: 32px; background: var(--primary-color); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+
+        /* --- Sub-Navigation Bar (New Request) --- */
+        .sub-nav {
+            background: white;
+            padding: 10px 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+        }
+        .nav-btn {
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+            border: 1px solid transparent;
+        }
+        /* Style for Science Bilingual (Left) */
+        .btn-bilingual { 
+            background-color: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb;
+        }
+        .btn-bilingual:hover { background-color: #bbdefb; }
+
+        /* Style for AI Evaluation (Right) */
+        .btn-evaluation { 
+            background-color: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9;
+        }
+        .btn-evaluation:hover { background-color: #c8e6c9; }
+        
+        /* Disabled state if unit not loaded */
+        .nav-btn.disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
+
+        /* --- Main Layout --- */
+        main { flex: 1; position: relative; overflow: hidden; }
+
+        /* View 1: Selector */
+        #dashboard-view { padding: 3rem; max-width: 1000px; margin: 0 auto; text-align: center; }
+        .selector-card { background: white; padding: 2rem; border-radius: 16px; box-shadow: var(--card-shadow); text-align: left; }
+        .form-control { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; margin-bottom: 15px; }
+        .btn-primary { background: var(--primary-color); color: white; border: none; padding: 14px 24px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 1rem; }
+        .btn-primary:hover { background: #002244; }
+
+        /* View 2: Split Learning Lab */
+        #learning-view { display: none; height: 100%; display: flex; }
+        .summary-panel { flex: 6; background: white; padding: 40px; overflow-y: auto; border-right: 1px solid #eee; }
+        
+        /* 保持左側重點整理樣式 */
+        .summary-content { line-height: 1.8; font-size: 1.05rem; max-width: 800px; margin: 0 auto; }
+        .summary-content h2 { color: var(--primary-color); border-bottom: 2px solid var(--accent-color); padding-bottom: 10px; margin-top: 30px; }
+        .summary-content strong { background: linear-gradient(120deg, #fff200 0%, #fff200 100%); background-repeat: no-repeat; background-size: 100% 40%; background-position: 0 88%; }
+        .teacher-note { background: #fff8e1; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 4px; }
+
+        /* Right Panel (Chat) */
+        .quiz-panel { flex: 4; background: #f9f9f9; display: flex; flex-direction: column; }
+        .chat-container { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .chat-bubble { max-width: 85%; padding: 15px; border-radius: 12px; font-size: 0.95rem; line-height: 1.5; }
+        .bubble-ai { background: white; border: 1px solid #e0e0e0; align-self: flex-start; }
+        .bubble-user { background: var(--primary-color); color: white; align-self: flex-end; }
+        
+        /* Loading */
+        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 200; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        .loader { width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="nav-left">
+            <a href="student.html" class="back-link">
+                <i class="fas fa-chevron-left"></i> 返回學習中心
+            </a>
+            <div class="logo" style="margin-left: 15px; padding-left: 15px; border-left: 1px solid #ddd;">
+                <i class="fas fa-flask"></i> 單元重點實驗室
+            </div>
+        </div>
+        <div class="user-profile" id="user-display">
+            <span>訪客</span>
+            <div class="user-avatar"><i class="fas fa-user"></i></div>
+        </div>
+    </header>
+
+    <div class="sub-nav">
+        <a href="sciencebilingual.html" class="nav-btn btn-bilingual" id="btn-bilingual">
+            <i class="fas fa-book-open"></i> 科學雙語閱讀
+        </a>
+        
+        <span style="font-size: 0.9rem; color: #888; font-weight: 500;">
+            Current Phase: 重點整理與概念釐清
+        </span>
+
+        <a href="AIevaluation.html" class="nav-btn btn-evaluation" id="btn-evaluation">
+            AI 測驗與診斷 <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+
+    <main>
+        <div id="dashboard-view">
+            <div style="margin-top: 40px;">
+                <h1 style="color:var(--primary-color);">準備好學習這個單元了嗎？</h1>
+                <p style="color:#666;">請輸入單元名稱，AI 將為你生成重點整理，並準備好隨堂測驗。</p>
+            </div>
+            
+            <div class="selector-card" style="margin-top: 30px;">
+                <div id="login-section" style="display:none;">
+                    <label>Email 驗證</label>
+                    <input type="email" id="user-email" class="form-control" placeholder="輸入 Email">
+                    <button onclick="loginUser()" class="btn-primary">確認身分</button>
+                </div>
+
+                <div id="unit-selector-section">
+                    <label style="display:block; margin-bottom:10px; font-weight:bold;">單元名稱</label>
+                    <input type="text" id="unit-input" class="form-control" placeholder="例如：光與影、氧化還原...">
+                    
+                    <button onclick="startLearning()" class="btn-primary">
+                        <i class="fas fa-magic"></i> 生成重點整理
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="loading-overlay">
+            <div class="loader"></div>
+            <h3 style="margin-top:20px; color:#555;">正在分析科學文本...</h3>
+            <p id="loading-tip" style="color:#888;">AI 正在整理重點筆記，請稍候...</p>
+        </div>
+
+        <div id="learning-view">
+            <div class="summary-panel">
+                <div id="summary-container" class="summary-content"></div>
+            </div>
+
+            <div class="quiz-panel">
+                <div class="chat-container" id="chat-box">
+                    </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // 設定您的 GAS Web App URL
+        const API_URL = "https://script.google.com/macros/s/AKfycbx3MW-IOcU-38IqgawidSakL9nVwARmov4cuK0S6Jcqbv3SJFyHUbrvrI43Y6nskJAx/exec";
+        
+        let currentUser = null;
+        let currentUnitName = "";
+
+        // 初始化
+        window.onload = function() {
+            // 1. 檢查登入 (模擬)
+            const storedUser = localStorage.getItem('slh_user');
+            if (storedUser) {
+                currentUser = JSON.parse(storedUser);
+                updateUserDisplay();
+            } else {
+                document.getElementById('login-section').style.display = 'block';
+                document.getElementById('unit-selector-section').style.display = 'none';
+            }
+
+            // 2. 處理外部連結參數 (若有)
+            // 讓雙語閱讀和 AI 測驗按鈕帶上目前的單元參數，避免使用者重選
+            updateNavLinks();
+        };
+
+        function updateUserDisplay() {
+            document.getElementById('user-display').innerHTML = `
+                <span>${currentUser.Name}</span>
+                <div class="user-avatar">${currentUser.Name[0]}</div>
+            `;
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('unit-selector-section').style.display = 'block';
+        }
+
+        // 更新導覽按鈕的連結 (帶入單元參數)
+        function updateNavLinks() {
+            const btnBilingual = document.getElementById('btn-bilingual');
+            const btnEvaluation = document.getElementById('btn-evaluation');
+            
+            if (currentUnitName) {
+                // 如果已經選了單元，按鈕變為啟用狀態，並帶入 URL 參數
+                // 假設目標網頁會讀取 ?unit=xxx
+                btnBilingual.href = `sciencebilingual.html?unit=${encodeURIComponent(currentUnitName)}`;
+                btnEvaluation.href = `AIevaluation.html?unit=${encodeURIComponent(currentUnitName)}`;
+                
+                btnBilingual.classList.remove('disabled');
+                btnEvaluation.classList.remove('disabled');
+            } else {
+                // 還沒選單元時，先禁用這些按鈕，避免跳過去沒東西
+                btnBilingual.classList.add('disabled');
+                btnEvaluation.classList.add('disabled');
+                // 或者你可以讓它們保持連結，只是不帶參數
+            }
+        }
+
+        async function loginUser() {
+            const email = document.getElementById('user-email').value;
+            if(!email) return alert('請輸入 Email');
+            
+            // 簡單模擬登入
+            currentUser = { Name: "模擬學生", Email: email }; 
+            // 實際應呼叫 API 驗證
+            localStorage.setItem('slh_user', JSON.stringify(currentUser));
+            updateUserDisplay();
+        }
+
+        async function startLearning() {
+            const unitName = document.getElementById('unit-input').value;
+            if(!unitName) return alert('請輸入單元名稱');
+            
+            currentUnitName = unitName;
+            updateNavLinks(); // 更新上方按鈕連結
+
+            showLoading(true);
+
+            try {
+                const payload = {
+                    action: 'get_content_and_generate',
+                    email: currentUser.Email,
+                    filters: { unitName: unitName },
+                    unitCode: unitName
+                };
+
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                const json = await res.json();
+
+                if(json.status === 'success') {
+                    renderLearningView(json.data);
+                } else {
+                    alert('生成失敗：' + json.message);
+                }
+
+            } catch(e) {
+                console.error(e);
+                alert('系統忙碌中');
+            }
+            showLoading(false);
+        }
+
+        function renderLearningView(data) {
+            document.getElementById('dashboard-view').style.display = 'none';
+            document.getElementById('learning-view').style.display = 'flex';
+
+            // 左側：重點整理
+            document.getElementById('summary-container').innerHTML = `
+                <h1>${data.raw_text_check}</h1>
+                ${data.summary.summary_html}
+            `;
+
+            // 右側：引導去測驗或簡單問答
+            const chatBox = document.getElementById('chat-box');
+            chatBox.innerHTML = `
+                <div class="chat-bubble bubble-ai">
+                    👋 嗨！我是 AI 助教。<br><br>
+                    左邊是 <strong>${data.raw_text_check}</strong> 的重點整理。<br>
+                    請詳細閱讀。<br><br>
+                    如果你覺得讀完了，可以：<br>
+                    1. 點擊上方的 <strong>「科學雙語閱讀」</strong> 看看英文怎麼說。<br>
+                    2. 點擊上方的 <strong>「AI 測驗與診斷」</strong> 直接開始 10 題測驗！
+                </div>
+            `;
+            // 這裡可以保留簡單的問答功能，或完全引導去 AIevaluation.html
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
+        }
+    </script>
+</body>
+</html>
