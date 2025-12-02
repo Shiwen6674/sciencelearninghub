@@ -49,7 +49,6 @@
 
     <div id="canvas-container"><canvas id="network-canvas"></canvas></div>
 
-    <!-- 導航列 -->
     <nav class="glass-panel sticky top-0 z-50 border-b-0">
         <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
             <div class="flex items-center space-x-3 cursor-pointer group" onclick="window.location.href='researcher.html'">
@@ -72,27 +71,22 @@
         </div>
     </nav>
 
-    <!-- 主內容區 -->
     <main class="flex-1 p-6 md:p-10 relative z-10">
         <div class="max-w-7xl mx-auto animate-fade-in-up">
             
-            <!-- 標題 -->
             <div class="text-center mb-10">
                 <h1 class="text-4xl md:text-5xl font-black title-3d mb-3 tracking-tight" data-i18n="page_title">科學文本語料庫查詢</h1>
                 <p class="text-slate-500 text-lg font-medium" data-i18n="page_subtitle">Search Scientific Text Corpus & Analysis</p>
             </div>
 
-            <!-- 查詢面板 -->
             <div class="glass-panel p-8 rounded-[2rem] mb-8 border border-white/60 relative">
                 <div id="search-loading" class="loading-overlay hidden"><div class="text-purple-600 font-bold text-lg"><i class="fa-solid fa-circle-notch fa-spin mr-2"></i> <span data-i18n="msg_searching">查詢中...</span></div></div>
 
-                <!-- 搜尋欄 -->
                 <div class="mb-8">
                     <label class="block text-sm font-bold text-slate-600 mb-2 ml-1" data-i18n="label_search_term">請輸入查詢詞彙或句子</label>
                     <div class="relative group">
                         <textarea id="inputText" class="input-area w-full h-24 p-5 pr-14 rounded-2xl border border-slate-200 bg-white/80 text-slate-700 text-lg leading-relaxed resize-none shadow-inner transition" placeholder="例：摩擦力、光合作用、全球暖化..."></textarea>
                         
-                        <!-- 語音按鈕 (內嵌於輸入框右下) -->
                         <button id="voiceBtn" class="absolute bottom-3 right-3 w-10 h-10 rounded-xl bg-slate-100 text-slate-500 hover:bg-purple-100 hover:text-purple-600 transition flex items-center justify-center shadow-sm border border-slate-200" title="語音輸入">
                             <i class="fa-solid fa-microphone"></i>
                         </button>
@@ -100,7 +94,6 @@
                     <p id="voiceHint" class="text-xs text-slate-400 mt-2 text-right h-4 transition-all"></p>
                 </div>
 
-                <!-- 過濾器控制列 -->
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 bg-purple-50/50 p-5 rounded-2xl border border-purple-100">
                     <div>
                         <label class="block text-xs font-bold text-slate-500 mb-1 uppercase" data-i18n="label_stage">學習階段</label>
@@ -134,14 +127,11 @@
                     </div>
                 </div>
 
-                <!-- 狀態訊息 -->
                 <div id="statusMsg" class="text-center text-sm font-medium min-h-[20px]"></div>
             </div>
 
-            <!-- 查詢結果區 -->
             <div id="result-panel" class="hidden">
                 
-                <!-- 洞察卡片 (最早出現) -->
                 <div id="earliestInfo" class="glass-panel p-6 rounded-2xl border-l-8 border-purple-500 mb-6 flex items-start gap-4 hidden">
                     <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0 text-purple-600 text-xl">
                         <i class="fa-solid fa-lightbulb"></i>
@@ -152,7 +142,6 @@
                     </div>
                 </div>
 
-                <!-- 圖表區 -->
                 <div class="glass-panel p-6 rounded-3xl mb-8 border border-white/60">
                     <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2">
                         <i class="fa-solid fa-chart-line text-purple-500"></i> <span data-i18n="title_chart">各版本年級分佈</span>
@@ -162,7 +151,6 @@
                     </div>
                 </div>
 
-                <!-- 表格區 -->
                 <div class="glass-panel p-6 rounded-3xl border border-white/60 overflow-hidden">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="font-bold text-slate-700 flex items-center gap-2">
@@ -190,7 +178,6 @@
                         </table>
                     </div>
 
-                    <!-- 分頁控制 -->
                     <div class="flex justify-center items-center gap-4 mt-6">
                         <button id="prevPageBtn" class="w-10 h-10 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-purple-50 hover:text-purple-600 hover:border-purple-200 transition shadow-sm disabled:opacity-40 disabled:cursor-not-allowed">
                             <i class="fa-solid fa-chevron-left"></i>
@@ -211,13 +198,15 @@
         </div>
     </main>
 
-    <!-- Toast -->
     <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-slate-800/90 backdrop-blur text-white px-6 py-3 rounded-full shadow-2xl transition-all duration-300 opacity-0 translate-y-10 z-50 flex items-center gap-3 pointer-events-none border border-slate-700/50">
         <i class="fa-solid fa-circle-info text-purple-400"></i>
         <span id="toast-msg" class="font-medium text-sm"></span>
     </div>
 
     <script>
+        // 🔴 請在此填入剛剛部署 GAS 後取得的網址 (結尾是 /exec)
+        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyswFkjh-wlWpgZMD02eyO4vBhLX2-HdkYY4AAaonG-LxJuL5Ioi02MyZukgj73q82b_A/exec"; 
+
         // *** 多語系設定 ***
         const translations = {
             "zh-TW": {
@@ -233,7 +222,9 @@
                 "th_grade": "年級", "th_sem": "學期", "th_vol": "冊別", "th_unit": "課別", "th_content": "內容",
                 "label_goto": "跳至", "label_page": "頁",
                 "msg_no_data": "沒有找到相符資料。", "msg_total_prefix": "總共", "msg_total_suffix": "筆資料",
-                "mic_listening": "正在聆聽...", "mic_error": "無法開啟麥克風", "mic_not_support": "此瀏覽器不支援語音輸入"
+                "mic_listening": "正在聆聽...", "mic_error": "無法開啟麥克風", "mic_not_support": "此瀏覽器不支援語音輸入",
+                "msg_input_empty": "請輸入查詢內容",
+                "msg_api_url_error": "請先設定 GAS API 網址"
             },
             "en": {
                 "back_researcher": "Back to Research Center", "tool_name": "Corpus Search",
@@ -248,7 +239,9 @@
                 "th_grade": "Grade", "th_sem": "Sem.", "th_vol": "Vol.", "th_unit": "Unit", "th_content": "Content",
                 "label_goto": "Go to", "label_page": "",
                 "msg_no_data": "No results found.", "msg_total_prefix": "Total", "msg_total_suffix": "records",
-                "mic_listening": "Listening...", "mic_error": "Mic Error", "mic_not_support": "Voice input not supported"
+                "mic_listening": "Listening...", "mic_error": "Mic Error", "mic_not_support": "Voice input not supported",
+                "msg_input_empty": "Please enter search text",
+                "msg_api_url_error": "Please configure GAS API URL"
             },
             "ja": { /* ...可依需補完... */ }, "zh-CN": { /* ...可依需補完... */ }
         };
@@ -350,22 +343,51 @@
         $('prevPageBtn').addEventListener('click', () => { if (currentPage > 1) { currentPage--; runSearch(); } });
         $('nextPageBtn').addEventListener('click', () => { if (currentPage < totalPagesCache) { currentPage++; runSearch(); } });
 
-        function runSearch(){
+        // 🔵 修正：改用 fetch 呼叫 GAS API
+        async function runSearch(){
             if(!currentQueryText.trim()) { showToast(getMsg('msg_input_empty'), 'error'); return; }
             
+            if (!GAS_API_URL || GAS_API_URL.includes("在此填入")) {
+                showToast(getMsg('msg_api_url_error'), 'error');
+                return;
+            }
+
             const loading = $('search-loading');
             const statusMsg = $('statusMsg');
             loading.classList.remove('hidden');
             statusMsg.innerText = '';
             $('result-panel').classList.add('hidden'); // Hide old results
 
-            google.script.run
-                .withSuccessHandler(showResults)
-                .withFailureHandler(err => { 
-                    loading.classList.add('hidden'); 
-                    statusMsg.innerHTML = `<span class="text-red-500">Error: ${err}</span>`; 
-                })
-                .searchTerms(currentQueryText, currentStageFilter, currentPageSize, currentPage, currentContextRange);
+            // 準備資料
+            const payload = {
+                text: currentQueryText,
+                stage: currentStageFilter,
+                pageSize: currentPageSize,
+                page: currentPage,
+                context: currentContextRange
+            };
+
+            try {
+                // 發送 POST 請求
+                const response = await fetch(GAS_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // 避免 CORS 預檢
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+                
+                const data = await response.json();
+                
+                if (data.error) throw new Error(data.error);
+
+                showResults(data);
+
+            } catch (err) {
+                console.error(err);
+                loading.classList.add('hidden');
+                statusMsg.innerHTML = `<span class="text-red-500">Error: ${err.message}</span>`;
+            }
         }
 
         function showResults(payload){
@@ -391,7 +413,7 @@
             // Insight Card
             const infoBox = $('earliestInfo');
             const contentBox = $('earliestInfoContent');
-            if(payload.earliest && payload.earliest.results.length > 0) {
+            if(payload.earliest && payload.earliest.results && payload.earliest.results.length > 0) {
                 infoBox.classList.remove('hidden');
                 let html = `<p class="mb-1"><strong class="text-purple-600">「${currentQueryText}」</strong> ${getMsg('title_earliest')}:</p>`;
                 payload.earliest.results.forEach(section => {
