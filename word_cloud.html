@@ -1,15 +1,15 @@
 <script>
-    // 🔴 請重新部署 GAS 後，將新的網址貼在這裡
+    // 🔴 請重新部署 GAS 後，將新的網址貼在這裡 (結尾是 /exec)
     const GAS_URL = "https://script.google.com/macros/s/AKfycbw3UqYr976wAd9aeEsLpTDSlGaUVdBpaErqZi-zHgNzh_Gd0SuggfdI7ldVzrqR1Ygd/exec"; 
     
-    // ... (Tailwind Config 那些設定保持不變) ...
+    // ... (Tailwind Config 那些設定保持不變，略過不貼) ...
 
     // 核心變數
     let currentWords = [];
     let activePos = new Set(['n', 'v', 'a', 'd', 'o']);
     let currentLang = 'zh-TW';
 
-    // ... (translations, changeLanguage, loadExample, clearText, togglePos, switchTab 函式保持不變) ...
+    // ... (translations, changeLanguage, loadExample, clearText, togglePos, switchTab 函式保持不變，略過不貼) ...
 
     // 執行分析
     function runAnalysis() {
@@ -18,7 +18,7 @@
         const btn = document.getElementById('btn-analyze');
         
         if (!text) { alert("請先輸入文本！"); return; }
-        if (GAS_URL.includes("你的新部署網址")) { alert("請先設定 GAS API 網址！"); return; }
+        if (!GAS_URL || GAS_URL.includes("你的新部署網址")) { alert("請先設定 GAS API 網址！"); return; }
 
         // UI 狀態切換
         const originalBtnText = btn.innerHTML;
@@ -27,7 +27,7 @@
         
         document.getElementById('word-cloud-canvas').classList.add('hidden');
         document.getElementById('empty-state').classList.remove('hidden');
-        document.getElementById('empty-state').innerHTML = `<div class="loader mx-auto mb-2"></div><p class="animate-pulse">AI 正在努力閱讀您的文章...</p>`;
+        document.getElementById('empty-state').innerHTML = `<div class="loader mx-auto mb-2"></div><p class="animate-pulse">AI 正在閱讀...</p>`;
         document.getElementById('ai-content').innerHTML = `<p class="text-slate-400 italic">分析中...</p>`;
 
         const payload = { text: text, mode: model };
@@ -35,27 +35,27 @@
         fetch(GAS_URL, {
             method: 'POST',
             body: JSON.stringify(payload),
-            headers: { "Content-Type": "text/plain;charset=utf-8" } // 避免 CORS
+            headers: { "Content-Type": "text/plain;charset=utf-8" } // 避免 CORS 預檢
         })
         .then(response => response.json())
         .then(res => {
-            if (res.status === 'success') {
+            if (res.status === 'success' && res.data) {
                 currentWords = res.data.wordList;
                 
                 // 顯示 AI 分析
-                document.getElementById('ai-content').innerHTML = res.data.aiAnalysis;
+                document.getElementById('ai-content').innerHTML = res.data.aiAnalysis || "<p>無分析結果</p>";
                 
                 // 渲染
                 renderWordCloud();
                 renderTable();
             } else {
-                throw new Error(res.message);
+                throw new Error(res.message || "未知錯誤");
             }
         })
         .catch(error => {
             console.error('Error:', error);
             document.getElementById('empty-state').innerHTML = `<p class="text-red-500"><i class="fa-solid fa-triangle-exclamation"></i> 錯誤: ${error.message}</p>`;
-            document.getElementById('ai-content').innerHTML = `<p class="text-red-500">連線錯誤。</p>`;
+            document.getElementById('ai-content').innerHTML = `<p class="text-red-500">連線錯誤，請檢查網路或 API 配額。</p>`;
         })
         .finally(() => {
             btn.disabled = false;
@@ -72,7 +72,7 @@
         // 1. 過濾詞性
         const filteredList = currentWords.filter(item => {
             let cat = 'o';
-            const p = item.pos.toLowerCase();
+            const p = String(item.pos).toLowerCase();
             if (p.startsWith('n')) cat = 'n';
             else if (p.startsWith('v')) cat = 'v';
             else if (p.startsWith('a')) cat = 'a';
@@ -93,38 +93,46 @@
         document.getElementById('btn-download').classList.remove('hidden');
 
         // 3. 設定 Canvas 大小 (RWD)
-        canvas.width = wrapper.clientWidth;
-        canvas.height = wrapper.clientHeight;
+        // 必須確保 wrapper 有實際寬高
+        const w = wrapper.clientWidth || 600;
+        const h = wrapper.clientHeight || 400;
+        canvas.width = w;
+        canvas.height = h;
 
         // 4. 準備數據給 wordcloud2.js
-        // 為了避免字體太小，我們找出最大權重來做正規化
         const maxWeight = Math.max(...filteredList.map(i => i.weight));
+        // 避免 maxWeight 為 0
+        const safeMaxWeight = maxWeight > 0 ? maxWeight : 1;
         const list = filteredList.map(i => [i.word, i.weight]);
 
-        WordCloud(canvas, {
-            list: list,
-            gridSize: 16, // 字距加大一點，避免重疊
-            weightFactor: function (size) { 
-                // 🔴 動態計算字體大小：最小 12px，最大隨畫布寬度調整
-                return (size / maxWeight) * (canvas.width / 8) + 12; 
-            },
-            fontFamily: 'Noto Sans TC, sans-serif',
-            color: function (word, weight) {
-                const item = currentWords.find(w => w.word === word);
-                return item ? getPosColor(item.pos) : '#333';
-            },
-            rotateRatio: 0.3, 
-            rotationSteps: 2,
-            shape: shape,
-            backgroundColor: 'transparent',
-            drawOutOfBound: false,
-            shrinkToFit: true // 如果字太多，自動縮小
-        });
+        // 5. 🔴 延遲繪製：確保 DOM 更新完畢，避免 Canvas 繪製失敗
+        setTimeout(() => {
+            WordCloud(canvas, {
+                list: list,
+                gridSize: 16,
+                weightFactor: function (size) { 
+                    // 動態計算字體大小
+                    return (size / safeMaxWeight) * (w / 10) + 12; 
+                },
+                fontFamily: 'Noto Sans TC, sans-serif',
+                color: function (word, weight) {
+                    const item = currentWords.find(w => w.word === word);
+                    return item ? getPosColor(item.pos) : '#333';
+                },
+                rotateRatio: 0.3, 
+                rotationSteps: 2,
+                shape: shape,
+                backgroundColor: 'transparent',
+                drawOutOfBound: false,
+                shrinkToFit: true,
+                shuffle: false // 保持大字在中間
+            });
+        }, 100); // 延遲 100ms
     }
 
     // 輔助：顏色對照
     function getPosColor(pos) {
-        const p = pos.toLowerCase();
+        const p = String(pos).toLowerCase();
         if (p.startsWith('n')) return '#3b82f6'; // 藍
         if (p.startsWith('v')) return '#10b981'; // 綠
         if (p.startsWith('a')) return '#f59e0b'; // 黃
