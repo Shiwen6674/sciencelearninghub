@@ -1,399 +1,155 @@
-
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 智能文字雲分析 | Science Learning Hub</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/wordcloud2.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script>
+    // 🔴 請重新部署 GAS 後，將新的網址貼在這裡
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbw3UqYr976wAd9aeEsLpTDSlGaUVdBpaErqZi-zHgNzh_Gd0SuggfdI7ldVzrqR1Ygd/exec"; 
     
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        research: { 
-                            50: '#f5f3ff', 100: '#ede9fe', 200: '#ddd6fe', 
-                            500: '#8b5cf6', 600: '#7c3aed', 700: '#6d28d9', 
-                            800: '#5b21b6', 900: '#4c1d95' 
-                        },
-                        pos: { n: '#3b82f6', v: '#10b981', a: '#f59e0b', d: '#8b5cf6', c: '#64748b', o: '#94a3b8' }
-                    },
-                    fontFamily: {
-                        sans: ['Noto Sans TC', 'Roboto', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace'],
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&display=swap');
-        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f8fafc; }
-        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border: 1px solid rgba(226, 232, 240, 0.8); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
-        .pos-tag { transition: all 0.2s; border: 1px solid transparent; }
-        .pos-tag.active { box-shadow: 0 2px 5px rgba(0,0,0,0.1); transform: translateY(-1px); border-color: currentColor; }
-        .pos-tag.inactive { opacity: 0.5; background-color: #f1f5f9 !important; color: #94a3b8 !important; border-color: #e2e8f0; }
-        #canvas-wrapper { background-image: radial-gradient(#e0e7ff 1px, transparent 1px); background-size: 20px 20px; }
-        .loader { border: 3px solid rgba(139, 92, 246, 0.3); border-radius: 50%; border-top: 3px solid #7c3aed; width: 20px; height: 20px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    </style>
-</head>
-<body class="text-slate-800 h-screen flex flex-col overflow-hidden">
+    // ... (Tailwind Config 那些設定保持不變) ...
 
-    <header class="bg-white border-b border-slate-200 px-6 py-3 flex justify-between items-center z-20 shadow-sm">
-        <div class="flex items-center gap-3">
-            <div class="bg-research-100 p-2 rounded-lg text-research-700"><i class="fa-solid fa-cloud text-xl"></i></div>
-            <h1 class="text-xl font-bold text-slate-800 tracking-tight" data-i18n="app_title">AI 智能文字雲分析</h1>
-        </div>
-        <div class="flex items-center gap-3">
-            <i class="fa-solid fa-globe text-slate-400"></i>
-            <select id="language-selector" onchange="changeLanguage()" class="bg-slate-50 border border-slate-200 text-sm rounded-md p-1.5 focus:ring-research-500 outline-none">
-                <option value="zh-TW">繁體中文</option>
-                <option value="en">English</option>
-                <option value="ja">日本語</option>
-                <option value="zh-CN">简体中文</option>
-            </select>
-        </div>
-    </header>
+    // 核心變數
+    let currentWords = [];
+    let activePos = new Set(['n', 'v', 'a', 'd', 'o']);
+    let currentLang = 'zh-TW';
 
-    <div class="flex flex-1 overflow-hidden">
-        <aside class="w-1/3 min-w-[350px] bg-white border-r border-slate-200 flex flex-col overflow-y-auto p-6 z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
-            <div class="mb-6">
-                <label class="block text-sm font-bold text-slate-700 mb-2 flex justify-between items-center">
-                    <span data-i18n="label_text">分析文本</span>
-                    <div class="flex gap-2">
-                        <button onclick="loadExample()" class="text-xs bg-research-50 text-research-600 px-2 py-1 rounded hover:bg-research-100 transition border border-research-200">
-                            <i class="fa-solid fa-wand-magic-sparkles mr-1"></i><span data-i18n="btn_example">載入範例</span>
-                        </button>
-                        <button onclick="clearText()" class="text-xs text-slate-400 hover:text-red-500 transition">
-                            <i class="fa-solid fa-trash-can mr-1"></i><span data-i18n="btn_clear">清空</span>
-                        </button>
-                    </div>
-                </label>
-                <textarea id="text-input" class="w-full h-48 p-4 border border-slate-300 rounded-xl text-sm leading-relaxed resize-none focus:ring-2 focus:ring-research-500 outline-none transition bg-slate-50" placeholder="請貼上您要分析的文章或段落..."></textarea>
-            </div>
+    // ... (translations, changeLanguage, loadExample, clearText, togglePos, switchTab 函式保持不變) ...
 
-            <div class="mb-6 space-y-4">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="label_settings">分析參數設定</h3>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1" data-i18n="label_model">權重模型</label>
-                        <select id="model-select" class="w-full p-2 border border-slate-300 rounded-lg text-sm focus:ring-research-500 bg-white">
-                            <option value="frequency" data-i18n="opt_freq">詞頻 (Frequency)</option>
-                            <option value="tfidf" data-i18n="opt_tfidf">TF-IDF (Simulated)</option>
-                            <option value="textrank" data-i18n="opt_textrank">TextRank</option>
-                            <option value="position" data-i18n="opt_position">位置加權 (Position)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1" data-i18n="label_shape">文字雲形狀</label>
-                        <select id="shape-select" class="w-full p-2 border border-slate-300 rounded-lg text-sm focus:ring-research-500 bg-white">
-                            <option value="circle" data-i18n="shape_circle">圓形</option>
-                            <option value="square" data-i18n="shape_square">方形</option>
-                            <option value="cardioid" data-i18n="shape_heart">心形</option>
-                            <option value="star" data-i18n="shape_star">星形</option>
-                        </select>
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-2" data-i18n="label_pos_filter">詞性過濾 & 著色</label>
-                    <div class="flex flex-wrap gap-2">
-                        <button onclick="togglePos('n')" class="pos-tag active px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-600 border-blue-200" data-pos="n">名詞 (N)</button>
-                        <button onclick="togglePos('v')" class="pos-tag active px-3 py-1 rounded-full text-xs font-bold bg-green-50 text-green-600 border-green-200" data-pos="v">動詞 (V)</button>
-                        <button onclick="togglePos('a')" class="pos-tag active px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-600 border-amber-200" data-pos="a">形容詞 (A)</button>
-                        <button onclick="togglePos('d')" class="pos-tag active px-3 py-1 rounded-full text-xs font-bold bg-purple-50 text-purple-600 border-purple-200" data-pos="d">副詞 (D)</button>
-                        <button onclick="togglePos('o')" class="pos-tag active px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-500 border-slate-200" data-pos="o">其他</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-auto">
-                <button id="btn-analyze" onclick="runAnalysis()" class="w-full bg-research-600 text-white py-3 rounded-xl font-bold shadow-lg shadow-research-200 hover:bg-research-700 transition transform active:scale-[0.98] flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="btn_analyze">開始 AI 分析</span>
-                </button>
-            </div>
-        </aside>
-
-        <main class="w-2/3 flex flex-col bg-slate-50 relative">
-            <div class="h-3/5 p-6 relative">
-                <div id="canvas-wrapper" class="w-full h-full bg-white rounded-3xl border border-slate-200 shadow-sm flex items-center justify-center overflow-hidden relative">
-                    <div id="empty-state" class="text-center text-slate-400">
-                        <i class="fa-solid fa-chart-simple text-4xl mb-3 opacity-50"></i>
-                        <p data-i18n="msg_waiting">等待分析...</p>
-                    </div>
-                    <canvas id="word-cloud-canvas" class="hidden"></canvas>
-                </div>
-                <button onclick="downloadImage()" id="btn-download" class="hidden absolute top-10 right-10 bg-white/80 backdrop-blur p-2 rounded-lg border border-slate-200 shadow-sm text-slate-500 hover:text-research-600 transition" title="下載圖片"><i class="fa-solid fa-download"></i></button>
-            </div>
-
-            <div class="h-2/5 px-6 pb-6 flex flex-col">
-                <div class="flex gap-4 mb-0 border-b border-slate-200 px-2">
-                    <button onclick="switchTab('ai')" id="tab-ai" class="pb-3 px-4 text-sm font-bold text-research-700 border-b-2 border-research-600 transition">AI 深度洞察</button>
-                    <button onclick="switchTab('data')" id="tab-data" class="pb-3 px-4 text-sm font-bold text-slate-500 border-b-2 border-transparent hover:text-slate-700 transition">數據列表</button>
-                </div>
-
-                <div class="bg-white flex-1 rounded-b-3xl rounded-tr-3xl border border-slate-200 border-t-0 p-6 overflow-y-auto shadow-sm scrollbar-thin">
-                    <div id="panel-ai" class="animate-fade-in-up">
-                        <div id="ai-content" class="text-slate-600 text-sm leading-relaxed space-y-4">
-                            <p class="text-slate-400 italic" data-i18n="msg_ai_placeholder">AI 分析報告將在此處顯示...</p>
-                        </div>
-                    </div>
-                    <div id="panel-data" class="hidden animate-fade-in-up">
-                        <table class="w-full text-left text-sm border-collapse">
-                            <thead>
-                                <tr class="text-slate-500 border-b border-slate-100">
-                                    <th class="pb-2 pl-2">#</th>
-                                    <th class="pb-2" data-i18n="col_word">詞彙</th>
-                                    <th class="pb-2" data-i18n="col_pos">詞性</th>
-                                    <th class="pb-2 text-right" data-i18n="col_weight">權重</th>
-                                </tr>
-                            </thead>
-                            <tbody id="data-table-body" class="text-slate-700"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <script>
-        // 請填入部署後的 Code.gs 網址
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbzcDKkz8Tilzb3qbx0_fDR7QoG4-c2JCtsa4p9V8_1gBjZaEMlvQHd72OD0kZq_jW8H/exec";
+    // 執行分析
+    function runAnalysis() {
+        const text = document.getElementById('text-input').value.trim();
+        const model = document.getElementById('model-select').value;
+        const btn = document.getElementById('btn-analyze');
         
-        // 範例庫 (電流磁效應)
-        const EXAMPLE_TEXTS = {
-            "zh-TW": "電流磁效應是指電流通過導線時，會在導線周圍產生磁場的現象。1820年，丹麥物理學家奧斯特發現，當導線通電時，旁邊的磁針會發生偏轉，證明了電與磁之間有密切的關係。磁場的方向可以用安培右手定則來判斷：用右手握住導線，大拇指指向電流方向，四指彎曲的方向就是磁場方向。若將導線繞成螺線管，通電後內部會產生均勻磁場，其特性類似於條形磁鐵。",
-            "en": "Electromagnetism is a branch of physics involving the study of the electromagnetic force. In 1820, Danish physicist Hans Christian Ørsted discovered that an electric current creates a magnetic field. This connection between electricity and magnetism is known as the magnetic effect of electric current. The direction of the magnetic field can be determined using the Right-Hand Grip Rule. If a wire is coiled into a solenoid, the magnetic field inside becomes uniform, resembling a bar magnet.",
-            "ja": "電流の磁気作用とは、導線に電流が流れると、その周囲に磁場が発生する現象のことです。1820年、デンマークの物理学者エルステッドは、導線に通電すると近くの方位磁針が振れることを発見し、電気と磁気には密接な関係があることを証明しました。磁場の向きは「右ねじの法則」で判断できます。導線をコイル状に巻くと、その内部には棒磁石に似た均一な磁場が発生します。",
-            "zh-CN": "电流磁效应是指电流通过导线时，会在导线周围产生磁场的现象。1820年，丹麦物理学家奥斯特发现，当导线通电时，旁边的磁针会发生偏转，证明了电与磁之间有密切的关系。磁场的方向可以用安培右手定则来判断：用右手握住导线，大拇指指向电流方向，四指弯曲的方向就是磁场方向。若将导线绕成螺线管，通电后内部会产生均匀磁场，其特性类似于条形磁铁。"
-        };
+        if (!text) { alert("請先輸入文本！"); return; }
+        if (GAS_URL.includes("你的新部署網址")) { alert("請先設定 GAS API 網址！"); return; }
 
-        let currentWords = [];
-        let activePos = new Set(['n', 'v', 'a', 'd', 'o']);
-        let currentLang = 'zh-TW';
+        // UI 狀態切換
+        const originalBtnText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<div class="loader mr-2"></div> AI 正在運算...`;
+        
+        document.getElementById('word-cloud-canvas').classList.add('hidden');
+        document.getElementById('empty-state').classList.remove('hidden');
+        document.getElementById('empty-state').innerHTML = `<div class="loader mx-auto mb-2"></div><p class="animate-pulse">AI 正在努力閱讀您的文章...</p>`;
+        document.getElementById('ai-content').innerHTML = `<p class="text-slate-400 italic">分析中...</p>`;
 
-        const translations = {
-            "zh-TW": {
-                "app_title": "AI 智能文字雲分析", "label_text": "分析文本", "label_settings": "分析參數設定",
-                "label_model": "權重模型", "opt_freq": "詞頻 (Frequency)", "opt_tfidf": "TF-IDF (模擬)", "opt_textrank": "TextRank (重要性)", "opt_position": "位置加權 (Position)",
-                "label_shape": "文字雲形狀", "shape_circle": "圓形", "shape_square": "方形", "shape_heart": "心形", "shape_star": "星形",
-                "label_pos_filter": "詞性過濾 & 著色", "btn_analyze": "開始 AI 分析", "btn_example": "載入範例", "btn_clear": "清空", "msg_waiting": "等待分析...",
-                "msg_ai_placeholder": "AI 分析報告將在此處顯示...", "col_word": "詞彙", "col_pos": "詞性", "col_weight": "權重",
-                "status_analyzing": "AI 正在解讀文本...", "err_input": "請先輸入文本！"
-            },
-            "en": {
-                "app_title": "AI Word Cloud Analysis", "label_text": "Input Text", "label_settings": "Settings",
-                "label_model": "Weighting Model", "opt_freq": "Frequency", "opt_tfidf": "TF-IDF (Simulated)", "opt_textrank": "TextRank", "opt_position": "Position Weight",
-                "label_shape": "Shape", "shape_circle": "Circle", "shape_square": "Square", "shape_heart": "Cardioid", "shape_star": "Star",
-                "label_pos_filter": "POS Filter & Color", "btn_analyze": "Start AI Analysis", "btn_example": "Example", "btn_clear": "Clear", "msg_waiting": "Waiting for input...",
-                "msg_ai_placeholder": "AI analysis report will appear here...", "col_word": "Word", "col_pos": "POS", "col_weight": "Weight",
-                "status_analyzing": "AI is analyzing...", "err_input": "Please input text first!"
-            },
-            "ja": {
-                "app_title": "AI ワードクラウド分析", "label_text": "分析テキスト", "label_settings": "パラメータ設定",
-                "label_model": "重み付けモデル", "opt_freq": "頻度 (Frequency)", "opt_tfidf": "TF-IDF (模擬)", "opt_textrank": "TextRank (重要度)", "opt_position": "位置重み (Position)",
-                "label_shape": "形状", "shape_circle": "円形", "shape_square": "四角形", "shape_heart": "ハート", "shape_star": "星形",
-                "label_pos_filter": "品詞フィルタ & 配色", "btn_analyze": "AI 分析開始", "btn_example": "例文", "btn_clear": "クリア", "msg_waiting": "分析待ち...",
-                "msg_ai_placeholder": "AI 分析レポートはここに表示されます...", "col_word": "単語", "col_pos": "品詞", "col_weight": "重み",
-                "status_analyzing": "AI が分析中...", "err_input": "テキストを入力してください！"
-            },
-            "zh-CN": {
-                "app_title": "AI 智能文字云分析", "label_text": "分析文本", "label_settings": "分析参数设置",
-                "label_model": "权重模型", "opt_freq": "词频 (Frequency)", "opt_tfidf": "TF-IDF (模拟)", "opt_textrank": "TextRank (重要性)", "opt_position": "位置加权 (Position)",
-                "label_shape": "文字云形状", "shape_circle": "圆形", "shape_square": "方形", "shape_heart": "心形", "shape_star": "星形",
-                "label_pos_filter": "词性过滤 & 着色", "btn_analyze": "开始 AI 分析", "btn_example": "载入范例", "btn_clear": "清空", "msg_waiting": "等待分析...",
-                "msg_ai_placeholder": "AI 分析报告将在此处显示...", "col_word": "词汇", "col_pos": "词性", "col_weight": "权重",
-                "status_analyzing": "AI 正在解读文本...", "err_input": "请先输入文本！"
-            }
-        };
+        const payload = { text: text, mode: model };
 
-        function changeLanguage() {
-            currentLang = document.getElementById('language-selector').value;
-            const t = translations[currentLang] || translations['zh-TW'];
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                el.innerText = t[el.getAttribute('data-i18n')];
-            });
-        }
-
-        function loadExample() {
-            const text = EXAMPLE_TEXTS[currentLang] || EXAMPLE_TEXTS['zh-TW'];
-            document.getElementById('text-input').value = text;
-        }
-
-        function clearText() {
-            document.getElementById('text-input').value = '';
-            document.getElementById('text-input').focus();
-        }
-
-        function togglePos(pos) {
-            const btn = document.querySelector(`button[data-pos="${pos}"]`);
-            if (activePos.has(pos)) {
-                activePos.delete(pos);
-                btn.classList.remove('active');
-                btn.classList.add('inactive');
+        fetch(GAS_URL, {
+            method: 'POST',
+            body: JSON.stringify(payload),
+            headers: { "Content-Type": "text/plain;charset=utf-8" } // 避免 CORS
+        })
+        .then(response => response.json())
+        .then(res => {
+            if (res.status === 'success') {
+                currentWords = res.data.wordList;
+                
+                // 顯示 AI 分析
+                document.getElementById('ai-content').innerHTML = res.data.aiAnalysis;
+                
+                // 渲染
+                renderWordCloud();
+                renderTable();
             } else {
-                activePos.add(pos);
-                btn.classList.add('active');
-                btn.classList.remove('inactive');
+                throw new Error(res.message);
             }
-            if (currentWords.length > 0) renderWordCloud();
-        }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('empty-state').innerHTML = `<p class="text-red-500"><i class="fa-solid fa-triangle-exclamation"></i> 錯誤: ${error.message}</p>`;
+            document.getElementById('ai-content').innerHTML = `<p class="text-red-500">連線錯誤。</p>`;
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = originalBtnText;
+        });
+    }
 
-        function switchTab(tab) {
-            document.getElementById('tab-ai').className = tab === 'ai' 
-                ? "pb-3 px-4 text-sm font-bold text-research-700 border-b-2 border-research-600 transition"
-                : "pb-3 px-4 text-sm font-bold text-slate-500 border-b-2 border-transparent hover:text-slate-700 transition";
-            document.getElementById('tab-data').className = tab === 'data' 
-                ? "pb-3 px-4 text-sm font-bold text-research-700 border-b-2 border-research-600 transition"
-                : "pb-3 px-4 text-sm font-bold text-slate-500 border-b-2 border-transparent hover:text-slate-700 transition";
-            document.getElementById('panel-ai').classList.toggle('hidden', tab !== 'ai');
-            document.getElementById('panel-data').classList.toggle('hidden', tab !== 'data');
-        }
-
-        function runAnalysis() {
-            const text = document.getElementById('text-input').value.trim();
-            const model = document.getElementById('model-select').value;
-            const btn = document.getElementById('btn-analyze');
-            const t = translations[currentLang];
-
-            if (!text) { alert(t.err_input); return; }
-
-            const originalBtn = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = `<div class="loader mr-2"></div> ${t.status_analyzing}`;
-            
-            document.getElementById('word-cloud-canvas').classList.add('hidden');
-            document.getElementById('empty-state').classList.remove('hidden');
-            document.getElementById('empty-state').innerHTML = `<div class="loader mx-auto mb-2"></div><p>${t.status_analyzing}</p>`;
-
-            const payload = { text: text, mode: model };
-
-             fetch(GAS_URL, {
-                method: 'POST',
-                mode: 'no-cors', 
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            }).then(() => {
-                setTimeout(() => {
-                    mockSuccessResponse(text, model); 
-                    btn.disabled = false;
-                    btn.innerHTML = originalBtn;
-                }, 2000);
-            });
-        }
-
-        // 模擬成功回傳 (展示用：電流磁效應)
-        function mockSuccessResponse(text, mode) {
-            // 針對範例的模擬斷詞結果
-            const mockData = [
-                {word: "電流", pos: "N", weight: 65},
-                {word: "磁場", pos: "N", weight: 60},
-                {word: "導線", pos: "N", weight: 45},
-                {word: "奧斯特", pos: "Nb", weight: 40}, // 專有名詞
-                {word: "方向", pos: "N", weight: 38},
-                {word: "產生", pos: "V", weight: 35},
-                {word: "安培右手定則", pos: "Nb", weight: 32},
-                {word: "偏轉", pos: "V", weight: 28},
-                {word: "磁針", pos: "N", weight: 25},
-                {word: "螺線管", pos: "N", weight: 22},
-                {word: "均勻", pos: "A", weight: 18},
-                {word: "密切", pos: "A", weight: 15},
-                {word: "通過", pos: "P", weight: 12}
-            ];
-            
-            const mockAnalysis = `
-                <h4 class="font-bold text-indigo-700 mb-2">文字雲結構解讀</h4>
-                <p><strong>「電流」</strong>與<strong>「磁場」</strong>是圖中最大的兩個詞，直觀地反映了文本的核心主題——電流磁效應。<strong>「導線」</strong>作為連結兩者的介質，其權重也相當高，形成了文字雲的視覺骨幹。</p>
-                <h4 class="font-bold text-purple-700 mb-2 mt-4">語意關聯分析</h4>
-                <p><strong>「奧斯特」</strong>(發現者) 與 <strong>「安培右手定則」</strong>(判斷方法) 雖出現頻率不如核心詞高，但在 TextRank 模型中因其獨特的連接性而被賦予較高權重。動詞<strong>「產生」</strong>與<strong>「偏轉」</strong>則描述了因果關係：電流產生磁場，導致磁針偏轉。</p>
-                <h4 class="font-bold text-slate-700 mb-2 mt-4">教學重點提示</h4>
-                <p>教學時應強調<strong>「電流方向」</strong>與<strong>「磁場方向」</strong>的對應關係（透過安培右手定則），並利用<strong>「螺線管」</strong>的例子來具體化磁場形狀的概念。</p>
-            `;
-
-            currentWords = mockData;
-            document.getElementById('ai-content').innerHTML = mockAnalysis;
-            
-            renderWordCloud();
-            renderTable();
-        }
-
-        function getPosColor(ckipPos) {
-            if (ckipPos.startsWith('N')) return '#3b82f6';
-            if (ckipPos.startsWith('V')) return '#10b981';
-            if (ckipPos.startsWith('A')) return '#f59e0b';
-            if (ckipPos.startsWith('D')) return '#8b5cf6';
-            return '#94a3b8';
-        }
+    // 🔴 關鍵修正：文字雲渲染邏輯
+    function renderWordCloud() {
+        const canvas = document.getElementById('word-cloud-canvas');
+        const wrapper = document.getElementById('canvas-wrapper');
+        const shape = document.getElementById('shape-select').value;
         
-        function mapPosCategory(ckipPos) {
-            if (ckipPos.startsWith('N')) return 'n';
-            if (ckipPos.startsWith('V')) return 'v';
-            if (ckipPos.startsWith('A')) return 'a';
-            if (ckipPos.startsWith('D')) return 'd';
-            return 'o';
+        // 1. 過濾詞性
+        const filteredList = currentWords.filter(item => {
+            let cat = 'o';
+            const p = item.pos.toLowerCase();
+            if (p.startsWith('n')) cat = 'n';
+            else if (p.startsWith('v')) cat = 'v';
+            else if (p.startsWith('a')) cat = 'a';
+            else if (p.startsWith('d')) cat = 'd';
+            return activePos.has(cat);
+        });
+
+        if (filteredList.length === 0) {
+            document.getElementById('empty-state').classList.remove('hidden');
+            document.getElementById('empty-state').innerHTML = "<p>無符合條件的詞彙</p>";
+            canvas.classList.add('hidden');
+            return;
         }
 
-        function renderWordCloud() {
-            const canvas = document.getElementById('word-cloud-canvas');
-            const wrapper = document.getElementById('canvas-wrapper');
-            const shape = document.getElementById('shape-select').value;
-            const filteredList = currentWords.filter(item => {
-                const cat = mapPosCategory(item.pos);
-                return activePos.has(cat);
-            });
+        // 2. 顯示 Canvas
+        document.getElementById('empty-state').classList.add('hidden');
+        canvas.classList.remove('hidden');
+        document.getElementById('btn-download').classList.remove('hidden');
 
-            if (filteredList.length === 0) {
-                document.getElementById('empty-state').classList.remove('hidden');
-                document.getElementById('empty-state').innerHTML = "<p>無符合條件的詞彙</p>";
-                canvas.classList.add('hidden');
-                return;
-            }
+        // 3. 設定 Canvas 大小 (RWD)
+        canvas.width = wrapper.clientWidth;
+        canvas.height = wrapper.clientHeight;
 
-            const list = filteredList.map(i => [i.word, i.weight]);
-            canvas.width = wrapper.clientWidth;
-            canvas.height = wrapper.clientHeight;
-            
-            document.getElementById('empty-state').classList.add('hidden');
-            canvas.classList.remove('hidden');
-            document.getElementById('btn-download').classList.remove('hidden');
+        // 4. 準備數據給 wordcloud2.js
+        // 為了避免字體太小，我們找出最大權重來做正規化
+        const maxWeight = Math.max(...filteredList.map(i => i.weight));
+        const list = filteredList.map(i => [i.word, i.weight]);
 
-            WordCloud(canvas, {
-                list: list,
-                gridSize: 8,
-                weightFactor: function (size) { return (size / list[0][1]) * 60 + 10; },
-                fontFamily: 'Noto Sans TC, sans-serif',
-                color: function (word) {
-                    const item = currentWords.find(w => w.word === word);
-                    return item ? getPosColor(item.pos) : '#333';
-                },
-                rotateRatio: 0.5,
-                shape: shape,
-                backgroundColor: 'transparent'
-            });
-        }
+        WordCloud(canvas, {
+            list: list,
+            gridSize: 16, // 字距加大一點，避免重疊
+            weightFactor: function (size) { 
+                // 🔴 動態計算字體大小：最小 12px，最大隨畫布寬度調整
+                return (size / maxWeight) * (canvas.width / 8) + 12; 
+            },
+            fontFamily: 'Noto Sans TC, sans-serif',
+            color: function (word, weight) {
+                const item = currentWords.find(w => w.word === word);
+                return item ? getPosColor(item.pos) : '#333';
+            },
+            rotateRatio: 0.3, 
+            rotationSteps: 2,
+            shape: shape,
+            backgroundColor: 'transparent',
+            drawOutOfBound: false,
+            shrinkToFit: true // 如果字太多，自動縮小
+        });
+    }
 
-        function renderTable() {
-            const tbody = document.getElementById('data-table-body');
-            tbody.innerHTML = currentWords.map((item, idx) => `
-                <tr class="border-b border-slate-100 hover:bg-slate-50">
-                    <td class="py-2 pl-2 text-slate-400 text-xs">${idx + 1}</td>
-                    <td class="py-2 font-medium text-slate-700">${item.word}</td>
-                    <td class="py-2"><span class="px-2 py-0.5 rounded text-xs font-bold text-white" style="background-color: ${getPosColor(item.pos)}">${item.pos}</span></td>
-                    <td class="py-2 text-right font-mono text-slate-600">${item.weight}</td>
-                </tr>
-            `).join('');
-        }
+    // 輔助：顏色對照
+    function getPosColor(pos) {
+        const p = pos.toLowerCase();
+        if (p.startsWith('n')) return '#3b82f6'; // 藍
+        if (p.startsWith('v')) return '#10b981'; // 綠
+        if (p.startsWith('a')) return '#f59e0b'; // 黃
+        if (p.startsWith('d')) return '#8b5cf6'; // 紫
+        return '#94a3b8'; // 灰
+    }
 
-        function downloadImage() {
-            const canvas = document.getElementById('word-cloud-canvas');
-            const link = document.createElement('a');
-            link.download = 'ai-wordcloud.png';
-            link.href = canvas.toDataURL();
-            link.click();
-        }
-    </script>
-</body>
-</html>
+    // 輔助：表格渲染
+    function renderTable() {
+        const tbody = document.getElementById('data-table-body');
+        tbody.innerHTML = currentWords.slice(0, 50).map((item, idx) => `
+            <tr class="border-b border-slate-100 hover:bg-slate-50">
+                <td class="py-2 pl-2 text-slate-400 text-xs">${idx + 1}</td>
+                <td class="py-2 font-medium text-slate-700">${item.word}</td>
+                <td class="py-2"><span class="px-2 py-0.5 rounded text-xs font-bold text-white" style="background-color: ${getPosColor(item.pos)}">${item.pos}</span></td>
+                <td class="py-2 text-right font-mono text-slate-600">${item.weight}</td>
+            </tr>
+        `).join('');
+    }
+
+    function downloadImage() {
+        const canvas = document.getElementById('word-cloud-canvas');
+        const link = document.createElement('a');
+        link.download = 'ai-wordcloud.png';
+        link.href = canvas.toDataURL();
+        link.click();
+    }
+</script>
