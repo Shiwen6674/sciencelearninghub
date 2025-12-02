@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generate Word Cloud | Science Learning Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 🔥 移除外部 wordcloud2.js：改用內建 Canvas 畫圖 -->
-    <!-- <script src="https://cdn.jsdelivr.net/npm/wordcloud2.js"></script> -->
+    <!-- 不再使用外部 wordcloud2.js，改用原生 Canvas -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 
@@ -208,7 +207,7 @@
     </div>
 
     <script>
-        // 🔴🔴🔴 請務必填入您部署後的 GAS Web App URL (結尾是 /exec) 🔴🔴🔴
+        // 你的 GAS Web App URL（保持不變）
         const GAS_URL = "https://script.google.com/macros/s/AKfycbw3UqYr976wAd9aeEsLpTDSlGaUVdBpaErqZi-zHgNzh_Gd0SuggfdI7ldVzrqR1Ygd/exec"; 
 
         const App = {
@@ -257,7 +256,6 @@
             },
 
             bindEvents() {
-                // 詞性按鈕
                 document.querySelectorAll('.pos-chip').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         const target = e.currentTarget;
@@ -273,12 +271,12 @@
                     });
                 });
 
-                // Slider
                 const slider = document.getElementById('max-words-slider');
                 const valDisplay = document.getElementById('max-words-val');
                 slider.addEventListener('input', (e) => {
                     this.state.maxWords = parseInt(e.target.value);
                     valDisplay.innerText = this.state.maxWords;
+                    if (this.state.words.length > 0) this.renderWordCloud();
                 });
 
                 document.getElementById('shape-select').addEventListener('change', () => {
@@ -405,19 +403,20 @@
                 }
             },
 
-            // ✅ 改成原生 Canvas 畫文字雲，不再依賴外部函式庫
+            // ★ 改良版：支援形狀 + 不擠在一起
             renderWordCloud() {
                 const canvas = document.getElementById('word-cloud-canvas');
                 const wrapper = document.getElementById('canvas-wrapper');
                 const shape = document.getElementById('shape-select').value;
 
-                // 1. 篩選
-                const filteredList = this.state.words.filter(item => {
+                // 篩選詞性＋依 slider 限制數量
+                let filteredList = this.state.words.filter(item => {
                     const p = (item.pos || 'O').toLowerCase().charAt(0);
                     let type = 'o';
                     if (['n','v','a','d','c'].includes(p)) type = p;
                     return this.state.activePos.has(type);
                 });
+                filteredList = filteredList.slice(0, this.state.maxWords);
 
                 if (filteredList.length === 0) {
                     this.showToast("篩選後無詞彙", "error");
@@ -437,15 +436,14 @@
                 ctx.textBaseline = 'middle';
                 ctx.textAlign = 'center';
 
-                // 字體大小正規化
                 const maxWeight = Math.max(...filteredList.map(i => i.weight)) || 1;
-                const minFont = 14;
-                const maxFont = Math.max(24, w / 15); // 隨畫布寬度調整上限
+                const minFont = 16;
+                const maxFont = Math.min(Math.max(36, w / 12), 80);
 
                 const placed = [];
 
                 filteredList.forEach(item => {
-                    const norm = item.weight / maxWeight; // 0~1
+                    const norm = item.weight / maxWeight;
                     const fontSize = minFont + norm * (maxFont - minFont);
                     const color = this.getPosColor(item.pos);
 
@@ -454,16 +452,19 @@
 
                     placed.push({
                         text: item.word,
-                        x: pos.x,
-                        y: pos.y,
+                        x: pos.cx,
+                        y: pos.cy,
                         fontSize,
                         color,
-                        width: pos.width,
-                        height: pos.height
+                        box: {
+                            x: pos.x,
+                            y: pos.y,
+                            width: pos.width,
+                            height: pos.height
+                        }
                     });
                 });
 
-                // 實際繪製
                 placed.forEach(word => {
                     ctx.font = `${Math.round(word.fontSize)}px "Work Sans","Noto Sans TC",sans-serif`;
                     ctx.fillStyle = word.color;
@@ -471,52 +472,87 @@
                 });
             },
 
-            // ✅ 簡單螺旋排版＋碰撞檢查
+            // ★ 支援圓形／方形／愛心／星形／菱形的排版
             findPositionForWord(ctx, text, fontSize, placed, canvasW, canvasH, shape) {
                 ctx.font = `${Math.round(fontSize)}px "Work Sans","Noto Sans TC",sans-serif`;
                 const textWidth = ctx.measureText(text).width;
-                const textHeight = fontSize; // 粗略估計
+                const textHeight = fontSize * 1.1;
 
                 const centerX = canvasW / 2;
                 const centerY = canvasH / 2;
 
-                const maxRadius = Math.min(canvasW, canvasH) / 2;
-                const stepAngle = 5 * (Math.PI / 180); // 5 度
-                const stepRadius = 3;
+                const maxRadius = Math.min(canvasW, canvasH) / 2 - fontSize;
+                const stepAngle = Math.PI / 36;              // 5°
+                const spacing = Math.max(fontSize * 0.18, 4); // 螺旋間距
+                const padding = fontSize * 0.3;               // 字與字之間留白
 
-                for (let angle = 0, r = 0; r < maxRadius; angle += stepAngle, r += stepRadius / (2 * Math.PI)) {
-                    const x = centerX + r * Math.cos(angle);
-                    const y = centerY + r * Math.sin(angle);
+                for (let angle = 0; angle < Math.PI * 18; angle += stepAngle) {
+                    const r = spacing * angle;
+                    if (r > maxRadius) break;
+
+                    const cx = centerX + r * Math.cos(angle);
+                    const cy = centerY + r * Math.sin(angle);
+
+                    const dx = cx - centerX;
+                    const dy = cy - centerY;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const theta = Math.atan2(dy, dx);
+
+                    let allowed = true;
+                    switch (shape) {
+                        case 'circle':
+                            allowed = dist <= maxRadius;
+                            break;
+                        case 'square':
+                            allowed = true; // 由邊界控制
+                            break;
+                        case 'diamond':
+                            allowed = (Math.abs(dx) + Math.abs(dy)) <= maxRadius;
+                            break;
+                        case 'cardioid': {
+                            const rHeart = (maxRadius * (1 - Math.sin(theta))) / 2;
+                            allowed = dist <= rHeart && cy >= centerY - maxRadius * 0.1;
+                            break;
+                        }
+                        case 'star': {
+                            const k = 5;
+                            const starRadius = maxRadius * (0.35 + 0.65 * Math.abs(Math.cos(k * theta)));
+                            allowed = dist <= starRadius;
+                            break;
+                        }
+                        default:
+                            allowed = true;
+                    }
+                    if (!allowed) continue;
 
                     const rect = {
-                        x: x - textWidth / 2,
-                        y: y - textHeight / 2,
+                        x: cx - textWidth / 2,
+                        y: cy - textHeight / 2,
                         width: textWidth,
                         height: textHeight
                     };
 
-                    // 超出畫布邊界就跳過
-                    if (rect.x < 0 || rect.y < 0 || rect.x + rect.width > canvasW || rect.y + rect.height > canvasH) {
-                        continue;
-                    }
+                    if (
+                        rect.x < 0 || rect.y < 0 ||
+                        rect.x + rect.width > canvasW ||
+                        rect.y + rect.height > canvasH
+                    ) continue;
 
-                    // 形狀約略控制：circle / square 其他都採 circle
-                    if (shape === 'circle' || shape === 'cardioid' || shape === 'star' || shape === 'diamond') {
-                        const dx = x - centerX;
-                        const dy = y - centerY;
-                        const dist = Math.sqrt(dx * dx + dy * dy);
-                        if (dist > maxRadius) continue;
-                    }
-                    // square：不額外限制（上面已用畫布邊界控制）
+                    const padded = {
+                        x: rect.x - padding,
+                        y: rect.y - padding,
+                        width: rect.width + 2 * padding,
+                        height: rect.height + 2 * padding
+                    };
 
-                    // 碰撞檢查
                     let collide = false;
                     for (const p of placed) {
+                        const b = p.box;
                         if (
-                            rect.x < p.x + p.width &&
-                            rect.x + rect.width > p.x &&
-                            rect.y < p.y + p.height &&
-                            rect.y + rect.height > p.y
+                            padded.x < b.x + b.width &&
+                            padded.x + padded.width > b.x &&
+                            padded.y < b.y + b.height &&
+                            padded.y + padded.height > b.y
                         ) {
                             collide = true;
                             break;
@@ -525,15 +561,15 @@
 
                     if (!collide) {
                         return {
-                            x,
-                            y,
-                            width: textWidth,
-                            height: textHeight
+                            cx, cy,
+                            x: padded.x,
+                            y: padded.y,
+                            width: padded.width,
+                            height: padded.height
                         };
                     }
                 }
 
-                // 找不到位置就放棄這個詞
                 return null;
             },
 
