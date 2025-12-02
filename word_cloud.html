@@ -3,441 +3,466 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 智能文字雲 | Science Learning Hub</title>
+    <title>Generate Word Cloud | Science Learning Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/wordcloud2@1.2.2/src/wordcloud2.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&family=Poppins:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: {
-                        primary: { 50: '#eef2ff', 100: '#e0e7ff', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca' },
-                        secondary: { 50: '#fdf4ff', 500: '#d946ef' }
+                    fontFamily: {
+                        sans: ['"Work Sans"', '"Noto Sans TC"', 'sans-serif'],
+                        heading: ['"Poppins"', '"Noto Sans TC"', 'sans-serif'],
                     },
-                    fontFamily: { sans: ['Noto Sans TC', 'sans-serif'] }
+                    colors: {
+                        brand: {
+                            DEFAULT: '#BB50E0', // 參考網站的主紫色
+                            hover: '#9a00cc',
+                            light: '#f3e5f5',
+                            bg: '#f8fafc'
+                        },
+                        gray: {
+                            light: '#f5f5f5',
+                            medium: '#e0e0e0',
+                            dark: '#757575'
+                        }
+                    }
                 }
             }
         }
     </script>
     <style>
-        body { background-color: #f8fafc; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        body { background-color: #fff; color: #212121; }
         
-        /* 滾動條美化 */
-        .scroller::-webkit-scrollbar { width: 6px; }
-        .scroller::-webkit-scrollbar-track { background: transparent; }
-        .scroller::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
-        .scroller::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
+        /* 模擬 Material UI 的 Tabs */
+        .nav-link {
+            cursor: pointer; position: relative; font-weight: 500; color: #757575; transition: color 0.3s;
+        }
+        .nav-link.active { color: #BB50E0; }
+        .nav-link.active::after {
+            content: ''; position: absolute; bottom: -8px; left: 0; width: 100%; height: 3px; background-color: #BB50E0; border-radius: 3px 3px 0 0;
+        }
 
-        /* 詞性標籤樣式 */
-        .pos-chip { cursor: pointer; border: 1px solid #e2e8f0; transition: all 0.2s; user-select: none; }
-        .pos-chip.active { background-color: #e0e7ff; color: #4338ca; border-color: #6366f1; font-weight: 700; box-shadow: 0 2px 4px rgba(99, 102, 241, 0.1); }
-        
-        /* 載入動畫 */
-        .loader { width: 24px; height: 24px; border: 3px solid rgba(79, 70, 229, 0.2); border-top-color: #4f46e5; border-radius: 50%; animation: spin 1s linear infinite; }
+        /* 自定義捲軸 */
+        .scroller::-webkit-scrollbar { width: 8px; height: 8px; }
+        .scroller::-webkit-scrollbar-track { background: #f1f1f1; }
+        .scroller::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+        .scroller::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+        /* Loader */
+        .loader { width: 24px; height: 24px; border: 3px solid rgba(187, 80, 224, 0.2); border-top-color: #BB50E0; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* 拖拉手柄樣式 */
-        #resizer {
-            width: 5px;
-            cursor: col-resize;
-            background-color: #e2e8f0;
-            transition: background-color 0.2s;
-            z-index: 50;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        #resizer:hover, #resizer.resizing { background-color: #6366f1; }
-        /* 拖拉時加上一個小圖示感 */
-        #resizer::after {
-            content: "||";
-            color: #94a3b8;
-            font-size: 10px;
-            letter-spacing: -1px;
-        }
-        #resizer:hover::after { color: white; }
+        /* 詞性標籤 */
+        .pos-badge { font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; font-weight: 600; }
     </style>
 </head>
-<body>
+<body class="flex flex-col h-screen overflow-hidden">
 
-    <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-6 shrink-0 z-30 shadow-sm">
-        <div class="flex items-center gap-4">
-            <button onclick="window.location.href='researcher.html'" class="flex items-center gap-2 text-slate-500 hover:text-primary-600 transition font-bold text-sm bg-slate-50 hover:bg-primary-50 px-3 py-2 rounded-lg border border-transparent hover:border-primary-200">
-                <i class="fa-solid fa-arrow-left"></i> 返回研究中心
+    <header class="h-16 border-b border-gray-200 bg-white flex items-center justify-between px-6 shrink-0 z-30">
+        <div class="flex items-center gap-6">
+            <button onclick="window.location.href='researcher.html'" class="text-gray-500 hover:text-brand transition font-medium flex items-center gap-2">
+                <i class="fa-solid fa-arrow-left"></i> <span data-i18n="back">返回研究中心</span>
             </button>
-            <div class="h-6 w-px bg-slate-200"></div>
-            <div class="flex items-center gap-2 text-slate-800">
-                <i class="fa-solid fa-cloud text-primary-600 text-xl"></i>
-                <h1 class="text-lg font-bold tracking-tight">AI 智能文字雲分析</h1>
-            </div>
+            <div class="h-6 w-px bg-gray-300"></div>
+            <h1 class="text-xl font-heading font-bold text-gray-800 flex items-center gap-2">
+                <i class="fa-solid fa-cloud text-brand"></i>
+                <span data-i18n="title">Generate Word Cloud</span>
+            </h1>
         </div>
-        <div class="flex items-center gap-3">
-            <span class="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded">Model: Gemini 2.5 Flash</span>
+        <div class="flex items-center gap-4">
+            <select id="language-selector" onchange="App.changeLanguage()" class="bg-gray-50 border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-brand focus:border-brand block p-2 outline-none">
+                <option value="zh-TW">繁體中文</option>
+                <option value="en">English</option>
+                <option value="ja">日本語</option>
+                <option value="zh-CN">简体中文</option>
+            </select>
         </div>
     </header>
 
-    <div class="flex flex-1 overflow-hidden relative" id="main-container">
+    <div class="flex flex-1 overflow-hidden">
         
-        <aside id="sidebar" class="bg-white border-r border-slate-200 flex flex-col z-20 shadow-xl shrink-0 h-full relative" style="width: 400px; min-width: 320px; max-width: 600px;">
-            
-            <div class="flex-1 overflow-y-auto scroller p-6 space-y-6">
+        <aside class="w-[40%] min-w-[400px] max-w-[600px] bg-white border-r border-gray-200 flex flex-col h-full shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-20">
+            <div class="flex-1 overflow-y-auto scroller p-6">
                 
-                <div class="space-y-2">
-                    <div class="flex justify-between items-center">
-                        <label class="text-sm font-bold text-slate-700 flex items-center gap-2">
-                            <i class="fa-solid fa-pen-to-square text-primary-500"></i> 分析文本
-                        </label>
-                        <div class="flex gap-2">
-                            <button onclick="loadExample()" class="text-xs bg-slate-100 hover:bg-primary-50 text-slate-600 hover:text-primary-700 px-2 py-1 rounded transition border border-slate-200">載入範例</button>
-                            <button onclick="clearInput()" class="text-xs bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-600 px-2 py-1 rounded transition border border-slate-200">清空</button>
-                        </div>
-                    </div>
-                    <textarea id="text-input" class="w-full h-40 p-3 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none transition resize-none leading-relaxed bg-slate-50 focus:bg-white" placeholder="請在此貼上文章..."></textarea>
-                </div>
-
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">視覺化設定</h3>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="text-xs font-semibold text-slate-500 mb-1 block">形狀</label>
-                            <select id="shape-select" class="w-full p-2 text-sm border rounded-lg bg-white focus:border-primary-500 outline-none">
-                                <option value="circle">圓形 (Circle)</option>
-                                <option value="cardioid">愛心 (Heart)</option>
-                                <option value="square">方形 (Square)</option>
-                                <option value="star">星形 (Star)</option>
-                                <option value="diamond">菱形 (Diamond)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="text-xs font-semibold text-slate-500 mb-1 block">權重模式</label>
-                            <select id="model-select" class="w-full p-2 text-sm border rounded-lg bg-white focus:border-primary-500 outline-none">
-                                <option value="frequency">詞頻 (Frequency)</option>
-                                <option value="tfidf">TF-IDF (推薦)</option>
-                                <option value="textrank">TextRank (關鍵性)</option>
-                            </select>
-                        </div>
+                <div class="flex border-b border-gray-200 mb-6">
+                    <div class="nav-link active px-4 py-2" data-i18n="tab_text">Text Input</div>
                     </div>
 
-                    <div>
-                        <label class="text-xs font-semibold text-slate-500 mb-2 block">詞性過濾</label>
-                        <div class="flex flex-wrap gap-2">
-                            <button onclick="togglePos('n')" class="pos-chip active px-3 py-1.5 rounded-full text-xs" data-pos="n">名詞</button>
-                            <button onclick="togglePos('v')" class="pos-chip active px-3 py-1.5 rounded-full text-xs" data-pos="v">動詞</button>
-                            <button onclick="togglePos('a')" class="pos-chip active px-3 py-1.5 rounded-full text-xs" data-pos="a">形容詞</button>
-                            <button onclick="togglePos('d')" class="pos-chip active px-3 py-1.5 rounded-full text-xs" data-pos="d">副詞</button>
-                            <button onclick="togglePos('o')" class="pos-chip px-3 py-1.5 rounded-full text-xs" data-pos="o">其他</button>
-                        </div>
+                <div class="mb-6">
+                    <div class="bg-gray-light rounded-xl border border-gray-medium p-4 focus-within:border-brand focus-within:ring-1 focus-within:ring-brand transition">
+                        <textarea id="text-input" class="w-full h-48 bg-transparent border-0 outline-none text-gray-700 resize-none leading-relaxed placeholder-gray-400" placeholder="Paste or type your text to generate your word cloud..."></textarea>
+                    </div>
+                    <div class="flex justify-end gap-2 mt-2">
+                        <button onclick="App.loadExample()" class="text-xs font-bold text-brand hover:text-brand-hover px-3 py-1 rounded border border-brand-light hover:bg-brand-light transition">
+                            <i class="fa-solid fa-flask"></i> <span data-i18n="btn_example">範例</span>
+                        </button>
+                        <button onclick="App.clearInput()" class="text-xs font-bold text-gray-500 hover:text-red-500 px-3 py-1 rounded border border-gray-200 hover:bg-red-50 transition">
+                            <i class="fa-solid fa-trash"></i> <span data-i18n="btn_clear">清空</span>
+                        </button>
                     </div>
                 </div>
 
-                <button id="btn-analyze" onclick="runAnalysis()" class="w-full bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-700 hover:to-indigo-700 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-primary-200/50 transition transform active:scale-[0.98] flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i> 開始 AI 分析
-                </button>
+                <div class="mb-8">
+                    <h5 class="text-lg font-heading font-bold mb-1" data-i18n="sec_options">Options</h5>
+                    <p class="text-sm text-gray-500 mb-4" data-i18n="sec_options_desc">Customize your word cloud with the options below</p>
 
-                <div id="result-tabs" class="hidden pt-2">
-                    <div class="flex border-b border-slate-200 mb-4">
-                        <button onclick="switchTab('ai')" id="tab-ai" class="flex-1 pb-2 text-sm font-bold text-primary-600 border-b-2 border-primary-600">AI 洞察</button>
-                        <button onclick="switchTab('data')" id="tab-data" class="flex-1 pb-2 text-sm font-bold text-slate-400 hover:text-slate-600 border-b-2 border-transparent">數據列表</button>
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1" data-i18n="label_model">Model</label>
+                            <div class="relative">
+                                <select id="model-select" class="w-full p-3 bg-white border border-gray-300 rounded-lg text-sm appearance-none focus:border-brand outline-none cursor-pointer font-medium">
+                                    <option value="frequency">詞頻 (Frequency)</option>
+                                    <option value="tfidf">TF-IDF (推薦)</option>
+                                    <option value="textrank">TextRank (關聯性)</option>
+                                </select>
+                                <i class="fa-solid fa-chevron-down absolute right-3 top-3.5 text-gray-400 text-xs pointer-events-none"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1" data-i18n="label_shape">Shape</label>
+                            <div class="relative">
+                                <select id="shape-select" class="w-full p-3 bg-white border border-gray-300 rounded-lg text-sm appearance-none focus:border-brand outline-none cursor-pointer font-medium">
+                                    <option value="circle">圓形 (Circle)</option>
+                                    <option value="square">方形 (Square)</option>
+                                    <option value="cardioid">愛心 (Heart)</option>
+                                    <option value="star">星形 (Star)</option>
+                                    <option value="diamond">菱形 (Diamond)</option>
+                                </select>
+                                <i class="fa-solid fa-chevron-down absolute right-3 top-3.5 text-gray-400 text-xs pointer-events-none"></i>
+                            </div>
+                        </div>
                     </div>
 
-                    <div id="panel-ai" class="text-sm text-slate-600 leading-relaxed space-y-2 h-[200px] overflow-y-auto scroller">
+                    <button id="btn-analyze" onclick="App.runAnalysis()" class="w-full bg-brand hover:bg-brand-hover text-white font-bold py-3.5 rounded-full shadow-lg shadow-brand/20 transition transform active:scale-[0.98] flex items-center justify-center gap-2 tracking-wide text-sm">
+                        <span data-i18n="btn_visualize">VISUALIZE</span> <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    </button>
+                </div>
+
+                <div id="results-container" class="hidden border-t border-gray-200 pt-6">
+                    <div class="flex gap-4 mb-4">
+                        <button onclick="App.switchTab('ai')" id="tab-ai" class="text-sm font-bold text-brand border-b-2 border-brand pb-1 transition">AI Insight</button>
+                        <button onclick="App.switchTab('data')" id="tab-data" class="text-sm font-bold text-gray-400 border-b-2 border-transparent pb-1 hover:text-gray-600 transition">Data List</button>
+                    </div>
+
+                    <div id="panel-ai" class="bg-gray-50 p-4 rounded-xl border border-gray-100 text-sm text-gray-700 leading-relaxed space-y-3">
                         </div>
 
-                    <div id="panel-data" class="hidden h-[200px] overflow-y-auto scroller border border-slate-200 rounded-lg">
-                        <table class="w-full text-sm text-left">
-                            <thead class="bg-slate-50 text-slate-500 sticky top-0">
-                                <tr>
-                                    <th class="p-2 border-b pl-4">#</th>
-                                    <th class="p-2 border-b">詞彙</th>
-                                    <th class="p-2 border-b">詞性</th>
-                                    <th class="p-2 border-b text-right pr-4">權重</th>
-                                </tr>
-                            </thead>
-                            <tbody id="data-table-body" class="bg-white"></tbody>
-                        </table>
+                    <div id="panel-data" class="hidden bg-white border border-gray-200 rounded-xl overflow-hidden">
+                        <div class="max-h-[300px] overflow-y-auto scroller">
+                            <table class="w-full text-sm text-left">
+                                <thead class="bg-gray-50 text-gray-500 sticky top-0">
+                                    <tr>
+                                        <th class="p-3 font-semibold">Word</th>
+                                        <th class="p-3 font-semibold">POS</th>
+                                        <th class="p-3 text-right font-semibold">Weight</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="data-table-body" class="divide-y divide-gray-100"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
             </div>
         </aside>
 
-        <div id="resizer"></div>
-
-        <main class="flex-1 bg-slate-100 relative overflow-hidden flex items-center justify-center" id="main-content">
+        <main class="flex-1 bg-gray-50 relative flex flex-col items-center justify-center p-8 overflow-hidden">
             
-            <div class="absolute inset-0 opacity-5 pointer-events-none" style="background-image: radial-gradient(#6366f1 1px, transparent 1px); background-size: 24px 24px;"></div>
-
-            <div id="canvas-wrapper" class="w-full h-full relative flex items-center justify-center p-4">
+            <div id="canvas-wrapper" class="w-full h-full bg-white rounded-2xl shadow-sm border border-gray-200 relative flex items-center justify-center overflow-hidden">
                 
-                <div id="empty-state" class="text-center">
-                    <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
-                        <i class="fa-solid fa-chart-pie text-3xl text-slate-300"></i>
-                    </div>
-                    <h3 class="text-lg font-bold text-slate-600">準備就緒</h3>
-                    <p class="text-slate-400 text-sm mt-1">請在左側輸入文字並開始分析</p>
+                <div id="empty-state" class="text-center opacity-60">
+                    <img src="https://cdn-icons-png.flaticon.com/512/4047/4047268.png" alt="Cloud" class="w-24 h-24 mx-auto mb-4 opacity-50 grayscale">
+                    <h3 class="text-xl font-heading font-bold text-gray-700">Ready to Generate</h3>
+                    <p class="text-gray-500 mt-2">Enter text on the left to create your word cloud.</p>
                 </div>
 
                 <div id="loading-state" class="hidden text-center">
                     <div class="loader mx-auto mb-4"></div>
-                    <p class="text-primary-600 font-bold animate-pulse">AI 正在深度解讀文本...</p>
-                    <p class="text-slate-400 text-xs mt-2">正在進行斷詞與權重計算</p>
+                    <p class="text-brand font-bold text-lg animate-pulse">Processing...</p>
+                    <p class="text-gray-400 text-sm mt-1">AI is analyzing text & calculating weights</p>
                 </div>
 
-                <canvas id="word-cloud-canvas" class="hidden shadow-2xl bg-white rounded-2xl"></canvas>
+                <canvas id="word-cloud-canvas" class="hidden"></canvas>
             </div>
 
-            <button onclick="downloadImage()" id="btn-download" class="hidden absolute bottom-8 right-8 bg-white text-slate-700 hover:text-primary-600 hover:bg-primary-50 border border-slate-200 px-5 py-3 rounded-full shadow-lg font-bold transition flex items-center gap-2 z-30">
-                <i class="fa-solid fa-download"></i> 下載圖片
+            <button onclick="App.downloadImage()" id="btn-download" class="hidden absolute bottom-12 right-12 bg-white text-gray-800 hover:text-brand border border-gray-300 px-6 py-3 rounded-full shadow-xl font-bold transition transform hover:-translate-y-1 flex items-center gap-2 z-30 group">
+                <span class="group-hover:text-brand transition">Download PNG</span> <i class="fa-solid fa-download group-hover:animate-bounce"></i>
             </button>
 
         </main>
     </div>
 
+    <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-full shadow-2xl opacity-0 translate-y-10 transition-all duration-300 pointer-events-none z-50 font-medium text-sm flex items-center gap-3">
+        <i class="fa-solid fa-info-circle"></i> <span id="toast-msg">Notification</span>
+    </div>
+
     <script>
-        // 🔴🔴🔴 請在此填入您部署後的 GAS Web App 網址 🔴🔴🔴
+        // 🔴🔴🔴 請務必填入您部署後的 GAS Web App URL (結尾是 /exec) 🔴🔴🔴
         const GAS_URL = "https://script.google.com/macros/s/AKfycbw3UqYr976wAd9aeEsLpTDSlGaUVdBpaErqZi-zHgNzh_Gd0SuggfdI7ldVzrqR1Ygd/exec"; 
 
-        // 全域變數
-        let currentWords = [];
-        let activePos = new Set(['n', 'v', 'a', 'd']); 
-        const exampleText = "電流磁效應是指電流通過導線時，會在導線周圍產生磁場的現象。1820年，丹麥物理學家奧斯特發現，當導線通電時，旁邊的磁針會發生偏轉，證明了電與磁之間有密切的關係。磁場的方向可以用安培右手定則來判斷：用右手握住導線，大拇指指向電流方向，四指彎曲的方向就是磁場方向。若將導線繞成螺線管，通電後內部會產生均勻磁場，其特性類似於條形磁鐵。";
+        // ============================================================
+        // 🚀 App Logic
+        // ============================================================
+        const App = {
+            state: {
+                words: [],
+                resizeTimer: null,
+                currentLang: 'zh-TW'
+            },
 
-        // === 1. 拖拉邊界邏輯 (Resizer) ===
-        const resizer = document.getElementById('resizer');
-        const sidebar = document.getElementById('sidebar');
-        let isResizing = false;
-
-        resizer.addEventListener('mousedown', (e) => {
-            isResizing = true;
-            document.body.style.cursor = 'col-resize';
-            resizer.classList.add('resizing');
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (!isResizing) return;
-            const newWidth = e.clientX;
-            if (newWidth > 320 && newWidth < 800) { // 設定最小最大寬度
-                sidebar.style.width = `${newWidth}px`;
-            }
-        });
-
-        document.addEventListener('mouseup', () => {
-            if (isResizing) {
-                isResizing = false;
-                document.body.style.cursor = 'default';
-                resizer.classList.remove('resizing');
-                // 拖拉結束後，如果文字雲存在，重新繪製以適應新寬度
-                if(currentWords.length > 0) renderWordCloud();
-            }
-        });
-
-        // === 2. UI 操作 ===
-        function loadExample() { document.getElementById('text-input').value = exampleText; }
-
-        function clearInput() {
-            document.getElementById('text-input').value = '';
-            document.getElementById('result-tabs').classList.add('hidden');
-            document.getElementById('word-cloud-canvas').classList.add('hidden');
-            document.getElementById('btn-download').classList.add('hidden');
-            document.getElementById('empty-state').classList.remove('hidden');
-        }
-
-        function togglePos(pos) {
-            const btn = document.querySelector(`button[data-pos="${pos}"]`);
-            if (activePos.has(pos)) {
-                activePos.delete(pos);
-                btn.classList.remove('active');
-            } else {
-                activePos.add(pos);
-                btn.classList.add('active');
-            }
-            if (currentWords.length > 0) renderWordCloud();
-        }
-
-        function switchTab(tab) {
-            const tabAi = document.getElementById('tab-ai');
-            const tabData = document.getElementById('tab-data');
-            const panelAi = document.getElementById('panel-ai');
-            const panelData = document.getElementById('panel-data');
-
-            if (tab === 'ai') {
-                tabAi.className = "flex-1 pb-2 text-sm font-bold text-primary-600 border-b-2 border-primary-600 transition";
-                tabData.className = "flex-1 pb-2 text-sm font-bold text-slate-400 hover:text-slate-600 border-b-2 border-transparent transition";
-                panelAi.classList.remove('hidden');
-                panelData.classList.add('hidden');
-            } else {
-                tabAi.className = "flex-1 pb-2 text-sm font-bold text-slate-400 hover:text-slate-600 border-b-2 border-transparent transition";
-                tabData.className = "flex-1 pb-2 text-sm font-bold text-primary-600 border-b-2 border-primary-600 transition";
-                panelAi.classList.add('hidden');
-                panelData.classList.remove('hidden');
-            }
-        }
-
-        // === 3. 分析核心 (API 呼叫) ===
-        function runAnalysis() {
-            const text = document.getElementById('text-input').value.trim();
-            const model = document.getElementById('model-select').value;
-            const btn = document.getElementById('btn-analyze');
-
-            if (!text) { alert("請先輸入文本"); return; }
-            if (GAS_URL.includes("在此填入")) { alert("請先設定 GAS URL"); return; }
-
-            const orgBtnHtml = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = `<div class="loader w-4 h-4 border-2 border-white/30 border-t-white mr-2"></div> 分析中...`;
-            
-            document.getElementById('empty-state').classList.add('hidden');
-            document.getElementById('word-cloud-canvas').classList.add('hidden');
-            document.getElementById('btn-download').classList.add('hidden');
-            document.getElementById('loading-state').classList.remove('hidden');
-            document.getElementById('result-tabs').classList.add('hidden');
-
-            const payload = { text: text, mode: model };
-
-            fetch(GAS_URL, {
-                method: 'POST',
-                body: JSON.stringify(payload),
-                headers: { "Content-Type": "text/plain;charset=utf-8" }
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    currentWords = data.data.wordList;
-                    document.getElementById('panel-ai').innerHTML = data.data.aiAnalysis;
-                    renderTable(data.data.wordList);
-                    document.getElementById('loading-state').classList.add('hidden');
-                    document.getElementById('result-tabs').classList.remove('hidden');
-                    renderWordCloud();
-                } else {
-                    throw new Error(data.message);
+            translations: {
+                "zh-TW": {
+                    "back": "返回研究中心", "title": "AI 智能文字雲", "tab_text": "文字輸入",
+                    "btn_example": "範例", "btn_clear": "清空", "sec_options": "設定選項",
+                    "sec_options_desc": "自定義您的文字雲參數", "label_model": "權重模型",
+                    "label_shape": "形狀", "btn_visualize": "產生文字雲",
+                    "msg_input_empty": "請輸入文字", "msg_processing": "處理中...",
+                    "msg_success": "分析完成", "msg_error": "發生錯誤"
+                },
+                "en": {
+                    "back": "Back", "title": "Generate Word Cloud", "tab_text": "Text Input",
+                    "btn_example": "Example", "btn_clear": "Clear", "sec_options": "Options",
+                    "sec_options_desc": "Customize your word cloud options", "label_model": "Model",
+                    "label_shape": "Shape", "btn_visualize": "VISUALIZE",
+                    "msg_input_empty": "Please input text", "msg_processing": "Processing...",
+                    "msg_success": "Done", "msg_error": "Error"
+                },
+                "ja": {
+                    "back": "戻る", "title": "AI ワードクラウド", "tab_text": "テキスト入力",
+                    "btn_example": "例文", "btn_clear": "クリア", "sec_options": "オプション",
+                    "sec_options_desc": "ワードクラウドをカスタマイズ", "label_model": "モデル",
+                    "label_shape": "形状", "btn_visualize": "生成する",
+                    "msg_input_empty": "テキストを入力してください", "msg_processing": "処理中...",
+                    "msg_success": "完了", "msg_error": "エラー"
+                },
+                "zh-CN": {
+                    "back": "返回", "title": "AI 智能文字云", "tab_text": "文字输入",
+                    "btn_example": "范例", "btn_clear": "清空", "sec_options": "选项",
+                    "sec_options_desc": "自定义您的文字云参数", "label_model": "权重模型",
+                    "label_shape": "形状", "btn_visualize": "生成文字云",
+                    "msg_input_empty": "请输入文字", "msg_processing": "处理中...",
+                    "msg_success": "分析完成", "msg_error": "发生错误"
                 }
-            })
-            .catch(err => {
-                console.error(err);
-                document.getElementById('loading-state').classList.add('hidden');
-                document.getElementById('empty-state').classList.remove('hidden');
-                document.getElementById('empty-state').innerHTML = `<div class="text-red-500 font-bold mb-2">發生錯誤</div><p class="text-sm text-red-400">${err.message}</p>`;
-                btn.disabled = false;
-                btn.innerHTML = orgBtnHtml;
-            })
-            .finally(() => {
-                btn.disabled = false;
-                btn.innerHTML = orgBtnHtml;
-            });
-        }
+            },
 
-        // === 4. 文字雲繪製 (修復版) ===
-        function renderWordCloud() {
-            const canvas = document.getElementById('word-cloud-canvas');
-            const wrapper = document.getElementById('canvas-wrapper');
-            const shape = document.getElementById('shape-select').value;
+            exampleText: "電流磁效應是指電流通過導線時，會在導線周圍產生磁場的現象。1820年，丹麥物理學家奧斯特發現，當導線通電時，旁邊的磁針會發生偏轉，證明了電與磁之間有密切的關係。磁場的方向可以用安培右手定則來判斷：用右手握住導線，大拇指指向電流方向，四指彎曲的方向就是磁場方向。若將導線繞成螺線管，通電後內部會產生均勻磁場，其特性類似於條形磁鐵。",
 
-            // 過濾資料
-            const filteredList = currentWords.filter(item => {
-                const p = (item.pos || 'o').toLowerCase().charAt(0);
-                const type = ['n','v','a','d'].includes(p) ? p : 'o';
-                return activePos.has(type);
-            });
+            init() {
+                this.bindEvents();
+            },
 
-            if (filteredList.length === 0) {
-                alert("篩選後無詞彙可顯示");
-                return;
-            }
-
-            canvas.classList.remove('hidden');
-            document.getElementById('btn-download').classList.remove('hidden');
-            
-            // 🔴 關鍵修復：取得實際可用的寬高 (扣除 Padding)
-            // 讓 Canvas 填滿容器，但留一點邊距
-            const w = wrapper.clientWidth - 40; 
-            const h = wrapper.clientHeight - 40;
-            canvas.width = w;
-            canvas.height = h;
-
-            // 計算權重縮放
-            const maxWeight = Math.max(...filteredList.map(i => i.weight)) || 1;
-            // 字體大小公式：(目前權重 / 最大權重) * (畫布基準尺寸) + 最小字體
-            // 讓字體隨畫布大小 RWD 縮放
-            const baseSize = w / 15; 
-            
-            const list = filteredList.map(i => {
-                // 確保字體大小在 12px ~ baseSize*2 之間
-                const size = (i.weight / maxWeight) * baseSize + 12;
-                return [i.word, size];
-            });
-
-            // 確保 DOM 更新後再繪圖
-            setTimeout(() => {
-                // 先清除舊圖
-                const ctx = canvas.getContext('2d');
-                ctx.clearRect(0, 0, w, h);
-
-                WordCloud(canvas, {
-                    list: list,
-                    gridSize: 10,
-                    weightFactor: 1, // 我們已經手動計算 size 了，這裡設 1
-                    fontFamily: '"Noto Sans TC", sans-serif',
-                    fontWeight: 'bold',
-                    color: function (word) {
-                        const item = currentWords.find(i => i.word === word);
-                        return getPosColor(item ? item.pos : 'o');
-                    },
-                    rotateRatio: 0.2,
-                    rotationSteps: 2,
-                    shape: shape,
-                    backgroundColor: 'white', // 設為白色背景，避免下載變黑
-                    drawOutOfBound: false,
-                    shrinkToFit: true,
-                    shuffle: false
+            bindEvents() {
+                document.getElementById('shape-select').addEventListener('change', () => {
+                    if (this.state.words.length > 0) this.renderWordCloud();
                 });
-            }, 50);
-        }
+                window.addEventListener('resize', () => {
+                    if (this.state.words.length > 0) {
+                        clearTimeout(this.state.resizeTimer);
+                        this.state.resizeTimer = setTimeout(() => this.renderWordCloud(), 300);
+                    }
+                });
+            },
 
-        function getPosColor(pos) {
-            const p = String(pos).toLowerCase();
-            if (p.startsWith('n')) return '#4f46e5'; // Indigo
-            if (p.startsWith('v')) return '#059669'; // Emerald
-            if (p.startsWith('a')) return '#d97706'; // Amber
-            if (p.startsWith('d')) return '#9333ea'; // Purple
-            return '#64748b'; // Slate
-        }
+            changeLanguage() {
+                this.state.currentLang = document.getElementById('language-selector').value;
+                const t = this.translations[this.state.currentLang];
+                document.querySelectorAll('[data-i18n]').forEach(el => {
+                    el.innerText = t[el.getAttribute('data-i18n')];
+                });
+            },
 
-        function renderTable(list) {
-            const tbody = document.getElementById('data-table-body');
-            tbody.innerHTML = list.slice(0, 100).map((item, idx) => `
-                <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
-                    <td class="p-2 pl-4 text-slate-400 text-xs">${idx + 1}</td>
-                    <td class="p-2 font-medium text-slate-700">${item.word}</td>
-                    <td class="p-2"><span class="px-2 py-0.5 rounded text-xs font-bold text-white" style="background-color: ${getPosColor(item.pos)}">${item.pos}</span></td>
-                    <td class="p-2 pr-4 text-right font-mono text-slate-600">${item.weight.toFixed(1)}</td>
-                </tr>
-            `).join('');
-        }
+            loadExample() {
+                document.getElementById('text-input').value = this.exampleText;
+            },
 
-        function downloadImage() {
-            const canvas = document.getElementById('word-cloud-canvas');
-            const link = document.createElement('a');
-            link.download = `wordcloud_${Date.now()}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-        }
-        
-        // 監聽形狀/模式改變自動重繪
-        document.getElementById('shape-select').addEventListener('change', () => {
-            if(currentWords.length > 0) renderWordCloud();
-        });
-        
-        // 監聽視窗大小改變重繪 (RWD)
-        window.addEventListener('resize', () => {
-             if(currentWords.length > 0) {
-                 // 防抖動 (Debounce)
-                 clearTimeout(window.resizeTimer);
-                 window.resizeTimer = setTimeout(renderWordCloud, 300);
-             }
-        });
+            clearInput() {
+                document.getElementById('text-input').value = '';
+                document.getElementById('results-container').classList.add('hidden');
+                document.getElementById('word-cloud-canvas').classList.add('hidden');
+                document.getElementById('btn-download').classList.add('hidden');
+                document.getElementById('empty-state').classList.remove('hidden');
+                document.getElementById('loading-state').classList.add('hidden');
+                this.state.words = [];
+            },
+
+            switchTab(tab) {
+                const tabAi = document.getElementById('tab-ai');
+                const tabData = document.getElementById('tab-data');
+                const panelAi = document.getElementById('panel-ai');
+                const panelData = document.getElementById('panel-data');
+
+                if (tab === 'ai') {
+                    tabAi.className = "text-sm font-bold text-brand border-b-2 border-brand pb-1 transition";
+                    tabData.className = "text-sm font-bold text-gray-400 border-b-2 border-transparent pb-1 hover:text-gray-600 transition";
+                    panelAi.classList.remove('hidden');
+                    panelData.classList.add('hidden');
+                } else {
+                    tabAi.className = "text-sm font-bold text-gray-400 border-b-2 border-transparent pb-1 hover:text-gray-600 transition";
+                    tabData.className = "text-sm font-bold text-brand border-b-2 border-brand pb-1 transition";
+                    panelAi.classList.add('hidden');
+                    panelData.classList.remove('hidden');
+                }
+            },
+
+            async runAnalysis() {
+                const text = document.getElementById('text-input').value.trim();
+                const model = document.getElementById('model-select').value;
+                const btn = document.getElementById('btn-analyze');
+                const t = this.translations[this.state.currentLang];
+
+                if (!text) { this.showToast(t.msg_input_empty, 'error'); return; }
+                if (GAS_URL.includes("在此填入")) { this.showToast("API URL not set", 'error'); return; }
+
+                // UI Loading
+                const orgBtnHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = `<div class="loader w-4 h-4 border-2 border-white/30 border-t-white mr-2"></div> ${t.msg_processing}`;
+                
+                document.getElementById('empty-state').classList.add('hidden');
+                document.getElementById('word-cloud-canvas').classList.add('hidden');
+                document.getElementById('btn-download').classList.add('hidden');
+                document.getElementById('loading-state').classList.remove('hidden');
+                document.getElementById('results-container').classList.add('hidden');
+
+                try {
+                    const res = await fetch(GAS_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ text, mode: model }),
+                        headers: { "Content-Type": "text/plain;charset=utf-8" }
+                    });
+                    const json = await res.json();
+
+                    if (json.status === 'success') {
+                        this.state.words = json.data.wordList;
+                        // 渲染 AI 分析與表格
+                        document.getElementById('panel-ai').innerHTML = json.data.aiAnalysis;
+                        this.renderTable(json.data.wordList);
+                        
+                        // 顯示結果
+                        document.getElementById('loading-state').classList.add('hidden');
+                        document.getElementById('results-container').classList.remove('hidden');
+                        
+                        // 渲染文字雲
+                        this.renderWordCloud();
+                        this.showToast(t.msg_success, "success");
+                    } else {
+                        throw new Error(json.message);
+                    }
+                } catch (error) {
+                    console.error(error);
+                    document.getElementById('loading-state').classList.add('hidden');
+                    document.getElementById('empty-state').classList.remove('hidden');
+                    this.showToast(t.msg_error + ": " + error.message, "error");
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = orgBtnHtml;
+                }
+            },
+
+            renderWordCloud() {
+                const canvas = document.getElementById('word-cloud-canvas');
+                const wrapper = document.getElementById('canvas-wrapper');
+                const shape = document.getElementById('shape-select').value;
+
+                if (this.state.words.length === 0) return;
+
+                canvas.classList.remove('hidden');
+                document.getElementById('btn-download').classList.remove('hidden');
+
+                // 強制重設寬高
+                const w = wrapper.clientWidth;
+                const h = wrapper.clientHeight;
+                canvas.width = w;
+                canvas.height = h;
+
+                // 權重縮放
+                const maxWeight = Math.max(...this.state.words.map(i => i.weight)) || 1;
+                const factor = (w / 12) / maxWeight;
+
+                const list = this.state.words.map(i => [i.word, i.weight * factor + 12]);
+
+                setTimeout(() => {
+                    WordCloud(canvas, {
+                        list: list,
+                        gridSize: 12,
+                        weightFactor: 1,
+                        fontFamily: '"Work Sans", "Noto Sans TC", sans-serif',
+                        fontWeight: 'bold',
+                        color: (word) => {
+                            const item = this.state.words.find(i => i.word === word);
+                            return this.getPosColor(item ? item.pos : 'o');
+                        },
+                        rotateRatio: 0.3,
+                        rotationSteps: 2,
+                        shape: shape,
+                        backgroundColor: 'transparent',
+                        drawOutOfBound: false,
+                        shrinkToFit: true
+                    });
+                }, 100);
+            },
+
+            getPosColor(pos) {
+                const p = String(pos).toLowerCase();
+                if (p.startsWith('n')) return '#BB50E0'; // Purple (Noun)
+                if (p.startsWith('v')) return '#009688'; // Teal (Verb)
+                if (p.startsWith('a')) return '#FF9800'; // Orange (Adj)
+                if (p.startsWith('d')) return '#2196F3'; // Blue (Adv)
+                return '#9E9E9E'; // Gray
+            },
+
+            renderTable(list) {
+                const tbody = document.getElementById('data-table-body');
+                tbody.innerHTML = list.slice(0, 50).map((item, idx) => `
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="p-3 text-gray-400 font-mono text-xs">${idx + 1}</td>
+                        <td class="p-3 font-medium text-gray-800">${item.word}</td>
+                        <td class="p-3"><span class="pos-badge text-white" style="background-color: ${this.getPosColor(item.pos)}">${item.pos}</span></td>
+                        <td class="p-3 text-right font-mono text-gray-600">${item.weight.toFixed(1)}</td>
+                    </tr>
+                `).join('');
+            },
+
+            downloadImage() {
+                const canvas = document.getElementById('word-cloud-canvas');
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = canvas.width;
+                tempCanvas.height = canvas.height;
+                const ctx = tempCanvas.getContext('2d');
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+                ctx.drawImage(canvas, 0, 0);
+
+                const link = document.createElement('a');
+                link.download = `wordcloud_${Date.now()}.png`;
+                link.href = tempCanvas.toDataURL('image/png');
+                link.click();
+            },
+
+            showToast(msg, type = 'info') {
+                const toast = document.getElementById('toast');
+                const toastMsg = document.getElementById('toast-msg');
+                toastMsg.innerText = msg;
+                toast.classList.remove('opacity-0', 'translate-y-10');
+                
+                if (type === 'error') {
+                    toast.classList.remove('bg-gray-900');
+                    toast.classList.add('bg-red-600');
+                } else {
+                    toast.classList.add('bg-gray-900');
+                    toast.classList.remove('bg-red-600');
+                }
+
+                setTimeout(() => { toast.classList.add('opacity-0', 'translate-y-10'); }, 3000);
+            }
+        };
+
+        // Initialize
+        App.init();
     </script>
 </body>
 </html>
