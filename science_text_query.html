@@ -98,8 +98,8 @@
                     <div>
                         <label class="block text-xs font-bold text-slate-500 mb-1 uppercase" data-i18n="label_stage">學習階段</label>
                         <select id="stageFilter" class="w-full p-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 focus:ring-2 focus:ring-purple-400 outline-none">
-                            <option value="全部" data-i18n="opt_all">全部</option>
-                            <option value="國小" data-i18n="opt_elem" selected>國小</option>
+                            <option value="全部" data-i18n="opt_all" selected>全部</option>
+                            <option value="國小" data-i18n="opt_elem">國小</option>
                             <option value="國中" data-i18n="opt_junior">國中</option>
                         </select>
                     </div>
@@ -350,7 +350,8 @@
 
         // *** 核心邏輯 ***
         const $ = id => document.getElementById(id);
-        let currentQueryText = '', currentStageFilter = '國小', currentPageSize = 20, currentPage = 1, currentContextRange = 0, totalPagesCache = 1;
+        // 🟡 修改預設值為 '全部'
+        let currentQueryText = '', currentStageFilter = '全部', currentPageSize = 20, currentPage = 1, currentContextRange = 0, totalPagesCache = 1;
         let gradeChartInstance = null;
 
         // Enter 鍵查詢
