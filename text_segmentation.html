@@ -126,7 +126,6 @@
         <canvas id="network-canvas"></canvas>
     </div>
 
-    <!-- 導航列 -->
     <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
         <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
             <div class="flex items-center space-x-3 cursor-pointer group" onclick="window.location.href='researcher.html'">
@@ -149,17 +148,14 @@
         </div>
     </nav>
 
-    <!-- 主內容區 -->
     <main class="flex-1 p-6 md:p-10 max-w-7xl mx-auto w-full">
         <div class="animate-fade-in-up space-y-8">
             
-            <!-- 標題與說明 -->
             <div class="text-center">
                 <h1 class="text-4xl font-black text-slate-800 mb-2 tracking-tight title-3d" data-i18n="page_title">AI 科學文本斷詞系統</h1>
                 <p class="text-slate-500 font-medium" data-i18n="page_subtitle">CKIP Standard Segmentation & POS Tagging</p>
             </div>
 
-            <!-- 輸入區塊 -->
             <div class="glass-panel p-8 rounded-[2.5rem] mb-8 border border-white/60">
                 <div class="flex justify-between items-center mb-4">
                     <label class="text-lg font-bold text-purple-900 flex items-center gap-2">
@@ -184,12 +180,9 @@
                 </div>
             </div>
 
-            <!-- 結果區 (預設隱藏) -->
             <div id="result-panel" class="hidden animate-fade-in-up">
                 
-                <!-- 1. 統計儀表板 (新增) -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-                    <!-- 總計 -->
                     <div class="stat-card border-l-4 border-slate-500">
                         <div class="stat-title"><i class="fa-solid fa-chart-pie"></i> Total</div>
                         <div class="stat-val-row">
@@ -202,7 +195,6 @@
                         </div>
                         <div class="text-xs text-right text-slate-400 mt-1">TTR: <span id="stat-total-ttr">0.00</span></div>
                     </div>
-                    <!-- 名詞 -->
                     <div class="stat-card border-l-4 border-blue-500">
                         <div class="stat-title text-blue-600"><span class="w-2 h-2 rounded-full bg-blue-500"></span> Noun (N)</div>
                         <div class="stat-val-row">
@@ -211,7 +203,6 @@
                         </div>
                         <div class="stat-bar-bg"><div id="bar-n" class="stat-bar-fill bg-blue-500" style="width: 0%"></div></div>
                     </div>
-                    <!-- 動詞 -->
                     <div class="stat-card border-l-4 border-red-500">
                         <div class="stat-title text-red-600"><span class="w-2 h-2 rounded-full bg-red-500"></span> Verb (V)</div>
                         <div class="stat-val-row">
@@ -220,7 +211,6 @@
                         </div>
                         <div class="stat-bar-bg"><div id="bar-v" class="stat-bar-fill bg-red-500" style="width: 0%"></div></div>
                     </div>
-                    <!-- 形容詞 -->
                     <div class="stat-card border-l-4 border-green-500">
                         <div class="stat-title text-green-600"><span class="w-2 h-2 rounded-full bg-green-500"></span> Adj (A/VH)</div>
                         <div class="stat-val-row">
@@ -229,7 +219,6 @@
                         </div>
                         <div class="stat-bar-bg"><div id="bar-a" class="stat-bar-fill bg-green-500" style="width: 0%"></div></div>
                     </div>
-                    <!-- 副詞 -->
                     <div class="stat-card border-l-4 border-amber-500">
                         <div class="stat-title text-amber-600"><span class="w-2 h-2 rounded-full bg-amber-500"></span> Adv (D)</div>
                         <div class="stat-val-row">
@@ -240,16 +229,13 @@
                     </div>
                 </div>
 
-                <!-- 2. 斷詞結果面板 -->
                 <div class="glass-panel p-8 rounded-[2.5rem] border border-white/60 relative overflow-hidden">
                     
-                    <!-- 頂部工具列 -->
                     <div class="flex flex-wrap justify-between items-center mb-6 border-b border-purple-100 pb-4 gap-4">
                         <div class="flex items-center gap-4">
                             <h3 class="text-xl font-bold text-slate-700 flex items-center gap-2">
                                 <i class="fa-solid fa-tags text-purple-500"></i> <span data-i18n="result_title">斷詞結果</span>
                             </h3>
-                            <!-- 圖例 (文字顏色) -->
                             <div class="hidden md:flex gap-4 text-xs font-bold text-slate-400">
                                 <span class="flex items-center gap-1"><span class="text-blue-600">● Noun</span></span>
                                 <span class="flex items-center gap-1"><span class="text-red-600">● Verb</span></span>
@@ -267,13 +253,11 @@
                         </div>
                     </div>
 
-                    <!-- 載入動畫 -->
                     <div id="loadingState" class="hidden flex flex-col items-center justify-center py-12 text-purple-500">
                         <i class="fa-solid fa-circle-notch fa-spin text-4xl mb-4"></i>
                         <span class="font-bold animate-pulse" data-i18n="msg_processing">AI 正在依據科學規則進行斷詞...</span>
                     </div>
 
-                    <!-- 斷詞顯示區 (文字流排版) -->
                     <div id="tokensContainer" class="leading-loose min-h-[200px] p-6 bg-white/60 rounded-3xl border border-slate-100/50 shadow-inner text-lg"></div>
 
                 </div>
@@ -282,13 +266,13 @@
         </div>
     </main>
 
-    <!-- Toast -->
     <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full shadow-xl opacity-0 translate-y-10 z-50 transition-all duration-300 pointer-events-none font-bold text-sm flex items-center gap-2">
         <i class="fa-solid fa-check-circle text-green-400"></i> <span id="toast-msg"></span>
     </div>
 
     <script>
-         const apiKey = "<?= apiKey ?>"; // API Key will be injected
+        // *** 設定 GAS API 網址 (請填入部署後的網址) ***
+        const GAS_API_URL = "在此填入您的GAS部署網址(結尾是/exec)"; 
 
         // *** 多語系字典 ***
         const translations = {
@@ -358,10 +342,16 @@
             setTimeout(()=>t.classList.add('opacity-0', 'translate-y-10'), 3000);
         }
 
-        // *** Gemini API 核心斷詞邏輯 ***
+        // *** 核心：呼叫 GAS API 進行斷詞 ***
         async function runSegmentation() {
             const text = document.getElementById('inputText').value.trim();
             if (!text) { showToast(getMsg('msg_input_error'), 'error'); return; }
+
+            // 檢查是否已填入部署網址
+            if (!GAS_API_URL || GAS_API_URL.includes("在此填入")) {
+                showToast("請先在 HTML 程式碼中填入 GAS 部署網址", 'error');
+                return;
+            }
 
             const panel = document.getElementById('result-panel');
             const loading = document.getElementById('loadingState');
@@ -375,48 +365,25 @@
             
             panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-            // ★ 嚴格斷詞規則 Prompt (完整植入)
-            const rules = `
-            A. 全域格式規則格式永遠優先：A1. 詞彙間一定要使用全形空格（　），物質(Na)／(FW)就沒有斷詞，是錯誤例子。不論原文本是否換行，詞與詞之間一律使用全形空格分開。如果文本本來就換行，禁止自動合併成單行。A2.不可出現半形空格，若偵測到半形空格，一律自動轉為全形空格。A3.去除符號與異常字元，例如「|」符號全部移除。「(WHITESPACE)」字樣刪除。✓符號移除。節數標記為Neu，例如：1-1(Neu)。餘此類推。A4.你的斷詞與POS要有自我學習的能力，從經歷過或修正過的斷詞中學習以後自動保持一致性。A5.禁止「過度合併」詞彙！！，例如任意將兩個詞彙合併：恢復原狀不應合併，影響平衡狀態(Na)不應合併，產生二氧化碳的(VHC)過度合併了，我發現你愈來愈有過度合併的情況，請改善，餘此類推。每一個詞都要正確標記CKIP的POS，且不要過度合併，逗號與頓號明確區分。A6.「的」後方詞性規則（非常關鍵）：F1.「的」＋動詞 → 後詞一律改標記為名詞（Na）。F2.「的節」必須拆成兩詞：的(DE)　節(Na)。
-
-            B. 固定單詞規則（整組視為單詞，不可再拆）：B1.科學專有名詞（物理、化學、生物、地科、資訊、科技、數學、工程等詞彙均視為單詞），例如：虹吸現象(Na)、自然光(Na)、綠色能源(Na)、再生能源(Na)、可再生能源(Na)、不可再生能源(Na)、發光二極體(Na)、不良導體(Na)、廢電池(Na)、魚鰓(Na)、小馬達(Na)、玩具車(Na)、平板電腦(Na)、完全變態(Na)、不完全變態(Na)、大藍閃蝶(Na)、細縫(Na)、風力風向計(Na)、維他命C(Na)、維他命C錠(Na)、小蘇打粉(Na)、毛細現象(Na)等等。B2. 植物、動物、物品名稱（若為固定名詞，一律合併），例如番薯葉(Na)、臺灣欒樹(Na)、小石頭(Na)、小孩(Na)、小草(Na)（「小」＋名詞 → 單詞）、長春花(Na)（注意：雖原標記 VH，但語義為名詞）、甲端(Na)、乙端(Na)、兩端(Ncd)、兩側(Ncd)等。B3. 地名要合併（如新北市等等）、機關名要合併（如玉山國家公園等等）、特定專有名詞要合併（如巴黎協議、京都議定書等等），未來若出現類似名稱，一律視為單詞。B4. 「XX定律」「XX原理」視為單詞，例如牛頓第二運動定律、連通管原理等等。
-
-            C. 動詞短語與特殊複合詞（視為單詞）：C1.「一顆、一個、一條、一座、一端、一本、一段、一節、一種、一對等等」類似詞彙全部視為單詞。C2. 動作重複詞語，例如試試看、說說看、查查看、想想看、試一試、比一比、跑一跑、跳一跳、說一說、聞一聞、摸一摸、查一查、想一想、連連看等等都視為單詞。C3. 常用語意整體詞，例如：不可以、不一樣、不一致、不相同、不一定、再也(D)、也是、也能、也可以、也會、不是、都會(D)、都能、就要(D)等等都視為單詞。C4.方向/位置詞，例如管內、圖中、地上、樹上、水邊、腳上、門外、土裡、水中、海邊、家裡、壺內、碗底、湯中等等都視為單詞。C5.如果有單詞「成」，前面有動詞，則合併在一起，例如：化合成、轉化成、轉換成、製作而成(VG)等等，餘此類推。C6.語意合併詞，整體視為單詞，例如：才能(D)、還能(D)、就會(D)、直竄(VA)、有些(Vspa)、也能(D)、幾種(Nf)。
-
-            D. 科學語句固定拆分規則：D1.「水能」不是單詞 → 必須拆：水(Na)　能(D)。D2.「走樓梯」必須拆：走(VA)　樓梯(Na)。D3.「拿尺量」要拆成三詞：拿　尺　量。D4.「從　力　的　大小　和　方向　圖中」句法修正成「從　力　的　大小　和　方向　，　圖中　…」、「沒有(VJ)　生命(Na)　的(DE)　是非(Na)　生物(Na)」要斷成「沒有　生命　的　是　非生物」。「具導電性(Na)」應為「具(VC)　導電性(Na)」這些細微語意容易斷錯，要特別注意。
-
-            E. 斷詞一致性（出現一次就永久固定）：任何詞彙，只要在任何一次斷詞中被定義為「單詞」，未來每次都必須以同樣方式斷詞。例如：戶外教學、魚鰓、小馬達、玩具車、平板電腦、番薯葉、小石頭、小孩、小草、甲端、乙端、不良導體、廢電池、記錄者、小白點、刮平(VC)　匙面(Na)、液體量(Na)、一次性(Na)、再製(VH)、櫃子門(Na)、加(VC)　鐵片(Na)、小農夫(Na)、直晒(VC)　太陽(Na)、一次(Nf)、一顆(Nf)、一大片(Nf)、四季(Nd)、紀錄者(Na)、水裡(Ncd)、小烏來瀑布(Na)、海上(Ncd)、高美溼地(Nc)、一張(Nf)、溯溪(VA)、老梅石槽(Na)、拉姆薩溼地公約(Na)、波光粼粼(VH)、冷氣(Na)、都要(D)、也會(D)、都會(D)、二顆(Nf)、正負極(Na)、小石頭(Na)、開車(VA)、太魯閣峽谷(Na)、福隆海水浴場(Nc)、的(DE)　串聯(Na)，「的」後面詞性要是Na、地下(Ncd)、光復國中(Nc)、雪山隧道(Na)、草漯沙丘(Na)、十分瀑布(Na)、雙心石滬(Na)、一片(Nf)、也會(D)、陰陽海(Na)、碳酸飲料(Na)、秤重(VE)、碗底(Ncd)、都是(SHI)、雷射筆(Na)、室外(Ncd)、變高(VH)、色光(Na)、新北市(Nc)、夏至(Nd)、井仔腳鹽田(Na)、冬至(Nd)、找一找(VC)、八大行星(Na)、冬季大三角(Na)、春季大三角(Na)、夏季大三角(Na)、秋季四邊形(Na)、天津四(Na)、雌孔雀(Na)、觀星軟體(Na)、一窺究竟(VA)、一窺究竟(VA)、高度角(Na)、觀測者(Na)、街上(Ncd)、門外(Ncd)、全臺(Nc)、裝水(VC)、高蹺鴴(Na)、榕果小蜂(Na)、下一代(Na)、攀木蜥蜴(Na)、身上(Ncd)、螞蟻窩(Na)、臺灣獼猴(Na)、大杓鷸(Na)、瓶鼻海豚(Na)、攪來攪去(VE)、小碎物(Na)、新生命(Na)、熱空氣(Na)、生存之道(Na)、不一致(VH)、輻射熱(Na)、熱飲(Na)、熱漲冷縮(VH)、小磁鐵、大磁鐵、小車、大車、小樹、大樹、指北端、地磁北極、地磁南極、地理北極、地理南極、單位元(Na)、右下方(Ng)、兩者(Na)、每個(Nesp)、桌下(Ncd)、半個(Nf)、兩極(Na)、靜止不動(VH)、小磁鐵(Na)...等等餘此類推，全部未來皆一致。
-            `;
-
-            const prompt = `
-            Role: Professional Chinese Tokenizer (CKIP standard).
-            Task: Segment the following text into tokens and assign POS tags.
-            Input Text: "${text}"
-            
-            Strictly follow these segmentation rules:
-            ${rules}
-
-            Output Format: 
-            Return a RAW JSON Array ONLY. No markdown, no code blocks.
-            Format: [{"w": "Word", "p": "POS"}, ...]
-            POS Tags: N(Noun), V(Verb), A(Adj), D(Adv), M(Measure), P(Prep), C(Conj), O(Other).
-            `;
-
             try {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-});
+                // 發送 POST 請求給 GAS
+                const response = await fetch(GAS_API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" }, // 避免 CORS 預檢
+                    body: JSON.stringify({ text: text })
+                });
 
-                if (!response.ok) throw new Error('API Error');
                 const data = await response.json();
-                
-                let rawJson = data.candidates[0].content.parts[0].text;
-                rawJson = rawJson.replace(/```json/g, '').replace(/```/g, '').trim();
-                const tokens = JSON.parse(rawJson);
 
-                renderTokens(tokens);
-                showToast(getMsg('msg_success'));
+                if (data.status === "success") {
+                    // GAS 回傳的是斷詞好的字串 (例: "測試(Na)　一下(D)")
+                    // 我們需要把它轉換成物件陣列 [{w:"測試", p:"Na"}, ...] 以便渲染
+                    const tokens = parseStringTokens(data.result);
+                    renderTokens(tokens);
+                    showToast(getMsg('msg_success'));
+                } else {
+                    throw new Error(data.message || "Unknown Error");
+                }
 
             } catch (error) {
                 console.error(error);
@@ -425,6 +392,23 @@
                 loading.classList.add('hidden');
                 btn.disabled = false; btn.classList.remove('opacity-50');
             }
+        }
+
+        // 輔助函式：將斷詞後的字串解析為 Token 物件
+        function parseStringTokens(textString) {
+            if(!textString) return [];
+            // 用全形空格切割
+            const parts = textString.split(/　/); 
+            return parts.map(p => {
+                // 抓取括號內的詞性，例如 "科學(Na)"
+                const match = p.match(/^(.*)\((.*)\)$/);
+                if (match) {
+                    return { w: match[1], p: match[2] };
+                }
+                // 如果解析失敗，回傳原字並標記為其他
+                if (p.trim() !== "") return { w: p, p: "O" };
+                return null;
+            }).filter(t => t !== null);
         }
 
         function renderTokens(tokens) {
@@ -454,10 +438,10 @@
                 } else if (posFirst === 'V') {
                     stats.v.token++;
                     stats.v.type.add(word);
-                } else if (posFirst === 'A' || pos === 'VH' || pos === 'VS') { // 寬鬆形容詞
+                } else if (posFirst === 'A' || pos === 'VH' || pos === 'VS') { 
                     stats.a.token++;
                     stats.a.type.add(word);
-                } else if (posFirst === 'D' || pos === 'DE') { // 寬鬆副詞/的
+                } else if (posFirst === 'D' || pos === 'DE') { 
                     stats.d.token++;
                     stats.d.type.add(word);
                 }
@@ -469,7 +453,6 @@
                 if (document.getElementById(`stat-${idSuffix}-type`)) {
                      document.getElementById(`stat-${idSuffix}-type`).innerText = data.type.size;
                 }
-                // 更新進度條 (相對於總 Token)
                 const bar = document.getElementById(`bar-${idSuffix}`);
                 if (bar && stats.total.token > 0) {
                     const pct = (data.token / stats.total.token) * 100;
@@ -483,7 +466,6 @@
             updateStatUI('a', stats.a);
             updateStatUI('d', stats.d);
 
-            // 計算 TTR
             const ttr = stats.total.token > 0 ? (stats.total.type.size / stats.total.token).toFixed(2) : "0.00";
             document.getElementById('stat-total-ttr').innerText = ttr;
 
