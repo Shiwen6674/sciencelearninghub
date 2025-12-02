@@ -15,7 +15,6 @@
                 extend: {
                     colors: {
                         primary: { 50: '#eef2ff', 100: '#e0e7ff', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca' },
-                        secondary: { 50: '#fdf4ff', 500: '#d946ef' }
                     },
                     fontFamily: { sans: ['Noto Sans TC', 'sans-serif'] }
                 }
@@ -25,25 +24,15 @@
     <style>
         body { background-color: #f8fafc; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
         
-        /* 滾動條美化 */
         .scroller::-webkit-scrollbar { width: 6px; }
         .scroller::-webkit-scrollbar-track { background: transparent; }
         .scroller::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
         .scroller::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
 
-        /* 詞性標籤樣式 */
-        .pos-chip {
-            cursor: pointer; border: 1px solid #e2e8f0; transition: all 0.2s; user-select: none;
-        }
-        .pos-chip.active {
-            background-color: #e0e7ff; color: #4338ca; border-color: #6366f1; font-weight: 700; box-shadow: 0 2px 4px rgba(99, 102, 241, 0.1);
-        }
+        .pos-chip { cursor: pointer; border: 1px solid #e2e8f0; transition: all 0.2s; user-select: none; }
+        .pos-chip.active { background-color: #e0e7ff; color: #4338ca; border-color: #6366f1; font-weight: 700; box-shadow: 0 2px 4px rgba(99, 102, 241, 0.1); }
         
-        /* 載入動畫 */
-        .loader {
-            width: 24px; height: 24px; border: 3px solid rgba(79, 70, 229, 0.2);
-            border-top-color: #4f46e5; border-radius: 50%; animation: spin 1s linear infinite;
-        }
+        .loader { width: 24px; height: 24px; border: 3px solid rgba(79, 70, 229, 0.2); border-top-color: #4f46e5; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
@@ -61,13 +50,13 @@
             </div>
         </div>
         <div class="flex items-center gap-3">
-            <span class="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded">Model: Gemini 2.5 Flash</span>
+            <span class="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded">Gemini 2.5 Flash</span>
         </div>
     </header>
 
     <div class="flex flex-1 overflow-hidden relative">
         
-        <aside class="w-[400px] bg-white border-r border-slate-200 flex flex-col z-20 shadow-xl shrink-0 h-full relative">
+        <aside class="w-[35%] min-w-[450px] max-w-[600px] bg-white border-r border-slate-200 flex flex-col z-20 shadow-xl shrink-0 h-full relative">
             
             <div class="flex-1 overflow-y-auto scroller p-6 space-y-6">
                 
@@ -77,35 +66,32 @@
                             <i class="fa-solid fa-pen-to-square text-primary-500"></i> 分析文本
                         </label>
                         <div class="flex gap-2">
-                            <button onclick="loadExample()" class="text-xs bg-slate-100 hover:bg-primary-50 text-slate-600 hover:text-primary-700 px-2 py-1 rounded transition border border-slate-200">
-                                載入範例
-                            </button>
-                            <button onclick="clearInput()" class="text-xs bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-600 px-2 py-1 rounded transition border border-slate-200">
-                                清空
-                            </button>
+                            <button onclick="loadExample()" class="text-xs bg-slate-100 hover:bg-primary-50 text-slate-600 hover:text-primary-700 px-2 py-1 rounded transition border border-slate-200">範例</button>
+                            <button onclick="clearInput()" class="text-xs bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-600 px-2 py-1 rounded transition border border-slate-200">清空</button>
                         </div>
                     </div>
                     <textarea id="text-input" class="w-full h-40 p-3 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none transition resize-none leading-relaxed bg-slate-50 focus:bg-white" placeholder="請在此貼上文章..."></textarea>
                 </div>
 
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">視覺化設定</h3>
-                    <div class="grid grid-cols-2 gap-3">
+                <div class="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-4">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">分析設定</h3>
+                    <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="text-xs font-semibold text-slate-500 mb-1 block">形狀</label>
-                            <select id="shape-select" class="w-full p-2 text-sm border rounded-lg bg-white focus:border-primary-500 outline-none">
-                                <option value="circle">圓形 (Circle)</option>
-                                <option value="cardioid">愛心 (Heart)</option>
-                                <option value="square">方形 (Square)</option>
-                                <option value="star">星形 (Star)</option>
-                                <option value="diamond">菱形 (Diamond)</option>
+                            <label class="text-xs font-semibold text-slate-500 mb-1 block">權重模式</label>
+                            <select id="model-select" class="w-full p-2.5 text-sm border rounded-lg bg-white focus:border-primary-500 outline-none">
+                                <option value="frequency">詞頻 (Frequency)</option>
+                                <option value="tfidf">TF-IDF (模擬)</option>
+                                <option value="textrank">TextRank (關聯性)</option>
                             </select>
                         </div>
                         <div>
-                            <label class="text-xs font-semibold text-slate-500 mb-1 block">權重模式</label>
-                            <select id="model-select" class="w-full p-2 text-sm border rounded-lg bg-white focus:border-primary-500 outline-none">
-                                <option value="frequency">詞頻優先</option>
-                                <option value="textrank">TextRank (關鍵性)</option>
+                            <label class="text-xs font-semibold text-slate-500 mb-1 block">形狀</label>
+                            <select id="shape-select" class="w-full p-2.5 text-sm border rounded-lg bg-white focus:border-primary-500 outline-none">
+                                <option value="circle">圓形</option>
+                                <option value="cardioid">愛心</option>
+                                <option value="square">方形</option>
+                                <option value="star">星形</option>
+                                <option value="diamond">菱形</option>
                             </select>
                         </div>
                     </div>
@@ -113,11 +99,11 @@
                     <div>
                         <label class="text-xs font-semibold text-slate-500 mb-2 block">詞性過濾</label>
                         <div class="flex flex-wrap gap-2">
-                            <button onclick="togglePos('n')" class="pos-chip active px-3 py-1 rounded-full text-xs" data-pos="n">名詞 (N)</button>
-                            <button onclick="togglePos('v')" class="pos-chip active px-3 py-1 rounded-full text-xs" data-pos="v">動詞 (V)</button>
-                            <button onclick="togglePos('a')" class="pos-chip active px-3 py-1 rounded-full text-xs" data-pos="a">形容詞</button>
-                            <button onclick="togglePos('d')" class="pos-chip active px-3 py-1 rounded-full text-xs" data-pos="d">副詞</button>
-                            <button onclick="togglePos('o')" class="pos-chip px-3 py-1 rounded-full text-xs" data-pos="o">其他</button>
+                            <button onclick="togglePos('n')" class="pos-chip active px-3 py-1.5 rounded-full text-xs" data-pos="n">名詞</button>
+                            <button onclick="togglePos('v')" class="pos-chip active px-3 py-1.5 rounded-full text-xs" data-pos="v">動詞</button>
+                            <button onclick="togglePos('a')" class="pos-chip active px-3 py-1.5 rounded-full text-xs" data-pos="a">形容詞</button>
+                            <button onclick="togglePos('d')" class="pos-chip active px-3 py-1.5 rounded-full text-xs" data-pos="d">副詞</button>
+                            <button onclick="togglePos('o')" class="pos-chip px-3 py-1.5 rounded-full text-xs" data-pos="o">其他</button>
                         </div>
                     </div>
                 </div>
@@ -126,23 +112,22 @@
                     <i class="fa-solid fa-wand-magic-sparkles"></i> 開始 AI 分析
                 </button>
 
-                <div id="result-tabs" class="hidden">
+                <div id="result-tabs" class="hidden pt-2">
                     <div class="flex border-b border-slate-200 mb-4">
                         <button onclick="switchTab('ai')" id="tab-ai" class="flex-1 pb-2 text-sm font-bold text-primary-600 border-b-2 border-primary-600">AI 洞察</button>
                         <button onclick="switchTab('data')" id="tab-data" class="flex-1 pb-2 text-sm font-bold text-slate-400 hover:text-slate-600 border-b-2 border-transparent">數據列表</button>
                     </div>
 
-                    <div id="panel-ai" class="text-sm text-slate-600 leading-relaxed">
-                        </div>
+                    <div id="panel-ai" class="text-sm text-slate-600 leading-relaxed space-y-2"></div>
 
-                    <div id="panel-data" class="hidden h-[300px] overflow-y-auto scroller border border-slate-200 rounded-lg">
+                    <div id="panel-data" class="hidden h-[250px] overflow-y-auto scroller border border-slate-200 rounded-lg">
                         <table class="w-full text-sm text-left">
                             <thead class="bg-slate-50 text-slate-500 sticky top-0">
                                 <tr>
-                                    <th class="p-2 border-b">#</th>
+                                    <th class="p-2 border-b pl-4">#</th>
                                     <th class="p-2 border-b">詞彙</th>
                                     <th class="p-2 border-b">詞性</th>
-                                    <th class="p-2 border-b text-right">權重</th>
+                                    <th class="p-2 border-b text-right pr-4">權重</th>
                                 </tr>
                             </thead>
                             <tbody id="data-table-body" class="bg-white"></tbody>
@@ -155,7 +140,7 @@
 
         <main class="flex-1 bg-slate-100 relative overflow-hidden flex items-center justify-center">
             
-            <div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(#6366f1 1px, transparent 1px); background-size: 24px 24px;"></div>
+            <div class="absolute inset-0 opacity-5 pointer-events-none" style="background-image: radial-gradient(#6366f1 1px, transparent 1px); background-size: 24px 24px;"></div>
 
             <div id="canvas-wrapper" class="w-full h-full relative flex items-center justify-center">
                 
@@ -184,18 +169,15 @@
     </div>
 
     <script>
-        // 🔴🔴🔴 這裡填入您部署後的 GAS Web App 網址 🔴🔴🔴
+        // 🔴🔴🔴 請務必填入您部署後的 GAS Web App URL (結尾是 /exec) 🔴🔴🔴
         const GAS_URL = "https://script.google.com/macros/s/AKfycbw3UqYr976wAd9aeEsLpTDSlGaUVdBpaErqZi-zHgNzh_Gd0SuggfdI7ldVzrqR1Ygd/exec"; 
 
         // 全域變數
         let currentWords = [];
-        let activePos = new Set(['n', 'v', 'a', 'd']); // 預設排除 'o'
+        let activePos = new Set(['n', 'v', 'a', 'd']); 
         const exampleText = "電流磁效應是指電流通過導線時，會在導線周圍產生磁場的現象。1820年，丹麥物理學家奧斯特發現，當導線通電時，旁邊的磁針會發生偏轉，證明了電與磁之間有密切的關係。磁場的方向可以用安培右手定則來判斷：用右手握住導線，大拇指指向電流方向，四指彎曲的方向就是磁場方向。若將導線繞成螺線管，通電後內部會產生均勻磁場，其特性類似於條形磁鐵。";
 
-        // === UI 操作 ===
-        function loadExample() {
-            document.getElementById('text-input').value = exampleText;
-        }
+        function loadExample() { document.getElementById('text-input').value = exampleText; }
 
         function clearInput() {
             document.getElementById('text-input').value = '';
@@ -214,7 +196,6 @@
                 activePos.add(pos);
                 btn.classList.add('active');
             }
-            // 即時重繪
             if (currentWords.length > 0) renderWordCloud();
         }
 
@@ -237,16 +218,14 @@
             }
         }
 
-        // === 核心邏輯 ===
         function runAnalysis() {
             const text = document.getElementById('text-input').value.trim();
             const model = document.getElementById('model-select').value;
             const btn = document.getElementById('btn-analyze');
 
             if (!text) { alert("請先輸入文本"); return; }
-            if (GAS_URL.includes("在此填入")) { alert("請先設定 GAS API 網址！"); return; }
+            if (GAS_URL.includes("在此填入")) { alert("請先設定 GAS URL"); return; }
 
-            // 切換 UI 到 Loading 狀態
             const orgBtnHtml = btn.innerHTML;
             btn.disabled = true;
             btn.innerHTML = `<div class="loader w-4 h-4 border-2 border-white/30 border-t-white mr-2"></div> 分析中...`;
@@ -255,11 +234,10 @@
             document.getElementById('word-cloud-canvas').classList.add('hidden');
             document.getElementById('btn-download').classList.add('hidden');
             document.getElementById('loading-state').classList.remove('hidden');
-            document.getElementById('result-tabs').classList.add('hidden'); // 暫藏結果區
+            document.getElementById('result-tabs').classList.add('hidden');
 
             const payload = { text: text, mode: model };
 
-            // Fetch
             fetch(GAS_URL, {
                 method: 'POST',
                 body: JSON.stringify(payload),
@@ -269,17 +247,10 @@
             .then(data => {
                 if (data.status === 'success') {
                     currentWords = data.data.wordList;
-                    
-                    // 填入 AI 內容
                     document.getElementById('panel-ai').innerHTML = data.data.aiAnalysis;
-                    // 填入表格
                     renderTable(data.data.wordList);
-                    
-                    // 顯示結果區
                     document.getElementById('loading-state').classList.add('hidden');
                     document.getElementById('result-tabs').classList.remove('hidden');
-                    
-                    // 繪製文字雲
                     renderWordCloud();
                 } else {
                     throw new Error(data.message);
@@ -299,92 +270,83 @@
             });
         }
 
-        // === 文字雲繪製 (含自動適應) ===
+        // 🔴 繪製邏輯修復：強制給定寬高
         function renderWordCloud() {
             const canvas = document.getElementById('word-cloud-canvas');
             const wrapper = document.getElementById('canvas-wrapper');
             const shape = document.getElementById('shape-select').value;
 
-            // 1. 篩選資料
             const filteredList = currentWords.filter(item => {
                 const p = (item.pos || 'o').toLowerCase().charAt(0);
-                // 簡易對應：N->n, V->v, A->a, D->d，其他歸 o
                 const type = ['n','v','a','d'].includes(p) ? p : 'o';
                 return activePos.has(type);
             });
 
             if (filteredList.length === 0) {
-                alert("篩選後無詞彙可顯示，請勾選更多詞性。");
+                alert("篩選後無詞彙可顯示");
                 return;
             }
 
-            // 2. 準備畫布
             canvas.classList.remove('hidden');
             document.getElementById('btn-download').classList.remove('hidden');
             
-            // 重要：重設 Canvas 尺寸以配合 RWD
+            // 關鍵：明確設定寬高
             const w = wrapper.clientWidth;
             const h = wrapper.clientHeight;
             canvas.width = w;
             canvas.height = h;
 
-            // 3. 計算字體大小係數
             const maxWeight = Math.max(...filteredList.map(i => i.weight)) || 1;
-            // 自適應算法：根據畫布寬度與最大權重動態調整
-            // 目標：最大的字大約佔畫布寬度的 1/6 ~ 1/10
-            const factor = (w / 10) / maxWeight;
+            const factor = (w / 12) / maxWeight; // 調整係數：畫布寬度除以12作為最大字參考
 
-            // 轉換格式 [word, size]
-            const list = filteredList.map(i => [i.word, i.weight * factor + 10]); // +10 確保最小字可見
+            const list = filteredList.map(i => [i.word, i.weight * factor + 10]); 
 
-            // 4. 執行 WordCloud2
-            // 使用 setTimeout 確保 DOM 渲染完畢
+            // 確保 DOM 渲染後再畫
             setTimeout(() => {
                 WordCloud(canvas, {
                     list: list,
-                    gridSize: 12,
-                    weightFactor: 1, // 已經在上面手動算過了
+                    gridSize: 10,
+                    weightFactor: 1, 
                     fontFamily: '"Noto Sans TC", sans-serif',
                     fontWeight: 'bold',
                     color: function (word) {
                         const item = currentWords.find(i => i.word === word);
                         return getPosColor(item ? item.pos : 'o');
                     },
-                    rotateRatio: 0.3,
+                    rotateRatio: 0.2,
                     rotationSteps: 2,
                     shape: shape,
                     backgroundColor: 'transparent',
                     drawOutOfBound: false,
-                    shrinkToFit: true
+                    shrinkToFit: true,
+                    shuffle: false
                 });
             }, 100);
         }
 
-        // === 輔助函式 ===
         function getPosColor(pos) {
             const p = String(pos).toLowerCase();
-            if (p.startsWith('n')) return '#4f46e5'; // Indigo (名詞)
-            if (p.startsWith('v')) return '#059669'; // Emerald (動詞)
-            if (p.startsWith('a')) return '#d97706'; // Amber (形容詞)
-            if (p.startsWith('d')) return '#9333ea'; // Purple (副詞)
-            return '#94a3b8'; // Slate (其他)
+            if (p.startsWith('n')) return '#4f46e5'; 
+            if (p.startsWith('v')) return '#059669'; 
+            if (p.startsWith('a')) return '#d97706'; 
+            if (p.startsWith('d')) return '#9333ea'; 
+            return '#94a3b8'; 
         }
 
         function renderTable(list) {
             const tbody = document.getElementById('data-table-body');
             tbody.innerHTML = list.slice(0, 100).map((item, idx) => `
                 <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
-                    <td class="p-2 text-slate-400 text-xs">${idx + 1}</td>
+                    <td class="p-2 pl-4 text-slate-400 text-xs">${idx + 1}</td>
                     <td class="p-2 font-medium text-slate-700">${item.word}</td>
                     <td class="p-2"><span class="px-2 py-0.5 rounded text-xs font-bold text-white" style="background-color: ${getPosColor(item.pos)}">${item.pos}</span></td>
-                    <td class="p-2 text-right font-mono text-slate-600">${item.weight.toFixed(1)}</td>
+                    <td class="p-2 pr-4 text-right font-mono text-slate-600">${item.weight.toFixed(1)}</td>
                 </tr>
             `).join('');
         }
 
         function downloadImage() {
             const canvas = document.getElementById('word-cloud-canvas');
-            // 建立白色背景的臨時 Canvas (避免透明背景存檔後變全黑)
             const tempCanvas = document.createElement('canvas');
             tempCanvas.width = canvas.width;
             tempCanvas.height = canvas.height;
@@ -399,7 +361,6 @@
             link.click();
         }
         
-        // 監聽形狀/模式改變自動重繪
         document.getElementById('shape-select').addEventListener('change', () => {
             if(currentWords.length > 0) renderWordCloud();
         });
