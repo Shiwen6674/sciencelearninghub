@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generate Word Cloud | Science Learning Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 建議改用 cdnjs，較穩定 -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/wordcloud2.js/1.2.5/wordcloud2.min.js" defer></script>
+    <!-- 🔥 移除外部 wordcloud2.js：改用內建 Canvas 畫圖 -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/wordcloud2.js"></script> -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 
@@ -279,7 +279,6 @@
                 slider.addEventListener('input', (e) => {
                     this.state.maxWords = parseInt(e.target.value);
                     valDisplay.innerText = this.state.maxWords;
-                    if (this.state.words.length > 0) this.renderWordCloud();
                 });
 
                 document.getElementById('shape-select').addEventListener('change', () => {
@@ -321,22 +320,8 @@
                 });
             },
 
-            loadExample() { 
-                document.getElementById('text-input').value = this.exampleText; 
-                this.showToast("已載入範例文字", "info");
-            },
-
-            clearInput() { 
-                document.getElementById('text-input').value = ''; 
-                this.state.words = []; 
-
-                // UX：清空時回到初始狀態，避免殘留舊圖
-                document.getElementById('results-container').classList.add('hidden');
-                document.getElementById('word-cloud-canvas').classList.add('hidden');
-                document.getElementById('btn-download').classList.add('hidden');
-                document.getElementById('loading-state').classList.add('hidden');
-                document.getElementById('empty-state').classList.remove('hidden');
-            },
+            loadExample() { document.getElementById('text-input').value = this.exampleText; },
+            clearInput() { document.getElementById('text-input').value = ''; this.state.words = []; },
 
             changeLanguage() {
                 this.state.currentLang = document.getElementById('language-selector').value;
@@ -361,33 +346,6 @@
                     tabData.className = "py-3 px-4 text-sm font-bold text-brand border-b-2 border-brand transition";
                     panelAi.classList.add('hidden'); panelData.classList.remove('hidden');
                 }
-            },
-
-            // 將回傳資料統一轉成 { word, weight:Number, pos:String }，避免型別錯誤
-            normalizeWordList(rawList) {
-                if (!Array.isArray(rawList)) return [];
-
-                return rawList.map((item, idx) => {
-                    if (Array.isArray(item)) {
-                        const [w, wt, p] = item;
-                        return {
-                            word: String(w ?? '').trim(),
-                            weight: Number(wt ?? 0),
-                            pos: String(p ?? 'O')
-                        };
-                    } else if (item && typeof item === 'object') {
-                        const word = String(item.word ?? item.text ?? item.term ?? '').trim();
-                        const weight =
-                            Number(item.weight ??
-                                   item.score ??
-                                   item.tfidf ??
-                                   item.rank ??
-                                   0);
-                        const pos = String(item.pos ?? item.tag ?? 'O');
-                        return { word, weight, pos };
-                    }
-                    return null;
-                }).filter(i => i && i.word && !isNaN(i.weight));
             },
 
             async runAnalysis() {
@@ -421,32 +379,17 @@
                         body: JSON.stringify(payload),
                         headers: { "Content-Type": "text/plain;charset=utf-8" }
                     });
-
-                    if (!res.ok) {
-                        throw new Error(`HTTP ${res.status}`);
-                    }
-
                     const json = await res.json();
 
                     if (json.status === 'success') {
-                        const rawList = json.data && json.data.wordList ? json.data.wordList : [];
-                        const normalized = this.normalizeWordList(rawList);
-
-                        if (!normalized.length) {
-                            throw new Error("後端未回傳任何詞彙");
-                        }
-
-                        // 依權重排序，並依照 maxWords 取前幾個
-                        normalized.sort((a, b) => b.weight - a.weight);
-                        this.state.words = normalized;
-
-                        document.getElementById('panel-ai').innerHTML = json.data.aiAnalysis || '';
-                        this.renderTable(this.state.words);
-
+                        this.state.words = json.data.wordList;
+                        document.getElementById('panel-ai').innerHTML = json.data.aiAnalysis;
+                        this.renderTable(json.data.wordList);
+                        
                         document.getElementById('loading-state').classList.add('hidden');
                         document.getElementById('results-container').classList.remove('hidden');
                         
-                        setTimeout(() => this.renderWordCloud(), 50);
+                        setTimeout(() => this.renderWordCloud(), 100);
                         this.showToast(t.msg_success, "success");
                     } else {
                         throw new Error(json.message || "Unknown error");
@@ -462,19 +405,15 @@
                 }
             },
 
+            // ✅ 改成原生 Canvas 畫文字雲，不再依賴外部函式庫
             renderWordCloud() {
                 const canvas = document.getElementById('word-cloud-canvas');
                 const wrapper = document.getElementById('canvas-wrapper');
                 const shape = document.getElementById('shape-select').value;
 
-                if (!this.state.words || !this.state.words.length) {
-                    this.showToast("沒有可視覺化的詞彙", "error");
-                    return;
-                }
-
-                // 1. 詞性篩選 + 依權重排序 + 套用 maxWords
-                let filteredList = this.state.words.filter(item => {
-                    const p = (item.pos || 'o').toLowerCase().charAt(0);
+                // 1. 篩選
+                const filteredList = this.state.words.filter(item => {
+                    const p = (item.pos || 'O').toLowerCase().charAt(0);
                     let type = 'o';
                     if (['n','v','a','d','c'].includes(p)) type = p;
                     return this.state.activePos.has(type);
@@ -482,54 +421,120 @@
 
                 if (filteredList.length === 0) {
                     this.showToast("篩選後無詞彙", "error");
-                    canvas.classList.add('hidden');
-                    document.getElementById('btn-download').classList.add('hidden');
                     return;
                 }
-
-                filteredList.sort((a, b) => b.weight - a.weight);
-                filteredList = filteredList.slice(0, this.state.maxWords);
 
                 canvas.classList.remove('hidden');
                 document.getElementById('btn-download').classList.remove('hidden');
                 
-                // 2. 尺寸
-                const w = wrapper.clientWidth || wrapper.offsetWidth || 800;
-                const h = wrapper.clientHeight || wrapper.offsetHeight || 600;
+                const w = wrapper.clientWidth;
+                const h = wrapper.clientHeight;
                 canvas.width = w;
                 canvas.height = h;
 
-                // 3. 字體運算
-                const maxWeight = Math.max(...filteredList.map(i => i.weight)) || 1;
-                const factor = (w / 10) / maxWeight;
-                
-                const list = filteredList.map(i => [i.word, i.weight * factor + 14]); // 最小 14px
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, w, h);
+                ctx.textBaseline = 'middle';
+                ctx.textAlign = 'center';
 
-                // 確保 wordcloud2 已載入
-                if (typeof WordCloud !== 'function') {
-                    console.error("WordCloud library not loaded.");
-                    this.showToast("WordCloud 函式庫載入失敗", "error");
-                    return;
+                // 字體大小正規化
+                const maxWeight = Math.max(...filteredList.map(i => i.weight)) || 1;
+                const minFont = 14;
+                const maxFont = Math.max(24, w / 15); // 隨畫布寬度調整上限
+
+                const placed = [];
+
+                filteredList.forEach(item => {
+                    const norm = item.weight / maxWeight; // 0~1
+                    const fontSize = minFont + norm * (maxFont - minFont);
+                    const color = this.getPosColor(item.pos);
+
+                    const pos = this.findPositionForWord(ctx, item.word, fontSize, placed, w, h, shape);
+                    if (!pos) return;
+
+                    placed.push({
+                        text: item.word,
+                        x: pos.x,
+                        y: pos.y,
+                        fontSize,
+                        color,
+                        width: pos.width,
+                        height: pos.height
+                    });
+                });
+
+                // 實際繪製
+                placed.forEach(word => {
+                    ctx.font = `${Math.round(word.fontSize)}px "Work Sans","Noto Sans TC",sans-serif`;
+                    ctx.fillStyle = word.color;
+                    ctx.fillText(word.text, word.x, word.y);
+                });
+            },
+
+            // ✅ 簡單螺旋排版＋碰撞檢查
+            findPositionForWord(ctx, text, fontSize, placed, canvasW, canvasH, shape) {
+                ctx.font = `${Math.round(fontSize)}px "Work Sans","Noto Sans TC",sans-serif`;
+                const textWidth = ctx.measureText(text).width;
+                const textHeight = fontSize; // 粗略估計
+
+                const centerX = canvasW / 2;
+                const centerY = canvasH / 2;
+
+                const maxRadius = Math.min(canvasW, canvasH) / 2;
+                const stepAngle = 5 * (Math.PI / 180); // 5 度
+                const stepRadius = 3;
+
+                for (let angle = 0, r = 0; r < maxRadius; angle += stepAngle, r += stepRadius / (2 * Math.PI)) {
+                    const x = centerX + r * Math.cos(angle);
+                    const y = centerY + r * Math.sin(angle);
+
+                    const rect = {
+                        x: x - textWidth / 2,
+                        y: y - textHeight / 2,
+                        width: textWidth,
+                        height: textHeight
+                    };
+
+                    // 超出畫布邊界就跳過
+                    if (rect.x < 0 || rect.y < 0 || rect.x + rect.width > canvasW || rect.y + rect.height > canvasH) {
+                        continue;
+                    }
+
+                    // 形狀約略控制：circle / square 其他都採 circle
+                    if (shape === 'circle' || shape === 'cardioid' || shape === 'star' || shape === 'diamond') {
+                        const dx = x - centerX;
+                        const dy = y - centerY;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist > maxRadius) continue;
+                    }
+                    // square：不額外限制（上面已用畫布邊界控制）
+
+                    // 碰撞檢查
+                    let collide = false;
+                    for (const p of placed) {
+                        if (
+                            rect.x < p.x + p.width &&
+                            rect.x + rect.width > p.x &&
+                            rect.y < p.y + p.height &&
+                            rect.y + rect.height > p.y
+                        ) {
+                            collide = true;
+                            break;
+                        }
+                    }
+
+                    if (!collide) {
+                        return {
+                            x,
+                            y,
+                            width: textWidth,
+                            height: textHeight
+                        };
+                    }
                 }
 
-                WordCloud(canvas, {
-                    list: list,
-                    gridSize: 16,
-                    weightFactor: 1,
-                    fontFamily: '"Work Sans", "Noto Sans TC", sans-serif',
-                    fontWeight: 'bold',
-                    color: (word) => {
-                        const item = this.state.words.find(i => i.word === word);
-                        return this.getPosColor(item ? item.pos : 'o');
-                    },
-                    rotateRatio: 0.2,
-                    rotationSteps: 2,
-                    shape: shape,
-                    backgroundColor: 'transparent',
-                    drawOutOfBound: false,
-                    shrinkToFit: true,
-                    shuffle: false
-                });
+                // 找不到位置就放棄這個詞
+                return null;
             },
 
             getPosColor(pos) {
@@ -544,36 +549,18 @@
 
             renderTable(list) {
                 const tbody = document.getElementById('data-table-body');
-                if (!Array.isArray(list)) {
-                    tbody.innerHTML = '';
-                    return;
-                }
-
-                const rows = list
-                    .slice(0, 100)
-                    .map((item, idx) => {
-                        const weightNum = Number(item.weight ?? 0);
-                        const displayWeight = isNaN(weightNum) ? '-' : weightNum.toFixed(2);
-                        const pos = item.pos || 'O';
-                        return `
-                        <tr class="hover:bg-gray-50 transition border-b border-gray-100">
-                            <td class="p-3 text-gray-400 font-mono text-xs pl-6">${idx + 1}</td>
-                            <td class="p-3 font-medium text-gray-800">${item.word}</td>
-                            <td class="p-3"><span class="pos-badge text-white" style="background-color: ${this.getPosColor(pos)}">${pos}</span></td>
-                            <td class="p-3 text-right font-mono text-gray-600 pr-6">${displayWeight}</td>
-                        </tr>
-                        `;
-                    }).join('');
-
-                tbody.innerHTML = rows;
+                tbody.innerHTML = list.slice(0, 100).map((item, idx) => `
+                    <tr class="hover:bg-gray-50 transition border-b border-gray-100">
+                        <td class="p-3 text-gray-400 font-mono text-xs pl-6">${idx + 1}</td>
+                        <td class="p-3 font-medium text-gray-800">${item.word}</td>
+                        <td class="p-3"><span class="pos-badge text-white" style="background-color: ${this.getPosColor(item.pos)}">${item.pos}</span></td>
+                        <td class="p-3 text-right font-mono text-gray-600 pr-6">${item.weight.toFixed(2)}</td>
+                    </tr>
+                `).join('');
             },
 
             downloadImage() {
                 const canvas = document.getElementById('word-cloud-canvas');
-                if (!canvas || canvas.classList.contains('hidden')) {
-                    this.showToast("尚未產生文字雲", "error");
-                    return;
-                }
                 const tempCanvas = document.createElement('canvas');
                 tempCanvas.width = canvas.width;
                 tempCanvas.height = canvas.height;
