@@ -325,7 +325,11 @@ const chatBody = document.getElementById("chat-messages");
             `;
             
             document.getElementById("result-title").innerText = data.raw_content.unitName;
-            document.getElementById("result-tag").innerText = `${filters.grade}年級 • ${filters.publisher}`;
+            // 先從資料中找出課次 (G欄 / unitType)
+const unitType = data.raw_content.unitType || ""; // 避免 undefined
+const unitPrefix = (unitType && !isNaN(unitType)) ? `第${unitType}課` : unitType;
+// 組合字串
+document.getElementById("result-tag").innerText = `${filters.publisher} • ${filters.grade}年級 • ${unitPrefix}`; ${filters.publisher}`;
             document.getElementById("summary-text").innerHTML = data.summary.summary_html;
 
             const vocabContainer = document.getElementById("keywords-list");
