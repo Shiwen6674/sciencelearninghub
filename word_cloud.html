@@ -473,7 +473,7 @@
                 canvas.height = h;
 
                 const maxWeight = Math.max(...filteredList.map(i => i.weight)) || 1;
-                const factor = (w / 8) / maxWeight;
+                const factor = (w / 10) / maxWeight;
 
                 const list = filteredList.map(i => [i.word, i.weight * factor + 14]);
 
