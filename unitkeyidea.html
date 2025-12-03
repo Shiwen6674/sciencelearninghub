@@ -362,6 +362,44 @@ function updateLevel(level, value) {
                 chatBody.scrollTop = chatBody.scrollHeight;
             } catch(e) { console.error(e); }
         }
+        /* --- 新增：核心摘要標題美化 (Textbook Style) --- */
+#summary-text h3 {
+    font-size: 1.35rem;       /* 字體加大 (約 22px) */
+    font-weight: 800;         /* 極粗體 */
+    color: #1e3a8a;           /* 深藍色 (blue-900) */
+    margin-top: 1.5rem;       /* 上方留白，區隔段落 */
+    margin-bottom: 0.75rem;   /* 下方留白 */
+    
+    /* 教科書風格裝飾 */
+    padding: 0.5rem 0.75rem;          /* 內距 */
+    border-left: 5px solid #3b82f6;   /* 左側亮藍色粗線條 */
+    background: linear-gradient(90deg, #eff6ff 0%, rgba(255,255,255,0) 100%); /* 淺藍色漸層背景 */
+    border-radius: 0 8px 8px 0;       /* 右側圓角 */
+    
+    /* 讓標題與文字有一點陰影，增加立體感 */
+    text-shadow: 1px 1px 0px rgba(255,255,255,0.5);
+}
+
+/* 優化內文列表，讓閱讀更舒適 */
+#summary-text ul {
+    list-style-type: none; /* 移除預設黑點，改用自定義 */
+    padding-left: 0.5rem;
+}
+#summary-text li {
+    position: relative;
+    padding-left: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: #374151; /* 較深的灰色 */
+}
+#summary-text li::before {
+    content: "•";
+    color: #3b82f6; /* 藍色圓點 */
+    font-weight: bold;
+    font-size: 1.2em;
+    position: absolute;
+    left: 0.25rem;
+    top: -2px;
+}
     </script>
 </body>
 </html>
