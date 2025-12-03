@@ -602,20 +602,23 @@
                         const pageHeight = pdfHeight - margin * 2;
 
                         const imgProps = doc.getImageProperties(imgData);
-                        const imgHeight = (imgProps.height * pageWidth) / imgProps.width;
-                        
-                        let heightLeft = imgHeight;
-                        let position = margin;
+const imgHeight = (imgProps.height * pageWidth) / imgProps.width;
 
-                        doc.addImage(imgData, 'PNG', margin, position, pageWidth, imgHeight);
-                        heightLeft -= pageHeight;
+let heightLeft = imgHeight;
+let position = margin;
 
-                        while (heightLeft > 0) {
-                            doc.addPage();
-                            position = margin - (imgHeight - heightLeft);
-                            doc.addImage(imgData, 'PNG', margin, position, pageWidth, imgHeight);
-                            heightLeft -= pageHeight;
-                        }
+// 第一頁
+doc.addImage(imgData, 'PNG', margin, position, pageWidth, imgHeight);
+heightLeft -= pageHeight;
+
+// 後續頁：每一頁都「剛好往上移一個 pageHeight」
+while (heightLeft > 0) {
+    doc.addPage();
+    position -= pageHeight;   // ⭐ 只用固定 pageHeight 來位移，不再重新算
+    doc.addImage(imgData, 'PNG', margin, position, pageWidth, imgHeight);
+    heightLeft -= pageHeight;
+}
+
 
                         doc.save(`report_${Date.now()}.pdf`);
                         this.showToast("PDF 下載成功", "success");
