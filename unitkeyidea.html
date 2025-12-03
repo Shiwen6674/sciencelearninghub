@@ -14,13 +14,12 @@
     <style>
         body { background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); font-family: sans-serif; }
         .glass-panel { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.7); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .sci-vocab { background: #fef08a; padding: 0 4px; border-radius: 4px; font-weight: bold; color: #854d0e; }
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .chat-window { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform-origin: bottom right; }
         .chat-window.closed { transform: scale(0); opacity: 0; pointer-events: none; }
 
-        /* --- 核心摘要標題美化 (Textbook Style) --- */
+        /* --- 核心摘要標題美化 (已移回 style 標籤內) --- */
         #summary-text h3 {
             font-size: 1.35rem;       
             font-weight: 800;         
@@ -33,25 +32,13 @@
             border-radius: 0 8px 8px 0;       
             text-shadow: 1px 1px 0px rgba(255,255,255,0.5);
         }
-        #summary-text ul {
-            list-style-type: none; 
-            padding-left: 0.5rem;
-        }
-        #summary-text li {
-            position: relative;
-            padding-left: 1.5rem;
-            margin-bottom: 0.5rem;
-            color: #374151; 
-        }
-        #summary-text li::before {
-            content: "•";
-            color: #3b82f6; 
-            font-weight: bold;
-            font-size: 1.2em;
-            position: absolute;
-            left: 0.25rem;
-            top: -2px;
-        }
+        #summary-text ul { list-style-type: none; padding-left: 0.5rem; }
+        #summary-text li { position: relative; padding-left: 1.5rem; margin-bottom: 0.5rem; color: #374151; }
+        #summary-text li::before { content: "•"; color: #3b82f6; font-weight: bold; font-size: 1.2em; position: absolute; left: 0.25rem; top: -2px; }
+        
+        /* 詞彙列表樣式 */
+        .vocab-item { transition: all 0.2s; }
+        .vocab-item:hover { transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
     </style>
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col">
@@ -106,16 +93,8 @@
             </div>
 
             <div class="mt-6 flex justify-end">
-                <button id="btn-generate" onclick="startGeneration()" disabled
-                    class="bg-blue-600 text-white px-8 py-2.5 rounded-xl font-bold shadow-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-2">
-                    <span id="btn-generate-label" class="inline-flex items-center gap-2">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i>
-                        <span>AI 分析並生成</span>
-                    </span>
-                    <span id="btn-generate-loading" class="hidden inline-flex items-center gap-2">
-                        <i class="fa-solid fa-circle-notch fa-spin"></i>
-                        <span>AI 正在分析...</span>
-                    </span>
+                <button id="btn-generate" onclick="startGeneration()" disabled class="bg-blue-600 text-white px-8 py-2.5 rounded-xl font-bold shadow-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> AI 分析並生成
                 </button>
             </div>
         </div>
@@ -174,7 +153,7 @@
     </div>
 
     <script>
-        // 使用您最後提供的正確 GAS URL (請確保這是您部署的版本)
+        // 您的 GAS URL (請確保已部署新版本)
         const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxBWrZCp-xLckDGZnhe64K0IUa_8CJZRzqZbrgL8lQdNn3S1WgaEzbdOtpo4mGwN6_H/exec";
         
         let allData = [];
@@ -203,6 +182,7 @@
             }
         };
 
+        // --- 全頁連動邏輯 ---
         function initSelectors() {
             const stages = [...new Set(allData.map(d => d.stage))];
             populate("sel-stage", stages);
@@ -232,26 +212,17 @@
             document.getElementById("btn-generate").disabled = true;
 
             const relevantData = allData.filter(d => {
-                const safeMatch = (dataVal, filterVal) => {
-                    if (!filterVal) return true;
-                    return String(dataVal).trim() == String(filterVal).trim();
-                };
+                // 使用寬鬆比對 (==) 處理 3 vs "3"
+                const safeMatch = (dataVal, filterVal) => !filterVal || String(dataVal).trim() == String(filterVal).trim();
                 return safeMatch(d.stage, filters.stage) &&
                        safeMatch(d.publisher, filters.publisher) &&
                        safeMatch(d.grade, filters.grade) && 
                        safeMatch(d.semester, filters.semester);
             });
 
-            if (level === 1) {
-                populate("sel-publisher", [...new Set(relevantData.map(d => d.publisher))]);
-            }
-            if (level === 2) {
-                const opts = [...new Set(relevantData.map(d => d.grade))].sort((a, b) => a - b);
-                populate("sel-grade", opts, "grade");
-            }
-            if (level === 3) {
-                populate("sel-semester", [...new Set(relevantData.map(d => d.semester))], "semester");
-            }
+            if (level === 1) populate("sel-publisher", [...new Set(relevantData.map(d => d.publisher))]);
+            if (level === 2) populate("sel-grade", [...new Set(relevantData.map(d => d.grade))].sort((a,b)=>a-b), "grade");
+            if (level === 3) populate("sel-semester", [...new Set(relevantData.map(d => d.semester))], "semester");
             if (level === 4) {
                 const unitSelect = document.getElementById("sel-unit");
                 unitSelect.innerHTML = '<option value="" disabled selected>請選擇單元...</option>';
@@ -290,8 +261,9 @@
             el.innerHTML = '<option value="" disabled selected>請選擇...</option>';
             options.forEach(o => {
                 const opt = document.createElement("option");
-                opt.value = o; 
+                opt.value = o; // 原始值 (3, 上)
                 
+                // 顯示優化
                 if(type === "grade") opt.text = o + "年級";
                 else if(type === "semester") opt.text = (o === "上" ? "上學期" : (o === "下" ? "下學期" : o));
                 else opt.text = o;
@@ -302,17 +274,6 @@
         }
 
         async function startGeneration() {
-            const btn = document.getElementById("btn-generate");
-            const btnLabel = document.getElementById("btn-generate-label");
-            const btnLoading = document.getElementById("btn-generate-loading");
-
-            if (btn.disabled) return;
-
-            // 切換按鈕狀態
-            btn.disabled = true;
-            btnLabel.classList.add("hidden");
-            btnLoading.classList.remove("hidden");
-
             document.getElementById("selection-panel").classList.add("hidden");
             document.getElementById("loading-view").classList.remove("hidden");
             document.getElementById("loading-view").classList.add("flex");
@@ -320,7 +281,6 @@
             try {
                 const res = await fetch(GAS_API_URL, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ action: "get_content_and_generate", filters: filters })
                 });
                 const json = await res.json();
@@ -336,10 +296,6 @@
                 document.getElementById("selection-panel").classList.remove("hidden");
                 document.getElementById("loading-view").classList.add("hidden");
                 document.getElementById("loading-view").classList.remove("flex");
-                
-                btnLabel.classList.remove("hidden");
-                btnLoading.classList.add("hidden");
-                btn.disabled = false;
             }
         }
 
@@ -351,15 +307,16 @@
             document.getElementById("result-title").innerText = data.raw_content.unitName;
             document.getElementById("result-tag").innerText = `${filters.grade}年級 • ${filters.publisher}`;
 
+            // 1. 摘要 (無螢光筆，純 HTML)
             document.getElementById("summary-text").innerHTML = data.summary.summary_html;
 
+            // 2. 詞彙與定義 (列表式)
             const vocabContainer = document.getElementById("keywords-list");
             vocabContainer.innerHTML = "";
-            
             if (data.summary.vocab_list && data.summary.vocab_list.length > 0) {
                 data.summary.vocab_list.forEach((item, index) => {
                     vocabContainer.innerHTML += `
-                        <div class="bg-white p-3 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition">
+                        <div class="bg-white p-3 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition vocab-item">
                             <div class="flex items-start gap-3">
                                 <span class="flex-shrink-0 bg-blue-100 text-blue-700 font-bold px-2 py-1 rounded text-sm">${index + 1}</span>
                                 <div>
@@ -370,9 +327,10 @@
                         </div>`;
                 });
             } else {
-                vocabContainer.innerHTML = "<div class='text-gray-400'>資料載入中...</div>";
+                vocabContainer.innerHTML = "<div class='text-gray-400'>資料處理中...</div>";
             }
 
+            // 3. Mermaid
             const chartDiv = document.getElementById("mermaid-chart");
             if (data.summary.mermaid) {
                 chartDiv.innerHTML = data.summary.mermaid.replace(/```mermaid/g, "").replace(/```/g, "");
@@ -382,6 +340,7 @@
                 chartDiv.innerHTML = "無法生成圖表";
             }
 
+            // 4. 迷思
             const mythDiv = document.getElementById("myth-list");
             mythDiv.innerHTML = "";
             if (data.summary.myths) {
@@ -396,7 +355,6 @@
         }
 
         function toggleChat() { document.getElementById("xiaoke-window").classList.toggle("closed"); }
-        
         async function sendChatMessage() {
             const input = document.getElementById("chat-input");
             const msg = input.value.trim();
@@ -408,13 +366,9 @@
             chatBody.scrollTop = chatBody.scrollHeight;
 
             try {
-                // 使用 filters.unitName 或標題文字確保 AI 知道上下文
-                const currentUnit = filters.unitName || document.getElementById("result-title").innerText || "";
-                
                 const res = await fetch(GAS_API_URL, {
                     method: 'POST',
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ action: 'chat_with_ai', message: msg, currentUnit: currentUnit })
+                    body: JSON.stringify({ action: 'chat_with_ai', message: msg, currentUnit: filters.unitName || "" })
                 });
                 const json = await res.json();
                 
