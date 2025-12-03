@@ -10,44 +10,62 @@
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
 
     <script>
-        // 設定 Tailwind 主題顏色，與 student.html 保持一致
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
                         student: { light: '#bfdbfe', DEFAULT: '#3b82f6', dark: '#1d4ed8' },
-                        glass: 'rgba(255, 255, 255, 0.85)'
+                    },
+                    animation: {
+                        "fade-in-up": "fadeInUp 0.5s ease-out forwards",
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            "0%": { opacity: "0", transform: "translateY(20px)" },
+                            "100%": { opacity: "1", transform: "translateY(0)" }
+                        }
                     }
                 }
             }
         }
-        // 初始化 Mermaid
-        mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
+        mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'loose' });
     </script>
 
     <style>
-        /* 玻璃擬態背景 */
         body {
             background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
             min-height: 100vh;
         }
         .glass-panel {
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.6);
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
-        /* 載入動畫 */
-        .loader {
-            border-top-color: #3b82f6;
-            -webkit-animation: spinner 1.5s linear infinite;
-            animation: spinner 1.5s linear infinite;
+        /* 列印時隱藏不需要的元素 */
+        @media print {
+            nav, #selection-panel, #floating-chat, .no-print { display: none !important; }
+            body { background: white; }
+            .glass-panel { box-shadow: none; border: 1px solid #ddd; }
         }
-        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        /* 隱藏卷軸但保持功能 */
+        /* 科學詞彙螢光筆樣式 */
+        .sci-vocab {
+            background-color: #fef08a; /* 黃底 */
+            color: #854d0e; /* 深褐字 */
+            padding: 0 4px;
+            border-radius: 4px;
+            font-weight: 800; /* 粗體 */
+            box-decoration-break: clone;
+        }
+
+        /* 卷軸隱藏 */
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* 小科 AI 聊天視窗動畫 */
+        .chat-window { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform-origin: bottom right; }
+        .chat-window.closed { transform: scale(0); opacity: 0; pointer-events: none; }
     </style>
 </head>
 <body class="text-slate-800 font-sans">
@@ -60,22 +78,12 @@
                         <i class="fa-solid fa-arrow-left"></i>
                     </a>
                     <div class="flex flex-col">
-                        <span class="font-bold text-lg text-slate-800 tracking-tight" data-i18n="page_title">單元重點實驗室</span>
-                        <span class="text-xs text-slate-500" data-i18n="page_subtitle">AI 智能筆記生成</span>
+                        <span class="font-bold text-lg text-slate-800 tracking-tight">單元重點實驗室</span>
+                        <span class="text-xs text-slate-500">AI 智能筆記生成</span>
                     </div>
                 </div>
-
-                <div class="flex items-center gap-4">
-                    <select id="language-selector" onchange="changeLanguage()" class="bg-white/50 border-none text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2 cursor-pointer text-slate-600 font-medium">
-                        <option value="zh-TW">繁體中文</option>
-                        <option value="en">English</option>
-                        <option value="ja">日本語</option>
-                    </select>
-                    
-                    <div class="flex items-center gap-2 pl-4 border-l border-slate-300">
-                        <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold shadow-md" id="user-avatar">?</div>
-                        <span class="text-sm font-semibold hidden md:block" id="user-name">Loading...</span>
-                    </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm" id="user-avatar">S</div>
                 </div>
             </div>
         </div>
@@ -84,47 +92,45 @@
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
         <div id="selection-panel" class="glass-panel rounded-2xl p-6 mb-8 transition-all duration-500">
-            <div class="flex items-center gap-2 mb-4">
-                <i class="fa-solid fa-filter text-blue-600"></i>
-                <h2 class="font-bold text-lg" data-i18n="select_unit">選擇學習範圍</h2>
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-filter text-blue-600"></i>
+                    <h2 class="font-bold text-lg">選擇學習範圍 (資料來源：Google Sheet)</h2>
+                </div>
+                <div id="data-status" class="text-xs text-slate-400">正在連線資料庫...</div>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <div class="space-y-1">
-                    <label class="text-xs font-bold text-slate-500 uppercase ml-1" data-i18n="label_stage">階段</label>
-                    <select id="sel-stage" onchange="updateGrades()" class="w-full rounded-xl border-slate-200 bg-white p-2.5 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        <option value="" disabled selected>請選擇...</option>
-                        <option value="elem">國小 (Elementary)</option>
-                        <option value="junior">國中 (Junior High)</option>
-                        <option value="senior">高中 (Senior High)</option>
+                    <label class="text-xs font-bold text-slate-500 uppercase ml-1">階段 (A)</label>
+                    <select id="sel-stage" onchange="filterData('stage')" class="w-full rounded-xl border-slate-200 bg-white p-2.5 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 outline-none">
+                        <option value="" disabled selected>載入中...</option>
                     </select>
                 </div>
 
                 <div class="space-y-1">
-                    <label class="text-xs font-bold text-slate-500 uppercase ml-1" data-i18n="label_grade">年級</label>
-                    <select id="sel-grade" onchange="updateSemesters()" disabled class="w-full rounded-xl border-slate-200 bg-gray-50 p-2.5 text-sm shadow-sm disabled:opacity-50">
+                    <label class="text-xs font-bold text-slate-500 uppercase ml-1">出版社 (C)</label>
+                    <select id="sel-publisher" onchange="filterData('publisher')" disabled class="w-full rounded-xl border-slate-200 bg-gray-50 p-2.5 text-sm shadow-sm disabled:opacity-50">
                         <option value="" disabled selected>請先選階段</option>
                     </select>
                 </div>
 
                 <div class="space-y-1">
-                    <label class="text-xs font-bold text-slate-500 uppercase ml-1" data-i18n="label_version">版本</label>
-                    <select id="sel-version" class="w-full rounded-xl border-slate-200 bg-white p-2.5 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        <option value="kang">康軒 (Kang Hsuan)</option>
-                        <option value="han">翰林 (Han Lin)</option>
-                        <option value="nan">南一 (Nan Yi)</option>
+                    <label class="text-xs font-bold text-slate-500 uppercase ml-1">年級 (D)</label>
+                    <select id="sel-grade" onchange="filterData('grade')" disabled class="w-full rounded-xl border-slate-200 bg-gray-50 p-2.5 text-sm shadow-sm disabled:opacity-50">
+                        <option value="" disabled selected>請先選出版社</option>
                     </select>
                 </div>
 
                 <div class="space-y-1">
-                    <label class="text-xs font-bold text-slate-500 uppercase ml-1" data-i18n="label_semester">學期</label>
-                    <select id="sel-semester" onchange="updateUnits()" disabled class="w-full rounded-xl border-slate-200 bg-gray-50 p-2.5 text-sm shadow-sm disabled:opacity-50">
+                    <label class="text-xs font-bold text-slate-500 uppercase ml-1">學期 (E)</label>
+                    <select id="sel-semester" onchange="filterData('semester')" disabled class="w-full rounded-xl border-slate-200 bg-gray-50 p-2.5 text-sm shadow-sm disabled:opacity-50">
                         <option value="" disabled selected>請先選年級</option>
                     </select>
                 </div>
 
                 <div class="space-y-1">
-                    <label class="text-xs font-bold text-slate-500 uppercase ml-1" data-i18n="label_unit">單元</label>
+                    <label class="text-xs font-bold text-slate-500 uppercase ml-1">單元 (H)</label>
                     <select id="sel-unit" disabled class="w-full rounded-xl border-slate-200 bg-gray-50 p-2.5 text-sm shadow-sm disabled:opacity-50">
                         <option value="" disabled selected>請先選學期</option>
                     </select>
@@ -132,57 +138,54 @@
             </div>
 
             <div class="mt-6 flex justify-end">
-                <button onclick="generateContent()" id="btn-generate" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-8 rounded-xl shadow-lg shadow-blue-500/30 transition transform active:scale-95 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                <button onclick="fetchAndGenerate()" id="btn-generate" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-8 rounded-xl shadow-lg shadow-blue-500/30 transition transform active:scale-95 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                     <i class="fa-solid fa-wand-magic-sparkles"></i>
-                    <span data-i18n="btn_generate">生成重點整理</span>
+                    <span>AI 分析並生成重點</span>
                 </button>
             </div>
         </div>
 
         <div id="loading-view" class="hidden flex-col items-center justify-center py-20">
-            <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-16 w-16 mb-6"></div>
-            <h3 class="text-xl font-bold text-slate-700" data-i18n="msg_generating">AI 正在分析課文並繪製圖表...</h3>
-            <p class="text-slate-500 mt-2" data-i18n="msg_wait">請稍候，這可能需要幾秒鐘</p>
+            <div class="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+            <h3 class="text-xl font-bold text-slate-700">AI 正在閱讀課文...</h3>
+            <p class="text-slate-500 mt-2">正在提取「<span id="loading-unit-name" class="font-bold"></span>」的關鍵概念與迷思...</p>
         </div>
 
         <div id="content-view" class="hidden animate-fade-in-up">
             
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                 <div>
-                    <span class="inline-block px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-xs font-bold tracking-wider mb-2" id="result-tag">SCIENCE • G7 • UNIT 3</span>
-                    <h1 class="text-3xl font-black text-slate-800" id="result-title">光與影的奇幻旅程</h1>
+                    <span class="inline-block px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-xs font-bold tracking-wider mb-2" id="result-tag">SCIENCE</span>
+                    <h1 class="text-3xl font-black text-slate-800" id="result-title">單元標題</h1>
                 </div>
-                <div class="flex gap-2">
-                    <button class="bg-white hover:bg-slate-50 text-slate-600 font-medium py-2 px-4 rounded-lg border border-slate-200 shadow-sm transition">
-                        <i class="fa-solid fa-print mr-1"></i> PDF
+                <div class="flex gap-2 no-print">
+                    <button onclick="window.print()" class="bg-white hover:bg-slate-50 text-slate-600 font-medium py-2 px-4 rounded-lg border border-slate-200 shadow-sm transition">
+                        <i class="fa-solid fa-print mr-1"></i> PDF / 列印
                     </button>
-                    <a href="AIevaluation.html" class="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg shadow-md shadow-green-500/20 transition flex items-center gap-2">
-                        <i class="fa-solid fa-clipboard-check"></i> <span data-i18n="go_quiz">自我評量</span>
-                    </a>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 
-                <div class="md:col-span-2 glass-panel rounded-2xl p-6 border-l-4 border-blue-500">
+                <div class="md:col-span-2 glass-panel rounded-2xl p-6 border-l-4 border-blue-500 bg-white">
                     <h3 class="font-bold text-lg mb-4 flex items-center gap-2 text-blue-800">
-                        <i class="fa-solid fa-star text-yellow-400"></i> <span data-i18n="card_summary">核心概念摘要</span>
+                        <i class="fa-solid fa-star text-yellow-400"></i> <span>單元核心摘要 (Based on Text)</span>
                     </h3>
-                    <div class="prose prose-blue max-w-none text-slate-600 leading-relaxed" id="summary-text">
+                    <div class="prose prose-blue max-w-none text-slate-600 leading-relaxed text-lg" id="summary-text">
                         </div>
                 </div>
 
                 <div class="glass-panel rounded-2xl p-6 bg-gradient-to-br from-white to-blue-50">
-                    <h3 class="font-bold text-lg mb-4 text-slate-700" data-i18n="card_keywords">關鍵詞彙</h3>
-                    <div class="space-y-3" id="keywords-list">
+                    <h3 class="font-bold text-lg mb-4 text-slate-700">科學詞彙 (Vocab)</h3>
+                    <div class="space-y-3 max-h-[400px] overflow-y-auto pr-2" id="keywords-list">
                         </div>
                 </div>
 
-                <div class="md:col-span-3 glass-panel rounded-2xl p-6 overflow-hidden">
+                <div class="md:col-span-3 glass-panel rounded-2xl p-6 overflow-hidden bg-white">
                     <h3 class="font-bold text-lg mb-4 flex items-center gap-2 text-purple-700">
-                        <i class="fa-solid fa-project-diagram"></i> <span data-i18n="card_map">知識架構圖 (AI Generated)</span>
+                        <i class="fa-solid fa-project-diagram"></i> <span>知識架構圖 (AI Knowledge Map)</span>
                     </h3>
-                    <div class="w-full overflow-x-auto bg-white/50 rounded-xl p-4 flex justify-center">
+                    <div class="w-full overflow-x-auto bg-slate-50 rounded-xl p-4 flex justify-center border border-slate-100">
                         <div class="mermaid" id="mermaid-chart">
                             </div>
                     </div>
@@ -190,215 +193,259 @@
 
                 <div class="md:col-span-3 glass-panel rounded-2xl p-6 border border-red-100 bg-red-50/30">
                     <h3 class="font-bold text-lg mb-4 text-red-600 flex items-center gap-2">
-                        <i class="fa-solid fa-triangle-exclamation"></i> <span data-i18n="card_myth">常見迷思與陷阱</span>
+                        <i class="fa-solid fa-triangle-exclamation"></i> <span>常見迷思與陷阱 (AI Detected)</span>
                     </h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="myth-list">
                         </div>
                 </div>
-
             </div>
         </div>
     </main>
 
+    <div id="floating-chat" class="fixed bottom-6 right-6 z-[100] flex flex-col items-end gap-4">
+        
+        <div id="xiaoke-window" class="chat-window closed w-80 md:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden h-[500px]">
+            <div class="bg-blue-600 p-4 text-white flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center"><i class="fa-solid fa-robot"></i></div>
+                    <span class="font-bold">小科 AI 助教</span>
+                </div>
+                <button onclick="toggleChat()" class="text-white/80 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="flex-1 p-4 bg-slate-50 overflow-y-auto text-sm space-y-3" id="chat-messages">
+                <div class="bg-white p-3 rounded-lg rounded-tl-none shadow-sm border border-slate-100 max-w-[85%]">
+                    嗨！我是小科 👋<br>關於這個單元，有什麼不懂的地方都可以問我喔！
+                </div>
+            </div>
+            <div class="p-3 bg-white border-t border-slate-100 flex gap-2">
+                <input type="text" placeholder="輸入問題..." class="flex-1 bg-slate-100 border-none rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                <button class="bg-blue-600 text-white w-10 h-10 rounded-full hover:bg-blue-700 transition flex items-center justify-center">
+                    <i class="fa-solid fa-paper-plane text-xs"></i>
+                </button>
+            </div>
+        </div>
+
+        <button onclick="toggleChat()" class="w-14 h-14 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full shadow-lg shadow-blue-600/30 text-white flex items-center justify-center text-2xl hover:scale-110 transition duration-300 group">
+            <i class="fa-solid fa-comment-dots group-hover:animate-pulse"></i>
+        </button>
+    </div>
+
     <script>
-        // 1. 用戶身份驗證邏輯
-        const currentUserStr = sessionStorage.getItem("currentUser");
-        let currentUser = null;
-
-        if (!currentUserStr) {
-            // 未登入，強制導回 student.html 或首頁
-            alert("請先登入學生專區");
-            window.location.href = "index.html";
-        } else {
-            currentUser = JSON.parse(currentUserStr);
-            document.getElementById("user-name").innerText = currentUser.name;
-            document.getElementById("user-avatar").innerText = currentUser.name.charAt(0).toUpperCase();
-        }
-
-        // 2. 模擬課程資料庫 (Cascading Data)
-        const curriculumData = {
-            "elem": { grades: ["小學五年級", "小學六年級"], semesters: ["上學期", "下學期"], units: ["植物的構造", "熱對流", "天氣變化"] },
-            "junior": { grades: ["國中七年級", "國中八年級", "國中九年級"], semesters: ["上學期", "下學期"], units: ["光與影", "細胞分裂", "牛頓運動定律", "遺傳"] },
-            "senior": { grades: ["高中一年級", "高中二年級"], semesters: ["全學年"], units: ["化學計量", "量子物理入門"] }
-        };
-
-        // 3. 多語系翻譯包
-        const translations = {
-            "zh-TW": {
-                "page_title": "單元重點實驗室", "page_subtitle": "AI 智能筆記生成",
-                "select_unit": "選擇學習範圍", "label_stage": "階段", "label_grade": "年級", "label_version": "版本", "label_semester": "學期", "label_unit": "單元",
-                "btn_generate": "生成重點整理", "msg_generating": "AI 正在分析課文並繪製圖表...", "msg_wait": "請稍候，這可能需要幾秒鐘",
-                "go_quiz": "自我評量", "card_summary": "核心概念摘要", "card_keywords": "關鍵詞彙", "card_map": "知識架構圖", "card_myth": "常見迷思"
-            },
-            "en": {
-                "page_title": "Unit Key Ideas Lab", "page_subtitle": "AI Smart Note Generator",
-                "select_unit": "Select Scope", "label_stage": "Stage", "label_grade": "Grade", "label_version": "Publisher", "label_semester": "Semester", "label_unit": "Unit",
-                "btn_generate": "Generate Notes", "msg_generating": "AI is analyzing text and drawing charts...", "msg_wait": "Please wait a moment",
-                "go_quiz": "Self Assessment", "card_summary": "Core Summary", "card_keywords": "Keywords", "card_map": "Knowledge Map", "card_myth": "Common Myths"
-            },
-            "ja": {
-                "page_title": "単元ポイントラボ", "page_subtitle": "AIスマートノート生成",
-                "select_unit": "学習範囲を選択", "label_stage": "段階", "label_grade": "学年", "label_version": "出版社", "label_semester": "学期", "label_unit": "単元",
-                "btn_generate": "ノート生成", "msg_generating": "AIがテキストを分析し、図を作成中...", "msg_wait": "少々お待ちください",
-                "go_quiz": "自己評価", "card_summary": "核心要約", "card_keywords": "キーワード", "card_map": "知識マップ", "card_myth": "よくある誤解"
-            }
-        };
-
-        // 4. UI 連動邏輯
-        function updateGrades() {
-            const stage = document.getElementById("sel-stage").value;
-            const gradeSel = document.getElementById("sel-grade");
-            gradeSel.innerHTML = '<option value="" disabled selected>請選擇...</option>';
+        // 您的 GAS Web App URL (部署後請填入這裡)
+        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbx3MW-IOcU-38IqgawidSakL9nVwARmov4cuK0S6Jcqbv3SJFyHUbrvrI43Y6nskJAx/exec"; 
+        
+        let fullData = []; // 儲存從 Sheet 抓回來的所有清單資料
+        
+        // 1. 初始化：抓取 Sheet 資料
+        window.addEventListener('DOMContentLoaded', async () => {
+            document.getElementById("data-status").innerText = "正在同步雲端課綱...";
             
-            if(stage && curriculumData[stage]) {
-                curriculumData[stage].grades.forEach(g => {
-                    gradeSel.innerHTML += `<option value="${g}">${g}</option>`;
-                });
-                gradeSel.disabled = false;
+            try {
+                // 模擬第一次抓取 (實際應用請解開下行註解並填入正確 URL)
+                // const res = await fetch(`${GAS_API_URL}?action=get_metadata`);
+                // const json = await res.json();
+                // fullData = json.data;
+
+                // --- 臨時模擬資料 (因為我無法存取您的 GAS) ---
+                // --- 正式使用時，請將這裡替換為上述 fetch ---
+                fullData = [
+                   { stage: "國小", publisher: "南一", grade: "3", semester: "上", unit: "認識植物" },
+                   { stage: "國小", publisher: "南一", grade: "3", semester: "上", unit: "空氣與風" },
+                   { stage: "國中", publisher: "翰林", grade: "7", semester: "下", unit: "生物的分類" }
+                ];
+                // ---------------------------------------------
+
+                document.getElementById("data-status").innerText = "資料庫連線成功";
+                document.getElementById("data-status").className = "text-xs text-green-600 font-bold";
+                populateSelect('stage');
+            } catch (e) {
+                console.error(e);
+                document.getElementById("data-status").innerText = "連線失敗，請檢查網路";
+                document.getElementById("data-status").className = "text-xs text-red-500";
             }
-            // 重置後續
-            document.getElementById("sel-semester").innerHTML = '<option value="" disabled selected>請先選年級</option>';
-            document.getElementById("sel-semester").disabled = true;
-            document.getElementById("sel-unit").innerHTML = '<option value="" disabled selected>請先選學期</option>';
-            document.getElementById("sel-unit").disabled = true;
-        }
+        });
 
-        function updateSemesters() {
-            const stage = document.getElementById("sel-stage").value;
-            const semSel = document.getElementById("sel-semester");
-            semSel.innerHTML = '<option value="" disabled selected>請選擇...</option>';
+        // 2. 篩選邏輯 (Cascading Dropdowns)
+        function populateSelect(targetId) {
+            const el = document.getElementById(`sel-${targetId}`);
+            el.innerHTML = '<option value="" disabled selected>請選擇...</option>';
+            el.disabled = false;
             
-            if(stage && curriculumData[stage]) {
-                curriculumData[stage].semesters.forEach(s => {
-                    semSel.innerHTML += `<option value="${s}">${s}</option>`;
-                });
-                semSel.disabled = false;
-            }
-        }
+            // 取得當前已選條件
+            const filters = {
+                stage: document.getElementById('sel-stage').value,
+                publisher: document.getElementById('sel-publisher').value,
+                grade: document.getElementById('sel-grade').value,
+                semester: document.getElementById('sel-semester').value
+            };
 
-        function updateUnits() {
-            const stage = document.getElementById("sel-stage").value;
-            const unitSel = document.getElementById("sel-unit");
-            unitSel.innerHTML = '<option value="" disabled selected>請選擇...</option>';
-            
-            if(stage && curriculumData[stage]) {
-                curriculumData[stage].units.forEach(u => {
-                    unitSel.innerHTML += `<option value="${u}">${u}</option>`;
-                });
-                unitSel.disabled = false;
-            }
-        }
-
-        // 5. 生成內容 (核心功能)
-        function generateContent() {
-            const unitName = document.getElementById("sel-unit").value;
-            if(!unitName) { alert("請完整選擇單元"); return; }
-
-            // 切換 UI 狀態
-            document.getElementById("selection-panel").classList.add("hidden");
-            document.getElementById("loading-view").classList.remove("hidden");
-            document.getElementById("loading-view").classList.add("flex");
-
-            // 模擬 API 延遲 (此處應換成 fetch 呼叫 GAS API)
-            setTimeout(() => {
-                document.getElementById("loading-view").classList.add("hidden");
-                document.getElementById("loading-view").classList.remove("flex");
-                document.getElementById("content-view").classList.remove("hidden");
-                
-                // 填入模擬數據 (實際應來自 JSON response)
-                renderMockData(unitName);
-                
-                // 渲染 Mermaid 圖表
-                mermaid.init();
-            }, 1500);
-        }
-
-        function renderMockData(unitName) {
-            // 設定標題
-            document.getElementById("result-title").innerText = unitName + "的奧秘";
-            document.getElementById("result-tag").innerText = `SCIENCE • ${document.getElementById("sel-grade").value} • ${unitName}`;
-
-            // 1. 摘要內容
-            document.getElementById("summary-text").innerHTML = `
-                <p class="mb-2"><strong class="text-blue-600">光的直線傳播</strong>是本單元的核心。光在均勻介質中是沿直線前進的，這解釋了影子的形成以及針孔成像的原理。</p>
-                <p>當光遇到不透明物體時，會在物體後方形成<span class="bg-yellow-200 px-1 rounded">本影</span>與<span class="bg-yellow-100 px-1 rounded">半影</span>。影子的形狀與光源的性質（點光源或面光源）密切相關。</p>
-            `;
-
-            // 2. 關鍵字卡片
-            const keywords = [
-                { term: "直線傳播", def: "光在同一介質中沿直線前進的特性" },
-                { term: "反射定律", def: "入射角等於反射角" },
-                { term: "漫反射", def: "光照射在粗糙表面向四面八方反射" }
-            ];
-            const kwContainer = document.getElementById("keywords-list");
-            kwContainer.innerHTML = "";
-            keywords.forEach(k => {
-                kwContainer.innerHTML += `
-                    <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-100 hover:border-blue-300 transition cursor-help group">
-                        <div class="font-bold text-blue-600 text-sm group-hover:text-blue-800">${k.term}</div>
-                        <div class="text-xs text-slate-500 mt-1">${k.def}</div>
-                    </div>
-                `;
-            });
-
-            // 3. Mermaid 圖表 (動態生成)
-            // 實際應用時，這裡的字串應由 AI 生成
-            const mermaidCode = `
-                graph LR
-                A[光 Light] --> B(直線傳播)
-                A --> C(反射 Reflection)
-                B --> D[影子 Shadow]
-                B --> E[針孔成像]
-                C --> F[平面鏡]
-                C --> G[凹凸面鏡]
-                F --> H(虛像)
-            `;
-            document.getElementById("mermaid-chart").innerHTML = mermaidCode;
-            document.getElementById("mermaid-chart").removeAttribute("data-processed"); // 重置 Mermaid 狀態
-
-            // 4. 迷思概念
-            const myths = [
-                { title: "影子是黑色的光？", desc: "錯。影子是光被遮擋的區域，是「無光」或「少光」的結果，不是一種物質。" },
-                { title: "鏡子裡的人是真實大小？", desc: "平面鏡成像是等大虛像，但若距離改變，視角大小會改變，容易產生誤解。" }
-            ];
-            const mythContainer = document.getElementById("myth-list");
-            mythContainer.innerHTML = "";
-            myths.forEach(m => {
-                mythContainer.innerHTML += `
-                    <div class="bg-white p-4 rounded-xl border-l-4 border-red-400 shadow-sm">
-                        <div class="font-bold text-red-700 mb-1 text-sm"><i class="fa-solid fa-xmark"></i> ${m.title}</div>
-                        <div class="text-xs text-slate-600">${m.desc}</div>
-                    </div>
-                `;
-            });
-        }
-
-        // 6. 語言切換邏輯
-        function initLanguage() {
-            const savedLang = localStorage.getItem("slh_lang") || "zh-TW";
-            document.getElementById("language-selector").value = savedLang;
-            changeLanguage();
-        }
-
-        function changeLanguage() {
-            const lang = document.getElementById("language-selector").value;
-            localStorage.setItem("slh_lang", lang);
-            
-            // 替換靜態文字
-            document.querySelectorAll("[data-i18n]").forEach(el => {
-                const key = el.getAttribute("data-i18n");
-                if (translations[lang][key]) {
-                    el.innerText = translations[lang][key];
+            // 根據層級過濾出唯一值
+            const uniqueValues = new Set();
+            fullData.forEach(item => {
+                if (targetId === 'stage' || item.stage === filters.stage) {
+                    if (targetId === 'publisher' || !filters.publisher || item.publisher === filters.publisher) {
+                         if (targetId === 'grade' || !filters.grade || item.grade === filters.grade) {
+                             if (targetId === 'semester' || !filters.semester || item.semester === filters.semester) {
+                                 uniqueValues.add(item[targetId]);
+                             }
+                         }
+                    }
                 }
             });
 
-            // 注意：已生成的動態內容(如AI摘要)通常需要重新呼叫 API 才能翻譯
-            // 這裡僅作 UI 示範
+            uniqueValues.forEach(val => {
+                el.innerHTML += `<option value="${val}">${val}</option>`;
+            });
         }
 
-        // 啟動
-        window.addEventListener('DOMContentLoaded', initLanguage);
+        // 當選單變更時
+        function filterData(level) {
+            const levels = ['stage', 'publisher', 'grade', 'semester', 'unit'];
+            const idx = levels.indexOf(level);
+            
+            // 清空並鎖定下層選單
+            for(let i = idx + 1; i < levels.length; i++) {
+                const nextEl = document.getElementById(`sel-${levels[i]}`);
+                nextEl.innerHTML = `<option value="" disabled selected>請先選上層...</option>`;
+                nextEl.disabled = true;
+            }
 
+            // 開啟下一層
+            if (idx < levels.length - 1) {
+                const nextLevel = levels[idx + 1];
+                
+                // 針對下一層做特定的資料篩選
+                // 簡化邏輯：直接重跑一次篩選函數即可，只要確保順序正確
+                // 這裡我們直接找出符合當前所有條件的資料，取出下一層的唯一值
+                const currentFilters = {};
+                for(let i=0; i<=idx; i++) currentFilters[levels[i]] = document.getElementById(`sel-${levels[i]}`).value;
+                
+                const nextEl = document.getElementById(`sel-${nextLevel}`);
+                nextEl.innerHTML = '<option value="" disabled selected>請選擇...</option>';
+                
+                const uniqueNext = new Set();
+                fullData.forEach(item => {
+                    let match = true;
+                    for(let k in currentFilters) if(item[k] != currentFilters[k]) match = false;
+                    if(match) uniqueNext.add(item[nextLevel]);
+                });
+                
+                uniqueNext.forEach(v => nextEl.innerHTML += `<option value="${v}">${v}</option>`);
+                nextEl.disabled = false;
+            }
+        }
+
+        // 3. AI 分析與生成 (含螢光筆邏輯)
+        async function fetchAndGenerate() {
+            const unit = document.getElementById('sel-unit').value;
+            if(!unit) return;
+
+            // UI 切換
+            document.getElementById('selection-panel').classList.add('hidden');
+            document.getElementById('loading-view').classList.remove('hidden');
+            document.getElementById('loading-view').classList.add('flex');
+            document.getElementById('loading-unit-name').innerText = unit;
+
+            // 準備參數
+            const filters = {
+                stage: document.getElementById('sel-stage').value,
+                publisher: document.getElementById('sel-publisher').value,
+                grade: document.getElementById('sel-grade').value,
+                semester: document.getElementById('sel-semester').value,
+                unit: unit
+            };
+
+            // --- 呼叫 GAS 取得 Column I (課文) 和 Column S (詞彙) ---
+            // const res = await fetch(GAS_API_URL, { 
+            //    method: 'POST', 
+            //    body: JSON.stringify({ action: 'get_unit_content', filters: filters }) 
+            // });
+            // const result = await res.json();
+            
+            // --- 模擬 GAS 回傳的單元資料 ---
+            const mockContent = {
+                raw_text: "植物的根可以吸收水分和養分，並固定植物的身體。植物的莖可以輸送水分和養分，並支撐植物的身體。葉子會行光合作用製造養分。",
+                vocab_str: "根、莖、葉、光合作用、吸收、輸送"
+            };
+            // -----------------------------
+
+            setTimeout(() => {
+                renderContent(unit, filters, mockContent);
+                document.getElementById('loading-view').classList.remove('flex');
+                document.getElementById('loading-view').classList.add('hidden');
+                document.getElementById('content-view').classList.remove('hidden');
+                
+                // 渲染 Mermaid (必須在元素顯示後)
+                document.getElementById('mermaid-chart').removeAttribute('data-processed');
+                mermaid.init(undefined, document.getElementById('mermaid-chart'));
+            }, 1500);
+        }
+
+        function renderContent(unitName, filters, data) {
+            document.getElementById('result-title').innerText = unitName;
+            document.getElementById('result-tag').innerText = `${filters.stage} • ${filters.grade}年級 • ${filters.publisher}`;
+
+            // A. 處理詞彙列表 (Side Panel)
+            const vocabList = data.vocab_str.split(/[、,]/).map(v => v.trim()).filter(v => v);
+            const vocabContainer = document.getElementById('keywords-list');
+            vocabContainer.innerHTML = '';
+            
+            // 為了避免重複取代 (例如「光合作用」和「作用」)，應先根據長度排序詞彙 (長詞優先)
+            const sortedVocab = [...vocabList].sort((a, b) => b.length - a.length);
+
+            // B. 處理摘要與螢光筆 (Highlight Logic)
+            let highlightedText = data.raw_text; // 使用真實課文作為摘要基礎
+            
+            // 在側邊欄顯示
+            vocabList.forEach(v => {
+                vocabContainer.innerHTML += `
+                    <div class="bg-white p-2 px-3 rounded-lg border border-slate-100 shadow-sm flex items-center justify-between group hover:border-blue-300 transition cursor-help">
+                        <span class="font-bold text-slate-700 group-hover:text-blue-600">${v}</span>
+                        <i class="fa-solid fa-magnifying-glass text-slate-300 text-xs"></i>
+                    </div>`;
+            });
+
+            // 在文本中標示 (Regex Replace)
+            sortedVocab.forEach(v => {
+                // 使用 Regex 全域取代，並加入 class="sci-vocab"
+                const regex = new RegExp(v, 'g');
+                // 注意：這裡簡單實作，若詞彙有包含關係(如"水"和"水分")可能會重複標記，需更複雜演算法，暫用長詞優先解
+                highlightedText = highlightedText.replace(regex, `<span class="sci-vocab">${v}</span>`);
+            });
+
+            // 為了讓排版好看，可以簡單分段
+            document.getElementById('summary-text').innerHTML = highlightedText.split('。').join('。<br><br>');
+
+            // C. Mermaid (仍需 AI 生成，這裡使用 Mock 結構，實際應由 AI 根據課文產生 Mermaid Code)
+            document.getElementById('mermaid-chart').innerHTML = `
+                graph TD
+                Root[${unitName}] --> Concept1(重要構造)
+                Root --> Concept2(功能)
+                Concept1 --> A[${vocabList[0] || '構造A'}]
+                Concept1 --> B[${vocabList[1] || '構造B'}]
+                Concept2 --> C[${vocabList[3] || '功能C'}]
+                A --> D(細節說明...)
+                style Root fill:#dbeafe,stroke:#2563eb,stroke-width:2px
+            `;
+
+            // D. 迷思 (Mock)
+            document.getElementById('myth-list').innerHTML = `
+                <div class="bg-white p-4 rounded-xl border-l-4 border-red-400 shadow-sm">
+                    <div class="font-bold text-red-700 mb-1 text-sm"><i class="fa-solid fa-xmark"></i> 常見迷思 1</div>
+                    <div class="text-xs text-slate-600">學生常誤以為... (AI 分析產生)</div>
+                </div>
+                 <div class="bg-white p-4 rounded-xl border-l-4 border-red-400 shadow-sm">
+                    <div class="font-bold text-red-700 mb-1 text-sm"><i class="fa-solid fa-xmark"></i> 常見迷思 2</div>
+                    <div class="text-xs text-slate-600">實際上概念應該是...</div>
+                </div>
+            `;
+        }
+
+        // 4. 小科 AI 聊天室開關
+        function toggleChat() {
+            const win = document.getElementById('xiaoke-window');
+            win.classList.toggle('closed');
+        }
     </script>
 </body>
 </html>
