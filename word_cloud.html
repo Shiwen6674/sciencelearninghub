@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generate Word Cloud | Science Learning Hub</title>
+    <title>AI 智能文字雲 | Science Learning Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 不再使用外部 wordcloud2.js，改用原生 Canvas -->
+    <script src="https://cdn.jsdelivr.net/npm/wordcloud2@1.2.2/src/wordcloud2.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 
@@ -13,10 +15,24 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { sans: ['"Work Sans"', '"Noto Sans TC"', 'sans-serif'] },
+                    fontFamily: {
+                        sans: ['"Work Sans"', '"Noto Sans TC"', 'sans-serif'],
+                    },
                     colors: {
-                        brand: { DEFAULT: '#BB50E0', hover: '#9a00cc', light: '#f3e5f5', bg: '#f8fafc' },
-                        pos: { n: '#8b5cf6', v: '#10b981', a: '#f59e0b', d: '#3b82f6', c: '#ec4899', o: '#9ca3af' }
+                        brand: {
+                            DEFAULT: '#BB50E0',
+                            hover: '#9a00cc',
+                            light: '#f3e5f5',
+                            bg: '#f8fafc'
+                        },
+                        pos: {
+                            n: '#8b5cf6', // Violet
+                            v: '#10b981', // Emerald
+                            a: '#f59e0b', // Amber
+                            d: '#3b82f6', // Blue
+                            c: '#ec4899', // Pink
+                            o: '#9ca3af'  // Gray
+                        }
                     }
                 }
             }
@@ -24,40 +40,48 @@
     </script>
     <style>
         body { background-color: #fff; color: #212121; height: 100vh; display: flex; flex-direction: column; overflow: hidden; user-select: none; }
-        .nav-link { cursor: pointer; position: relative; font-weight: 600; color: #757575; transition: color 0.3s; }
+        
+        .nav-link { cursor: pointer; position: relative; font-weight: 600; color: #757575; transition: color 0.3s; font-size: 1rem; }
         .nav-link.active { color: #BB50E0; }
         .nav-link.active::after { content: ''; position: absolute; bottom: -8px; left: 0; width: 100%; height: 3px; background-color: #BB50E0; border-radius: 3px 3px 0 0; }
-        .scroller::-webkit-scrollbar { width: 6px; }
+
+        .scroller::-webkit-scrollbar { width: 8px; }
         .scroller::-webkit-scrollbar-track { background: #f1f1f1; }
-        .scroller::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
-        .pos-badge { font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; font-weight: 600; display: inline-block; min-width: 30px; text-align: center; }
-        .pos-chip { display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; border: 1px solid #e5e7eb; background-color: #fff; color: #6b7280; cursor: pointer; transition: all 0.2s; }
-        .pos-chip:hover { background-color: #f9fafb; }
+        .scroller::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+        .scroller::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+        .loader { width: 24px; height: 24px; border: 3px solid rgba(187, 80, 224, 0.2); border-top-color: #BB50E0; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* 優化後的詞性標籤：更大一點 */
+        .pos-chip {
+            display: flex; align-items: center; gap: 6px;
+            padding: 6px 14px; border-radius: 8px;
+            font-size: 0.9rem; font-weight: 500;
+            border: 1px solid #e5e7eb; background-color: #fff; color: #6b7280;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .pos-chip:hover { background-color: #f9fafb; border-color: #d1d5db; }
+        
         .pos-chip.active[data-pos="n"] { background-color: #f5f3ff; color: #8b5cf6; border-color: #8b5cf6; }
         .pos-chip.active[data-pos="v"] { background-color: #ecfdf5; color: #10b981; border-color: #10b981; }
         .pos-chip.active[data-pos="a"] { background-color: #fffbeb; color: #f59e0b; border-color: #f59e0b; }
         .pos-chip.active[data-pos="d"] { background-color: #eff6ff; color: #3b82f6; border-color: #3b82f6; }
         .pos-chip.active[data-pos="c"] { background-color: #fdf2f8; color: #ec4899; border-color: #ec4899; }
         .pos-chip.active[data-pos="o"] { background-color: #f3f4f6; color: #4b5563; border-color: #6b7280; }
+
         .pos-dot { width: 8px; height: 8px; border-radius: 50%; background-color: currentColor; }
-        .loader { width: 24px; height: 24px; border: 3px solid rgba(187, 80, 224, 0.2); border-top-color: #BB50E0; border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        
-        /* Range Slider Styling */
-        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #BB50E0; cursor: pointer; margin-top: -6px; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
-        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #e5e7eb; border-radius: 2px; }
     </style>
 </head>
 <body class="flex flex-col h-screen overflow-hidden">
 
-    <header class="h-16 border-b border-gray-200 bg-white flex items-center justify-between px-6 shrink-0 z-30">
+    <header class="h-16 border-b border-gray-200 bg-white flex items-center justify-between px-6 shrink-0 z-30 shadow-sm">
         <div class="flex items-center gap-6">
-            <button onclick="window.location.href='researcher.html'" class="text-gray-500 hover:text-brand transition font-medium flex items-center gap-2 text-sm">
+            <button onclick="window.location.href='researcher.html'" class="text-gray-500 hover:text-brand transition font-medium flex items-center gap-2 text-base">
                 <i class="fa-solid fa-arrow-left"></i> <span data-i18n="back">返回研究中心</span>
             </button>
             <div class="h-6 w-px bg-gray-300"></div>
-            <h1 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+            <h1 class="text-xl font-bold text-gray-800 flex items-center gap-2">
                 <i class="fa-solid fa-cloud text-brand"></i>
                 <span data-i18n="title">AI 智能文字雲</span>
             </h1>
@@ -74,90 +98,102 @@
 
     <div class="flex flex-1 overflow-hidden">
         
-        <aside class="w-[45%] min-w-[420px] max-w-[800px] bg-white border-r border-gray-200 flex flex-col h-full shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-20">
-            <div class="flex-1 overflow-y-auto scroller p-6">
-                
-                <div class="mb-6">
-                    <div class="flex justify-between items-center mb-2">
-                        <div class="nav-link active px-0" data-i18n="tab_text">文字輸入</div>
-                        <div class="flex gap-2">
-                            <button onclick="App.loadExample()" class="text-xs font-bold text-brand hover:text-brand-hover px-3 py-1.5 rounded border border-brand-light hover:bg-brand-light transition flex items-center gap-1">
-                                <i class="fa-solid fa-flask"></i> <span data-i18n="btn_example">範例</span>
-                            </button>
-                            <button onclick="App.clearInput()" class="text-xs font-bold text-gray-500 hover:text-red-500 px-3 py-1.5 rounded border border-gray-200 hover:bg-red-50 transition flex items-center gap-1">
-                                <i class="fa-solid fa-trash"></i> <span data-i18n="btn_clear">清空</span>
-                            </button>
-                        </div>
-                    </div>
+        <aside class="w-[45%] min-w-[450px] max-w-[800px] bg-white border-r border-gray-200 flex flex-col h-full shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-20">
+            <div class="flex-1 overflow-y-auto scroller p-8"> <div class="flex border-b border-gray-200 mb-6">
+                    <div class="nav-link active px-4 py-2 text-base" data-i18n="tab_text">文字輸入</div>
+                </div>
+
+                <div class="mb-8">
                     <div class="bg-brand-bg rounded-xl border border-gray-300 p-4 focus-within:border-brand focus-within:ring-1 focus-within:ring-brand transition">
-                        <textarea id="text-input" class="w-full h-32 bg-transparent border-0 outline-none text-gray-700 resize-none leading-relaxed placeholder-gray-400 text-sm" placeholder="請在此貼上文章..."></textarea>
+                        <textarea id="text-input" class="w-full h-40 bg-transparent border-0 outline-none text-gray-700 resize-none leading-relaxed placeholder-gray-400 text-base" placeholder="請在此貼上文章..."></textarea>
+                    </div>
+                    <div class="flex justify-end gap-3 mt-3">
+                        <button onclick="App.loadExample()" class="text-sm font-bold text-brand hover:text-brand-hover px-4 py-2 rounded border border-brand-light hover:bg-brand-light transition flex items-center gap-2">
+                            <i class="fa-solid fa-flask"></i> <span data-i18n="btn_example">範例</span>
+                        </button>
+                        <button onclick="App.clearInput()" class="text-sm font-bold text-gray-500 hover:text-red-500 px-4 py-2 rounded border border-gray-200 hover:bg-red-50 transition flex items-center gap-2">
+                            <i class="fa-solid fa-trash"></i> <span data-i18n="btn_clear">清空</span>
+                        </button>
                     </div>
                 </div>
 
-                <div class="mb-8 bg-gray-50 p-5 rounded-xl border border-gray-200">
-                    <h5 class="text-sm font-bold mb-4 text-gray-700 flex items-center gap-2" data-i18n="sec_options">
+                <div class="mb-8 bg-gray-50 p-6 rounded-xl border border-gray-200 shadow-sm">
+                    <h5 class="text-base font-bold mb-4 text-gray-700 flex items-center gap-2" data-i18n="sec_options">
                         <i class="fa-solid fa-sliders"></i> 設定選項
                     </h5>
 
-                    <div class="grid grid-cols-2 gap-4 mb-5">
+                    <div class="grid grid-cols-2 gap-6 mb-6">
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1" data-i18n="label_model">權重模型</label>
+                            <label class="block text-sm font-bold text-gray-500 uppercase mb-2" data-i18n="label_model">權重模型</label>
                             <div class="relative">
-                                <select id="model-select" class="w-full p-2.5 bg-white border border-gray-300 rounded-lg text-sm appearance-none focus:border-brand outline-none cursor-pointer font-medium shadow-sm">
-                                    <option value="frequency">詞頻 (Frequency)</option>
-                                    <option value="tfidf">TF-IDF (Intra-text)</option>
-                                    <option value="textrank">TextRank (Weighted)</option>
+                                <select id="model-select" class="w-full p-3 bg-white border border-gray-300 rounded-lg text-base appearance-none focus:border-brand outline-none cursor-pointer font-medium shadow-sm">
+                                    <option value="frequency" data-i18n="opt_freq">詞頻 (Frequency)</option>
+                                    <option value="tfidf" data-i18n="opt_tfidf">TF-IDF (Intra-text)</option>
+                                    <option value="textrank" data-i18n="opt_textrank">TextRank (Weighted)</option>
                                 </select>
-                                <i class="fa-solid fa-chevron-down absolute right-3 top-3.5 text-gray-400 text-xs pointer-events-none"></i>
+                                <i class="fa-solid fa-chevron-down absolute right-3 top-4 text-gray-400 text-xs pointer-events-none"></i>
                             </div>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1" data-i18n="label_shape">形狀</label>
+                            <label class="block text-sm font-bold text-gray-500 uppercase mb-2" data-i18n="label_shape">形狀</label>
                             <div class="relative">
-                                <select id="shape-select" class="w-full p-2.5 bg-white border border-gray-300 rounded-lg text-sm appearance-none focus:border-brand outline-none cursor-pointer font-medium shadow-sm">
-                                    <option value="circle">圓形</option>
-                                    <option value="square">方形</option>
-                                    <option value="cardioid">愛心</option>
-                                    <option value="star">星形</option>
-                                    <option value="diamond">菱形</option>
+                                <select id="shape-select" class="w-full p-3 bg-white border border-gray-300 rounded-lg text-base appearance-none focus:border-brand outline-none cursor-pointer font-medium shadow-sm">
+                                    <option value="circle" data-i18n="shape_circle">圓形</option>
+                                    <option value="square" data-i18n="shape_square">方形</option>
+                                    <option value="cardioid" data-i18n="shape_heart">愛心</option>
+                                    <option value="star" data-i18n="shape_star">星形</option>
+                                    <option value="diamond" data-i18n="shape_diamond">菱形</option>
                                 </select>
-                                <i class="fa-solid fa-chevron-down absolute right-3 top-3.5 text-gray-400 text-xs pointer-events-none"></i>
+                                <i class="fa-solid fa-chevron-down absolute right-3 top-4 text-gray-400 text-xs pointer-events-none"></i>
                             </div>
                         </div>
                     </div>
 
-                    <div class="mb-5">
-                        <div class="flex justify-between items-center mb-1">
-                            <label class="block text-xs font-bold text-gray-500 uppercase" data-i18n="label_max_words">顯示詞彙數量</label>
-                            <span id="max-words-val" class="text-xs font-bold text-brand bg-white px-2 py-0.5 rounded border border-gray-200">100</span>
+                    <div class="mb-6">
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="block text-sm font-bold text-gray-500 uppercase" data-i18n="label_max_words">顯示詞彙數量</label>
+                            <span id="max-words-val" class="text-sm font-bold text-brand bg-white px-3 py-1 rounded border border-gray-200">100</span>
                         </div>
-                        <input type="range" id="max-words-slider" min="10" max="200" step="10" value="100">
+                        <input type="range" id="max-words-slider" min="10" max="200" step="10" value="100" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-brand">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2" data-i18n="label_pos_filter">詞性過濾 (點擊切換)</label>
-                        <div class="flex flex-wrap gap-2" id="pos-container">
-                            <button class="pos-chip active" data-pos="n"><span class="pos-dot"></span> 名詞 (N)</button>
-                            <button class="pos-chip active" data-pos="v"><span class="pos-dot"></span> 動詞 (V)</button>
-                            <button class="pos-chip active" data-pos="a"><span class="pos-dot"></span> 形容詞 (A)</button>
-                            <button class="pos-chip" data-pos="d"><span class="pos-dot"></span> 副詞 (D)</button>
-                            <button class="pos-chip" data-pos="c"><span class="pos-dot"></span> 連接詞 (C)</button>
-                            <button class="pos-chip" data-pos="o"><span class="pos-dot"></span> 其他 (O)</button>
+                        <label class="block text-sm font-bold text-gray-500 uppercase mb-3" data-i18n="label_pos_filter">詞性過濾</label>
+                        <div class="flex flex-wrap gap-3" id="pos-container">
+                            <button class="pos-chip active" data-pos="n"><span class="pos-dot"></span> 名詞</button>
+                            <button class="pos-chip active" data-pos="v"><span class="pos-dot"></span> 動詞</button>
+                            <button class="pos-chip active" data-pos="a"><span class="pos-dot"></span> 形容詞</button>
+                            <button class="pos-chip" data-pos="d"><span class="pos-dot"></span> 副詞</button>
+                            <button class="pos-chip" data-pos="c"><span class="pos-dot"></span> 連接詞</button>
+                            <button class="pos-chip" data-pos="o"><span class="pos-dot"></span> 其他</button>
                         </div>
                     </div>
                 </div>
 
-                <button id="btn-analyze" onclick="App.runAnalysis()" class="w-full bg-brand hover:bg-brand-hover text-white font-bold py-3.5 rounded-xl shadow-lg shadow-brand/20 transition transform active:scale-[0.98] flex items-center justify-center gap-2 tracking-wide text-sm">
+                <button id="btn-analyze" onclick="App.runAnalysis()" class="w-full bg-brand hover:bg-brand-hover text-white font-bold py-4 rounded-xl shadow-lg shadow-brand/20 transition transform active:scale-[0.98] flex items-center justify-center gap-2 text-base tracking-wide">
                     <span data-i18n="btn_visualize">產生文字雲</span> <i class="fa-solid fa-wand-magic-sparkles"></i>
                 </button>
             </div>
 
-            <div id="results-container" class="hidden border-t border-gray-200 bg-gray-50 h-[35%] flex flex-col">
-                <div class="flex border-b border-gray-200 bg-white px-6">
-                    <button onclick="App.switchTab('ai')" id="tab-ai" class="py-3 px-4 text-sm font-bold text-brand border-b-2 border-brand transition" data-i18n="tab_ai">AI 洞察</button>
-                    <button onclick="App.switchTab('data')" id="tab-data" class="py-3 px-4 text-sm font-bold text-gray-400 border-b-2 border-transparent hover:text-gray-600 transition" data-i18n="tab_data">數據列表</button>
+            <div id="results-container" class="hidden border-t border-gray-200 bg-gray-50 h-[40%] flex flex-col">
+                <div class="flex border-b border-gray-200 bg-white px-6 justify-between items-center">
+                    <div class="flex">
+                        <button onclick="App.switchTab('ai')" id="tab-ai" class="py-3 px-6 text-base font-bold text-brand border-b-2 border-brand transition" data-i18n="tab_ai">AI 洞察</button>
+                        <button onclick="App.switchTab('data')" id="tab-data" class="py-3 px-6 text-base font-bold text-gray-400 border-b-2 border-transparent hover:text-gray-600 transition" data-i18n="tab_data">數據列表</button>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="App.downloadReport('txt')" class="text-xs font-bold text-gray-500 hover:text-brand bg-gray-100 px-3 py-1.5 rounded transition" title="Download TXT">
+                            <i class="fa-solid fa-file-lines"></i> TXT
+                        </button>
+                        <button onclick="App.downloadReport('pdf')" class="text-xs font-bold text-gray-500 hover:text-brand bg-gray-100 px-3 py-1.5 rounded transition" title="Download PDF">
+                            <i class="fa-solid fa-file-pdf"></i> PDF
+                        </button>
+                    </div>
                 </div>
-                <div id="panel-ai" class="flex-1 overflow-y-auto scroller p-6 text-sm text-gray-700 leading-relaxed space-y-3 bg-brand-bg"></div>
+
+                <div id="panel-ai" class="flex-1 overflow-y-auto scroller p-6 text-base text-gray-700 leading-relaxed space-y-4 bg-brand-bg">
+                    </div>
+
                 <div id="panel-data" class="hidden flex-1 overflow-y-auto scroller p-0">
                     <table class="w-full text-sm text-left border-collapse">
                         <thead class="bg-gray-100 text-gray-500 sticky top-0 shadow-sm z-10">
@@ -174,28 +210,27 @@
             </div>
         </aside>
 
-        <div id="resizer" class="w-1 bg-gray-200 cursor-col-resize hover:bg-brand transition z-30"></div>
+        <div id="resizer" class="w-1.5 bg-gray-200 cursor-col-resize hover:bg-brand transition z-30"></div>
 
         <main class="flex-1 bg-gray-100 relative flex flex-col items-center justify-center p-8 overflow-hidden">
             
             <div id="canvas-wrapper" class="w-full h-full bg-white rounded-2xl shadow-sm border border-gray-200 relative flex items-center justify-center overflow-hidden">
                 
                 <div id="empty-state" class="text-center opacity-60">
-                    <img src="https://cdn-icons-png.flaticon.com/512/4047/4047268.png" alt="Cloud" class="w-24 h-24 mx-auto mb-4 opacity-50 grayscale">
-                    <h3 class="text-xl font-bold text-gray-700" data-i18n="state_ready">準備就緒</h3>
-                    <p class="text-gray-500 mt-2" data-i18n="state_ready_desc">請在左側輸入文字並產生文字雲</p>
+                    <img src="https://cdn-icons-png.flaticon.com/512/4047/4047268.png" alt="Cloud" class="w-32 h-32 mx-auto mb-6 opacity-50 grayscale">
+                    <h3 class="text-2xl font-bold text-gray-700" data-i18n="state_ready">準備就緒</h3>
+                    <p class="text-gray-500 mt-2 text-lg" data-i18n="state_ready_desc">請在左側輸入文字並產生文字雲</p>
                 </div>
 
                 <div id="loading-state" class="hidden text-center">
-                    <div class="loader mx-auto mb-4"></div>
-                    <p class="text-brand font-bold text-lg animate-pulse" data-i18n="state_loading">AI 正在運算中...</p>
-                    <p class="text-gray-400 text-sm mt-1">斷詞、權重計算、AI 解讀</p>
+                    <div class="loader mx-auto mb-6 w-12 h-12 border-4"></div>
+                    <p class="text-brand font-bold text-xl animate-pulse" data-i18n="state_loading">AI 正在運算中...</p>
                 </div>
 
                 <canvas id="word-cloud-canvas" class="hidden"></canvas>
             </div>
 
-            <button onclick="App.downloadImage()" id="btn-download" class="hidden absolute bottom-12 right-12 bg-white text-gray-800 hover:text-brand border border-gray-300 px-6 py-3 rounded-full shadow-xl font-bold transition transform hover:-translate-y-1 flex items-center gap-2 z-30 group">
+            <button onclick="App.downloadImage()" id="btn-download" class="hidden absolute bottom-12 right-12 bg-white text-gray-800 hover:text-brand border border-gray-300 px-8 py-4 rounded-full shadow-xl font-bold transition transform hover:-translate-y-1 flex items-center gap-3 z-30 group text-base">
                 <span class="group-hover:text-brand transition" data-i18n="btn_download">下載圖片</span> <i class="fa-solid fa-download group-hover:animate-bounce"></i>
             </button>
 
@@ -207,7 +242,7 @@
     </div>
 
     <script>
-        // 你的 GAS Web App URL（保持不變）
+        // 🔴🔴🔴 請務必填入您部署後的 GAS Web App URL (結尾是 /exec) 🔴🔴🔴
         const GAS_URL = "https://script.google.com/macros/s/AKfycbw3UqYr976wAd9aeEsLpTDSlGaUVdBpaErqZi-zHgNzh_Gd0SuggfdI7ldVzrqR1Ygd/exec"; 
 
         const App = {
@@ -276,7 +311,6 @@
                 slider.addEventListener('input', (e) => {
                     this.state.maxWords = parseInt(e.target.value);
                     valDisplay.innerText = this.state.maxWords;
-                    if (this.state.words.length > 0) this.renderWordCloud();
                 });
 
                 document.getElementById('shape-select').addEventListener('change', () => {
@@ -304,7 +338,7 @@
                 document.addEventListener('mousemove', (e) => {
                     if (!isResizing) return;
                     const w = e.clientX;
-                    if (w > 350 && w < window.innerWidth * 0.6) {
+                    if (w > 400 && w < window.innerWidth * 0.7) {
                         sidebar.style.width = `${w}px`;
                     }
                 });
@@ -336,12 +370,12 @@
                 const panelData = document.getElementById('panel-data');
 
                 if (tab === 'ai') {
-                    tabAi.className = "py-3 px-4 text-sm font-bold text-brand border-b-2 border-brand transition";
-                    tabData.className = "py-3 px-4 text-sm font-bold text-gray-400 border-b-2 border-transparent hover:text-gray-600 transition";
+                    tabAi.className = "py-3 px-6 text-base font-bold text-brand border-b-2 border-brand transition";
+                    tabData.className = "py-3 px-6 text-base font-bold text-gray-400 border-b-2 border-transparent hover:text-gray-600 transition";
                     panelAi.classList.remove('hidden'); panelData.classList.add('hidden');
                 } else {
-                    tabAi.className = "py-3 px-4 text-sm font-bold text-gray-400 border-b-2 border-transparent hover:text-gray-600 transition";
-                    tabData.className = "py-3 px-4 text-sm font-bold text-brand border-b-2 border-brand transition";
+                    tabAi.className = "py-3 px-6 text-base font-bold text-gray-400 border-b-2 border-transparent hover:text-gray-600 transition";
+                    tabData.className = "py-3 px-6 text-base font-bold text-brand border-b-2 border-brand transition";
                     panelAi.classList.add('hidden'); panelData.classList.remove('hidden');
                 }
             },
@@ -365,11 +399,7 @@
                 document.getElementById('loading-state').classList.remove('hidden');
                 document.getElementById('results-container').classList.add('hidden');
 
-                const payload = { 
-                    text: text, 
-                    mode: model,
-                    maxTerms: this.state.maxWords 
-                };
+                const payload = { text: text, mode: model, maxTerms: this.state.maxWords };
 
                 try {
                     const res = await fetch(GAS_URL, {
@@ -390,7 +420,7 @@
                         setTimeout(() => this.renderWordCloud(), 100);
                         this.showToast(t.msg_success, "success");
                     } else {
-                        throw new Error(json.message || "Unknown error");
+                        throw new Error(json.message);
                     }
                 } catch (error) {
                     console.error(error);
@@ -403,20 +433,17 @@
                 }
             },
 
-            // ★ 改良版：支援形狀 + 不擠在一起
             renderWordCloud() {
                 const canvas = document.getElementById('word-cloud-canvas');
                 const wrapper = document.getElementById('canvas-wrapper');
                 const shape = document.getElementById('shape-select').value;
 
-                // 篩選詞性＋依 slider 限制數量
-                let filteredList = this.state.words.filter(item => {
-                    const p = (item.pos || 'O').toLowerCase().charAt(0);
+                const filteredList = this.state.words.filter(item => {
+                    const p = (item.pos || 'o').toLowerCase().charAt(0);
                     let type = 'o';
                     if (['n','v','a','d','c'].includes(p)) type = p;
                     return this.state.activePos.has(type);
                 });
-                filteredList = filteredList.slice(0, this.state.maxWords);
 
                 if (filteredList.length === 0) {
                     this.showToast("篩選後無詞彙", "error");
@@ -425,174 +452,123 @@
 
                 canvas.classList.remove('hidden');
                 document.getElementById('btn-download').classList.remove('hidden');
-                
+
                 const w = wrapper.clientWidth;
                 const h = wrapper.clientHeight;
                 canvas.width = w;
                 canvas.height = h;
 
-                const ctx = canvas.getContext('2d');
-                ctx.clearRect(0, 0, w, h);
-                ctx.textBaseline = 'middle';
-                ctx.textAlign = 'center';
-
                 const maxWeight = Math.max(...filteredList.map(i => i.weight)) || 1;
-                const minFont = 16;
-                const maxFont = Math.min(Math.max(36, w / 12), 80);
+                // 🟢 密度優化：放大係數，讓文字填滿畫布
+                const factor = (w / 8) / maxWeight; 
 
-                const placed = [];
+                const list = filteredList.map(i => [i.word, i.weight * factor + 16]); // 最小字加大到 16px
 
-                filteredList.forEach(item => {
-                    const norm = item.weight / maxWeight;
-                    const fontSize = minFont + norm * (maxFont - minFont);
-                    const color = this.getPosColor(item.pos);
-
-                    const pos = this.findPositionForWord(ctx, item.word, fontSize, placed, w, h, shape);
-                    if (!pos) return;
-
-                    placed.push({
-                        text: item.word,
-                        x: pos.cx,
-                        y: pos.cy,
-                        fontSize,
-                        color,
-                        box: {
-                            x: pos.x,
-                            y: pos.y,
-                            width: pos.width,
-                            height: pos.height
-                        }
+                setTimeout(() => {
+                    WordCloud(canvas, {
+                        list: list,
+                        gridSize: 8, // 🟢 網格縮小：讓字靠得更近 (從 16 改為 8)
+                        weightFactor: 1,
+                        fontFamily: '"Work Sans", "Noto Sans TC", sans-serif',
+                        fontWeight: 'bold',
+                        color: (word) => {
+                            const item = this.state.words.find(i => i.word === word);
+                            return this.getPosColor(item ? item.pos : 'o');
+                        },
+                        rotateRatio: 0.2, 
+                        rotationSteps: 2,
+                        shape: shape,
+                        backgroundColor: 'transparent',
+                        drawOutOfBound: false,
+                        shrinkToFit: true,
+                        shuffle: false 
                     });
-                });
-
-                placed.forEach(word => {
-                    ctx.font = `${Math.round(word.fontSize)}px "Work Sans","Noto Sans TC",sans-serif`;
-                    ctx.fillStyle = word.color;
-                    ctx.fillText(word.text, word.x, word.y);
-                });
-            },
-
-            // ★ 支援圓形／方形／愛心／星形／菱形的排版
-            findPositionForWord(ctx, text, fontSize, placed, canvasW, canvasH, shape) {
-                ctx.font = `${Math.round(fontSize)}px "Work Sans","Noto Sans TC",sans-serif`;
-                const textWidth = ctx.measureText(text).width;
-                const textHeight = fontSize * 1.1;
-
-                const centerX = canvasW / 2;
-                const centerY = canvasH / 2;
-
-                const maxRadius = Math.min(canvasW, canvasH) / 2 - fontSize;
-                const stepAngle = Math.PI / 36;              // 5°
-                const spacing = Math.max(fontSize * 0.18, 4); // 螺旋間距
-                const padding = fontSize * 0.3;               // 字與字之間留白
-
-                for (let angle = 0; angle < Math.PI * 18; angle += stepAngle) {
-                    const r = spacing * angle;
-                    if (r > maxRadius) break;
-
-                    const cx = centerX + r * Math.cos(angle);
-                    const cy = centerY + r * Math.sin(angle);
-
-                    const dx = cx - centerX;
-                    const dy = cy - centerY;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    const theta = Math.atan2(dy, dx);
-
-                    let allowed = true;
-                    switch (shape) {
-                        case 'circle':
-                            allowed = dist <= maxRadius;
-                            break;
-                        case 'square':
-                            allowed = true; // 由邊界控制
-                            break;
-                        case 'diamond':
-                            allowed = (Math.abs(dx) + Math.abs(dy)) <= maxRadius;
-                            break;
-                        case 'cardioid': {
-                            const rHeart = (maxRadius * (1 - Math.sin(theta))) / 2;
-                            allowed = dist <= rHeart && cy >= centerY - maxRadius * 0.1;
-                            break;
-                        }
-                        case 'star': {
-                            const k = 5;
-                            const starRadius = maxRadius * (0.35 + 0.65 * Math.abs(Math.cos(k * theta)));
-                            allowed = dist <= starRadius;
-                            break;
-                        }
-                        default:
-                            allowed = true;
-                    }
-                    if (!allowed) continue;
-
-                    const rect = {
-                        x: cx - textWidth / 2,
-                        y: cy - textHeight / 2,
-                        width: textWidth,
-                        height: textHeight
-                    };
-
-                    if (
-                        rect.x < 0 || rect.y < 0 ||
-                        rect.x + rect.width > canvasW ||
-                        rect.y + rect.height > canvasH
-                    ) continue;
-
-                    const padded = {
-                        x: rect.x - padding,
-                        y: rect.y - padding,
-                        width: rect.width + 2 * padding,
-                        height: rect.height + 2 * padding
-                    };
-
-                    let collide = false;
-                    for (const p of placed) {
-                        const b = p.box;
-                        if (
-                            padded.x < b.x + b.width &&
-                            padded.x + padded.width > b.x &&
-                            padded.y < b.y + b.height &&
-                            padded.y + padded.height > b.y
-                        ) {
-                            collide = true;
-                            break;
-                        }
-                    }
-
-                    if (!collide) {
-                        return {
-                            cx, cy,
-                            x: padded.x,
-                            y: padded.y,
-                            width: padded.width,
-                            height: padded.height
-                        };
-                    }
-                }
-
-                return null;
+                }, 50);
             },
 
             getPosColor(pos) {
                 const p = String(pos).toLowerCase();
-                if (p.startsWith('n')) return '#8b5cf6'; 
-                if (p.startsWith('v')) return '#10b981'; 
-                if (p.startsWith('a')) return '#f59e0b'; 
-                if (p.startsWith('d')) return '#3b82f6'; 
-                if (p.startsWith('c')) return '#ec4899'; 
-                return '#9ca3af'; 
+                if (p.startsWith('n')) return '#8b5cf6';
+                if (p.startsWith('v')) return '#10b981';
+                if (p.startsWith('a')) return '#f59e0b';
+                if (p.startsWith('d')) return '#3b82f6';
+                if (p.startsWith('c')) return '#ec4899';
+                return '#9ca3af';
             },
 
             renderTable(list) {
                 const tbody = document.getElementById('data-table-body');
-                tbody.innerHTML = list.slice(0, 100).map((item, idx) => `
+                tbody.innerHTML = list.slice(0, 50).map((item, idx) => `
                     <tr class="hover:bg-gray-50 transition border-b border-gray-100">
                         <td class="p-3 text-gray-400 font-mono text-xs pl-6">${idx + 1}</td>
                         <td class="p-3 font-medium text-gray-800">${item.word}</td>
                         <td class="p-3"><span class="pos-badge text-white" style="background-color: ${this.getPosColor(item.pos)}">${item.pos}</span></td>
-                        <td class="p-3 text-right font-mono text-gray-600 pr-6">${item.weight.toFixed(2)}</td>
+                        <td class="p-3 text-right font-mono text-gray-600 pr-6">${item.weight.toFixed(1)}</td>
                     </tr>
                 `).join('');
+            },
+
+            // 🟢 新增：匯出報告功能
+            downloadReport(type) {
+                if(this.state.words.length === 0) {
+                    this.showToast("請先產生分析結果", "error");
+                    return;
+                }
+
+                if (type === 'txt') {
+                    // 匯出 TXT
+                    let content = "AI 智能文字雲 - 分析報告\n\n";
+                    content += "=== AI 洞察 ===\n";
+                    // 簡易提取 HTML 中的純文字
+                    const aiText = document.getElementById('panel-ai').innerText;
+                    content += aiText + "\n\n";
+                    content += "=== 數據列表 (前 50 筆) ===\n";
+                    content += "排名\t詞彙\t詞性\t權重\n";
+                    this.state.words.slice(0, 50).forEach((w, i) => {
+                        content += `${i+1}\t${w.word}\t${w.pos}\t${w.weight.toFixed(2)}\n`;
+                    });
+
+                    const blob = new Blob([content], { type: 'text/plain' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `report_${Date.now()}.txt`;
+                    link.click();
+
+                } else if (type === 'pdf') {
+                    // 匯出 PDF (使用 jspdf + autotable)
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+
+                    // 設置中文字型 (jsPDF 預設不支援中文，這裡用英文代替標題，實際應用需載入字型檔)
+                    // 為求穩定，我們只輸出數據表格與簡易標題
+                    doc.setFontSize(16);
+                    doc.text("AI Word Cloud Report", 14, 20);
+                    
+                    doc.setFontSize(12);
+                    doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 30);
+
+                    // 提取 AI 分析純文字 (可能會亂碼，因此 PDF 主要輸出表格)
+                    // 若要支援中文 PDF，需要 base64 字型檔，這會讓 HTML 變很大。
+                    // 這裡我們採取策略：只輸出表格數據 (英文標頭)
+                    
+                    const tableData = this.state.words.slice(0, 50).map((w, i) => [i+1, w.word, w.pos, w.weight.toFixed(2)]);
+                    
+                    doc.autoTable({
+                        head: [['Rank', 'Word', 'POS', 'Weight']],
+                        body: tableData,
+                        startY: 40,
+                        styles: { font: "helvetica" }, // 預設字型
+                        // 備註：若詞彙是中文，PDF 預設會顯示亂碼。
+                        // 解決方案：通常需要引入 NotoSansTC 的 base64。
+                        // 為了不讓這支程式碼爆掉，我們目前先產出 PDF，但中文詞彙可能會顯示為方塊。
+                        // 若您需要完美中文 PDF，建議使用瀏覽器的「列印 -> 存為 PDF」功能。
+                    });
+
+                    doc.save(`report_${Date.now()}.pdf`);
+                    
+                    // 提示使用者
+                    this.showToast("PDF 已下載 (若有中文亂碼請改用 TXT 或列印功能)", "info");
+                }
             },
 
             downloadImage() {
