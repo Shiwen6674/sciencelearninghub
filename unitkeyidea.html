@@ -365,48 +365,34 @@
 
             // 6. 知識架構圖 (強力清洗修復)
             // ★★★ 6. 知識架構圖 (終極強力清洗與方向修正) ★★★
-           // ★★★ 6. 知識架構圖 (終極強力清洗與方向修正) ★★★
-            const chartDiv = document.getElementById("mermaid-chart");
-            chartDiv.innerHTML = ""; // 先清空，避免圖表殘留
+            const chartDiv = document.getElementById("mermaid-chart");
+            if(data.summary.mermaid) {
+                let mCode = data.summary.mermaid.replace(/```mermaid/g, "").replace(/```/g, "").trim();
+                
+                // 修正 1: 清理 Markdown 和所有危險半形符號
+                mCode = mCode.replace(/\(/g, "（").replace(/\)/g, "）")
+                             .replace(/\[/g, "【").replace(/\]/g, "】")
+                             .replace(/:/g, "：").replace(/"/g, "").replace(/'/g, "");
+                
+                // 修正 2: 消除不必要的換行符號，防止 Mermaid 誤判指令中斷
+                mCode = mCode.replace(/\n/g, ' '); 
 
-            if(data.summary.mermaid) {
-                let mCode = data.summary.mermaid.replace(/```mermaid/g, "").replace(/```/g, "").trim();
-                
-                // 修正 1: 清理所有常見的半形符號和 Markdown 粗體符號
-                mCode = mCode.replace(/\*\*/g, "") // 移除粗體
-                           .replace(/\(/g, "（").replace(/\)/g, "）")
-                           .replace(/\[/g, "【").replace(/\]/g, "】")
-                           .replace(/:/g, "：").replace(/"/g, "").replace(/'/g, "");
-                
-                // 修正 2: 【關鍵】將所有換行符號和空白連續替換為單一空格，讓指令保持在同一行
-                mCode = mCode.replace(/\s+/g, ' ').trim(); 
-                
-                // 修正 3: 強制確保代碼以 graph LR 開頭
-                if (!mCode.startsWith("graph")) {
-                    mCode = "graph LR " + mCode;
-                } else {
-                    // 確保不是 TD/TB，一律改為 LR
-                    mCode = mCode.replace(/graph TD|graph TB/g, "graph LR");
-                }
-                
-                // 修正 4: 確保箭頭符號 (-->) 正確
-                mCode = mCode.replace(/ -> /g, ' --> ');
+                // 修正 3: 強制方向 (LR)，並確保代碼以 graph LR 開頭
+                if (!mCode.startsWith("graph")) {
+                    mCode = "graph LR " + mCode;
+                } else {
+                    mCode = mCode.replace(/graph TD|graph TB/g, "graph LR");
+                }
+                
+                // 修正 4: 確保箭頭符號 (-->) 正確
+                mCode = mCode.replace(/ -> /g, ' --> ');
 
-                chartDiv.innerHTML = mCode;
-                chartDiv.removeAttribute("data-processed");
-                
-                // 重新初始化並渲染圖表
-                mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'loose' }); 
-                // 增加 50ms 延遲以確保 DOM 準備好
-                setTimeout(() => {
-                    try {
-                        mermaid.init(undefined, chartDiv);
-                    } catch (e) {
-                        console.error("Mermaid 渲染失敗:", e);
-                        chartDiv.innerHTML = `<div class="text-red-600 text-center py-4">知識架構圖渲染失敗，請檢查原始代碼：${mCode}</div>`;
-                    }
-                }, 50);
-            }
+                chartDiv.innerHTML = mCode;
+                chartDiv.removeAttribute("data-processed");
+                // 讓圖表在錯誤時顯示錯誤代碼 (方便除錯，而不是空白)
+                mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'loose' }); 
+                mermaid.init(undefined, chartDiv);
+            }
 
             // ★★★ 7. 迷思概念 (清洗並格式化) ★★★
             // ★★★ 7. 迷思概念 (最強力標籤清除) ★★★
