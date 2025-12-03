@@ -45,7 +45,7 @@
         @media print {
             body { background: white; }
             nav, #selection-panel, #floating-chat, .no-print { display: none !important; }
-            .glass-panel { box-shadow: none; border: none; break-inside: avoid; margin-bottom: 0; padding: 0; }
+            ..glass-panel { box-shadow: none; border: none; margin-bottom: 20px; padding: 0; break-inside: avoid; page-break-inside: avoid; }
             .page-break { break-before: page; page-break-before: always; display: block; margin-top: 20px; }
             .grid { display: block; }
             .md\:col-span-2, .md\:col-span-3 { width: 100%; margin-bottom: 20px; }
@@ -86,7 +86,7 @@
     <main class="max-w-7xl mx-auto px-4 py-8 flex-1 w-full pb-24">
         <div id="selection-panel" class="glass-panel rounded-2xl p-6 mb-8 no-print">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="font-bold text-lg flex items-center gap-2"><i class="fa-solid fa-database"></i> <span data-i18n="settings_title">設定學習參數</span></h2>
+                <h2 class="font-bold text-lg flex items-center gap-2"><i class="fa-solid fa-database"></i> <span data-i18n="settings_title">請挑選你要的學習單元</span></h2>
                 <span id="db-status" class="text-xs font-bold text-orange-500"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</span>
             </div>
 
@@ -265,7 +265,15 @@
             document.getElementById("loading-view").classList.add("hidden");
             document.getElementById("loading-view").classList.remove("flex");
             document.getElementById("content-view").classList.remove("hidden");
-
+const chatBody = document.getElementById("chat-messages");
+            // 清空舊訊息，確保每次生成都是新的對話開始
+            chatBody.innerHTML = `
+                <div class="self-start bg-white border border-slate-100 p-3 rounded-lg rounded-tl-none shadow-sm max-w-[85%] text-sm">
+                    <span class="font-bold text-blue-600 block mb-1 text-xs">小科 AI</span>
+                    嗨，同學你好！我是小科，關於【${data.raw_content.unitName}】單元，你有什麼問題要問我呢？
+                </div>
+            `;
+            
             document.getElementById("result-title").innerText = data.raw_content.unitName;
             document.getElementById("result-tag").innerText = `${filters.grade}年級 • ${filters.publisher}`;
             document.getElementById("summary-text").innerHTML = data.summary.summary_html;
@@ -369,15 +377,40 @@
         }
 
         function toggleChat() { document.getElementById("xiaoke-window").classList.toggle("closed"); }
-        async function sendChatMessage() {
-            const input = document.getElementById("chat-input"); const msg = input.value.trim(); if(!msg) return;
+       async function sendChatMessage() {
+            const input = document.getElementById("chat-input"); 
+            const msg = input.value.trim(); 
+            if(!msg) return;
+
             const chatBody = document.getElementById("chat-messages");
             chatBody.innerHTML += `<div class="self-end bg-blue-600 text-white p-3 rounded-lg rounded-tr-none shadow-sm max-w-[85%] ml-auto text-sm">${msg}</div>`;
             input.value = "";
+            chatBody.scrollTop = chatBody.scrollHeight;
+
             try {
-                const res = await fetch(GAS_API_URL, { method: 'POST', body: JSON.stringify({ action: 'chat_with_ai', message: msg, currentUnit: filters.unitName||"" }) });
+                // ★★★ 修改：準備 Context 資料 ★★★
+                // 從 currentResultData 中抓取課文與詞彙
+                const contextText = currentResultData ? currentResultData.raw_content.text : "";
+                const contextVocab = currentResultData ? currentResultData.raw_content.vocab_str : "";
+
+                const res = await fetch(GAS_API_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ 
+                        action: 'chat_with_ai', 
+                        message: msg, 
+                        currentUnit: filters.unitName || "",
+                        // 傳送背景資料給後端
+                        contextText: contextText,
+                        contextVocab: contextVocab
+                    }) 
+                });
                 const json = await res.json();
-                chatBody.innerHTML += `<div class="self-start bg-white border border-slate-100 p-3 rounded-lg rounded-tl-none shadow-sm max-w-[85%] text-sm"><span class="font-bold text-blue-600 block mb-1 text-xs">小科 AI</span>${json.data}</div>`;
+                
+                // ★★★ 修改：前端再次確保移除 ** 符號 ★★★
+                const cleanReply = json.data.replace(/\*\*/g, "");
+
+                chatBody.innerHTML += `<div class="self-start bg-white border border-slate-100 p-3 rounded-lg rounded-tl-none shadow-sm max-w-[85%] text-sm"><span class="font-bold text-blue-600 block mb-1 text-xs">小科 AI</span>${cleanReply}</div>`;
+                chatBody.scrollTop = chatBody.scrollHeight;
             } catch(e) { console.error(e); }
         }
     </script>
