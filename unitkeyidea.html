@@ -454,14 +454,16 @@ const uType = data.raw_content.unitType;
             const msg = input.value.trim(); 
             if(!msg) return;
 
+            // 1. ★★★ 關鍵：先抓取目前的使用者資料 ★★★
+            const currentUser = JSON.parse(sessionStorage.getItem("currentUser") || '{"name":"訪客"}');
+
             const chatBody = document.getElementById("chat-messages");
             chatBody.innerHTML += `<div class="self-end bg-blue-600 text-white p-3 rounded-lg rounded-tr-none shadow-sm max-w-[85%] ml-auto text-sm">${msg}</div>`;
             input.value = "";
             chatBody.scrollTop = chatBody.scrollHeight;
 
             try {
-                // ★★★ 修改：準備 Context 資料 ★★★
-                // 從 currentResultData 中抓取課文與詞彙
+                // 準備 Context 資料
                 const contextText = currentResultData ? currentResultData.raw_content.text : "";
                 const contextVocab = currentResultData ? currentResultData.raw_content.vocab_str : "";
 
@@ -471,14 +473,20 @@ const uType = data.raw_content.unitType;
                         action: 'chat_with_ai', 
                         message: msg, 
                         currentUnit: filters.unitName || "",
-                        // 傳送背景資料給後端
                         contextText: contextText,
-                        contextVocab: contextVocab
+                        contextVocab: contextVocab,
+                        
+                        // ★★★ 新增：這裡就是您缺少的那一行，以及其他篩選條件 ★★★
+                        userName: currentUser.name,  // 傳送使用者姓名
+                        stage: filters.stage,        // 傳送學習階段
+                        publisher: filters.publisher,// 傳送版本
+                        grade: filters.grade,        // 傳送年級
+                        semester: filters.semester   // 傳送學期
                     }) 
                 });
                 const json = await res.json();
                 
-                // ★★★ 修改：前端再次確保移除 ** 符號 ★★★
+                // 前端清洗文字
                 const cleanReply = json.data.replace(/\*\*/g, "");
 
                 chatBody.innerHTML += `<div class="self-start bg-white border border-slate-100 p-3 rounded-lg rounded-tl-none shadow-sm max-w-[85%] text-sm"><span class="font-bold text-blue-600 block mb-1 text-xs">小科 AI</span>${cleanReply}</div>`;
