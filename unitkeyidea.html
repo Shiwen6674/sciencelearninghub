@@ -17,6 +17,8 @@
         .sci-vocab { background: #fef08a; padding: 0 4px; border-radius: 4px; font-weight: bold; color: #854d0e; }
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .chat-window { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform-origin: bottom right; }
+        .chat-window.closed { transform: scale(0); opacity: 0; pointer-events: none; }
     </style>
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col">
@@ -26,7 +28,7 @@
             <a href="student.html" class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow text-slate-500 hover:text-blue-600"><i class="fa-solid fa-arrow-left"></i></a>
             <div>
                 <h1 class="font-bold text-lg">單元重點實驗室</h1>
-                <p class="text-xs text-slate-500">AI 智能筆記生成 (DB 連動版)</p>
+                <p class="text-xs text-slate-500">AI 智能筆記生成 (Fix v2.0)</p>
             </div>
         </div>
         <div class="flex items-center gap-3">
@@ -35,11 +37,10 @@
     </nav>
 
     <main class="max-w-7xl mx-auto px-4 py-8 flex-1 w-full">
-        
         <div id="selection-panel" class="glass-panel rounded-2xl p-6 mb-8">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="font-bold text-lg flex items-center gap-2"><i class="fa-solid fa-sliders"></i> 設定學習參數</h2>
-                <span id="db-status" class="text-xs font-bold text-orange-500"><i class="fa-solid fa-circle-notch fa-spin"></i> 資料庫連線中...</span>
+                <h2 class="font-bold text-lg flex items-center gap-2"><i class="fa-solid fa-database"></i> 設定學習參數</h2>
+                <span id="db-status" class="text-xs font-bold text-orange-500"><i class="fa-solid fa-circle-notch fa-spin"></i> 連線資料庫中...</span>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -49,19 +50,19 @@
                 </div>
                 <div>
                     <label class="text-xs font-bold text-slate-500 ml-1">版本</label>
-                    <select id="sel-publisher" disabled class="w-full p-2.5 rounded-xl border border-slate-200 text-sm outline-none disabled:bg-slate-50"><option value="" disabled selected>請選擇...</option></select>
+                    <select id="sel-publisher" disabled class="w-full p-2.5 rounded-xl border border-slate-200 text-sm outline-none disabled:bg-slate-50"><option value="" disabled selected>請先選階段</option></select>
                 </div>
                 <div>
                     <label class="text-xs font-bold text-slate-500 ml-1">年級</label>
-                    <select id="sel-grade" disabled class="w-full p-2.5 rounded-xl border border-slate-200 text-sm outline-none disabled:bg-slate-50"><option value="" disabled selected>請選擇...</option></select>
+                    <select id="sel-grade" disabled class="w-full p-2.5 rounded-xl border border-slate-200 text-sm outline-none disabled:bg-slate-50"><option value="" disabled selected>請先選版本</option></select>
                 </div>
                 <div>
                     <label class="text-xs font-bold text-slate-500 ml-1">學期</label>
-                    <select id="sel-semester" disabled class="w-full p-2.5 rounded-xl border border-slate-200 text-sm outline-none disabled:bg-slate-50"><option value="" disabled selected>請選擇...</option></select>
+                    <select id="sel-semester" disabled class="w-full p-2.5 rounded-xl border border-slate-200 text-sm outline-none disabled:bg-slate-50"><option value="" disabled selected>請先選年級</option></select>
                 </div>
                 <div>
-                    <label class="text-xs font-bold text-slate-500 ml-1">單元名稱</label>
-                    <select id="sel-unit" disabled class="w-full p-2.5 rounded-xl border border-slate-200 text-sm outline-none disabled:bg-slate-50"><option value="" disabled selected>請選擇...</option></select>
+                    <label class="text-xs font-bold text-slate-500 ml-1">單元名稱 (課別+課名)</label>
+                    <select id="sel-unit" disabled class="w-full p-2.5 rounded-xl border border-slate-200 text-sm outline-none disabled:bg-slate-50"><option value="" disabled selected>請先選學期</option></select>
                 </div>
             </div>
 
@@ -75,7 +76,7 @@
         <div id="loading-view" class="hidden flex-col items-center justify-center py-20">
             <div class="loader mb-4"></div>
             <h3 class="text-xl font-bold text-slate-700">AI 正在閱讀課文...</h3>
-            <p class="text-slate-500 mt-2">分析迷思概念 • 提取科學詞彙 • 繪製知識圖譜</p>
+            <p class="text-slate-500 mt-2">正在分析資料庫中的課文內容...</p>
         </div>
 
         <div id="content-view" class="hidden animate-fade-in-up">
@@ -107,24 +108,40 @@
         </div>
     </main>
 
+    <div id="floating-chat" class="fixed bottom-6 right-6 z-[100] flex flex-col items-end gap-4">
+        <div id="xiaoke-window" class="chat-window closed w-80 md:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden h-[500px]">
+            <div class="bg-blue-600 p-4 text-white flex justify-between items-center">
+                <div class="flex items-center gap-2"><i class="fa-solid fa-robot"></i> <span class="font-bold">小科 AI</span></div>
+                <button onclick="toggleChat()" class="text-white/80 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="flex-1 p-4 bg-slate-50 overflow-y-auto text-sm space-y-3" id="chat-messages"></div>
+            <div class="p-3 bg-white border-t border-slate-100 flex gap-2">
+                <input type="text" id="chat-input" placeholder="問問小科..." class="flex-1 bg-slate-100 border-none rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" onkeypress="if(event.key==='Enter') sendChatMessage()">
+                <button onclick="sendChatMessage()" class="bg-blue-600 text-white w-10 h-10 rounded-full hover:bg-blue-700 transition flex items-center justify-center"><i class="fa-solid fa-paper-plane text-xs"></i></button>
+            </div>
+        </div>
+        <button onclick="toggleChat()" class="w-14 h-14 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full shadow-lg text-white flex items-center justify-center text-2xl hover:scale-110 transition"><i class="fa-solid fa-comment-dots"></i></button>
+    </div>
+
     <script>
-        // ★★★ 請務必確認這裡換成了「新版本」的 GAS URL ★★★
+        // ★ 這是您提供的最新 GAS URL
         const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxBWrZCp-xLckDGZnhe64K0IUa_8CJZRzqZbrgL8lQdNn3S1WgaEzbdOtpo4mGwN6_H/exec";
         
         let allData = [];
         let filters = {};
 
         window.onload = async () => {
-            const user = JSON.parse(sessionStorage.getItem("currentUser") || '{}');
-            if(user.name) document.getElementById("user-info").innerText = user.name;
+            const user = JSON.parse(sessionStorage.getItem("currentUser") || '{"name":"訪客"}');
+            document.getElementById("user-info").innerText = user.name;
             
-            // 載入資料庫
             try {
+                // 1. 抓取完整 Metadata
                 const res = await fetch(GAS_API_URL + "?action=get_metadata");
                 const json = await res.json();
+                
                 if(json.status === "success") {
                     allData = json.data;
-                    document.getElementById("db-status").innerHTML = `<i class="fa-solid fa-check"></i> 已連線 (${allData.length} 筆)`;
+                    document.getElementById("db-status").innerHTML = `<i class="fa-solid fa-check"></i> 資料庫連線成功 (${allData.length} 筆)`;
                     document.getElementById("db-status").className = "text-xs font-bold text-green-600";
                     initSelectors();
                 } else {
@@ -132,22 +149,24 @@
                 }
             } catch(e) {
                 console.error(e);
-                document.getElementById("db-status").innerText = "連線失敗 (CORS/Deploy)";
+                document.getElementById("db-status").innerText = "連線失敗: " + e.message;
                 document.getElementById("db-status").className = "text-xs font-bold text-red-500";
             }
         };
 
         // --- 全頁連動邏輯 (Cascading) ---
         function initSelectors() {
+            // 第一層：學習階段
             const stages = [...new Set(allData.map(d => d.stage))];
             populate("sel-stage", stages);
             
+            // 綁定事件
             document.getElementById("sel-stage").onchange = (e) => updateLevel(1, e.target.value);
             document.getElementById("sel-publisher").onchange = (e) => updateLevel(2, e.target.value);
             document.getElementById("sel-grade").onchange = (e) => updateLevel(3, e.target.value);
             document.getElementById("sel-semester").onchange = (e) => updateLevel(4, e.target.value);
             document.getElementById("sel-unit").onchange = (e) => {
-                filters.unitName = e.target.value;
+                filters.unitName = e.target.value; // 這會是課名 (Col H)
                 document.getElementById("btn-generate").disabled = false;
             };
         }
@@ -155,10 +174,10 @@
         function updateLevel(level, value) {
             if(level === 1) filters = { stage: value };
             if(level === 2) filters.publisher = value;
-            if(level === 3) filters.grade = value; // 這裡是 raw value (如 3)
-            if(level === 4) filters.semester = value; // 這裡是 raw value (如 上)
+            if(level === 3) filters.grade = value; // 原始值 (如 3)
+            if(level === 4) filters.semester = value; // 原始值 (如 上)
 
-            // 清空下層
+            // 清空並鎖定下層
             const ids = ["sel-publisher", "sel-grade", "sel-semester", "sel-unit"];
             for(let i = level; i < 4; i++) {
                 const el = document.getElementById(ids[i]);
@@ -167,11 +186,11 @@
             }
             document.getElementById("btn-generate").disabled = true;
 
-            // 篩選資料
+            // 篩選資料 (使用 == 寬鬆比對)
             const relevantData = allData.filter(d => {
                 return (!filters.stage || d.stage === filters.stage) &&
                        (!filters.publisher || d.publisher === filters.publisher) &&
-                       (!filters.grade || d.grade == filters.grade) && // 使用 == 寬鬆比對
+                       (!filters.grade || d.grade == filters.grade) && 
                        (!filters.semester || d.semester == filters.semester);
             });
 
@@ -189,16 +208,19 @@
                 populate("sel-semester", opts, "semester"); // 標記為學期
             }
             if(level === 4) {
-                // 組合顯示文字: 第1課 認識植物
                 const unitSelect = document.getElementById("sel-unit");
                 unitSelect.innerHTML = '<option value="" disabled selected>請選擇單元...</option>';
+                
+                // 列出所有符合的單元
                 relevantData.forEach(d => {
                     const opt = document.createElement("option");
-                    opt.value = d.unitName; // 給後端的值 (Col H)
-                    opt.text = `第${d.unitType}課 ${d.unitName}`; // 給人看的文字
+                    opt.value = d.unitName; // 傳給後端的 Value (Col H)
+                    opt.text = `第${d.unitType}課 ${d.unitName}`; // 顯示給使用者的 Text
                     unitSelect.add(opt);
                 });
-                unitSelect.disabled = false;
+                
+                if (relevantData.length > 0) unitSelect.disabled = false;
+                else unitSelect.innerHTML = '<option disabled>無符合單元</option>';
             }
         }
 
@@ -207,11 +229,11 @@
             el.innerHTML = '<option value="" disabled selected>請選擇...</option>';
             options.forEach(o => {
                 const opt = document.createElement("option");
-                opt.value = o; // 原始值 (3, 上)
+                opt.value = o; // Value 保持原始資料 (例如 "3", "上")
                 
-                // 顯示轉換
+                // Text 進行友善轉換
                 if(type === "grade") opt.text = o + "年級";
-                else if(type === "semester") opt.text = o + "學期";
+                else if(type === "semester") opt.text = (o === "上" ? "上學期" : (o === "下" ? "下學期" : o));
                 else opt.text = o;
                 
                 el.add(opt);
@@ -225,6 +247,7 @@
             document.getElementById("loading-view").classList.add("flex");
 
             try {
+                // 發送請求
                 const res = await fetch(GAS_API_URL, {
                     method: "POST",
                     body: JSON.stringify({ action: "get_content_and_generate", filters: filters })
@@ -237,7 +260,7 @@
                     throw new Error(json.message);
                 }
             } catch(e) {
-                alert("錯誤: " + e.message);
+                alert("生成失敗: " + e.message);
                 location.reload();
             }
         }
@@ -251,37 +274,66 @@
             document.getElementById("result-title").innerText = data.raw_content.unitName;
             document.getElementById("result-tag").innerText = `${filters.grade}年級 • ${filters.publisher}`;
 
-            // 詞彙與螢光筆
-            const vocab = (data.raw_content.vocab_str || "").split(/[,、]/).filter(v=>v);
+            // 摘要與螢光筆
             let summary = data.summary.summary_html;
-            
+            document.getElementById("summary-text").innerHTML = summary;
+
+            // 詞彙
+            const vocab = (data.raw_content.vocab_str || "").split(/[,、]/).filter(v=>v);
             const kwList = document.getElementById("keywords-list");
             kwList.innerHTML = "";
-            vocab.forEach(v => {
-                kwList.innerHTML += `<span class="inline-block bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm mr-2 mb-2">#${v.trim()}</span>`;
-                // 替換摘要中的詞彙
-                const reg = new RegExp(v.trim(), "g");
-                summary = summary.replace(reg, `<span class="sci-vocab">${v.trim()}</span>`);
-            });
-            
-            document.getElementById("summary-text").innerHTML = summary;
+            if (vocab.length === 0) kwList.innerHTML = "<span class='text-gray-400'>無特定科學詞彙</span>";
+            else vocab.forEach(v => kwList.innerHTML += `<span class="inline-block bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm mr-2 mb-2">#${v.trim()}</span>`);
 
             // Mermaid
             const chartDiv = document.getElementById("mermaid-chart");
-            chartDiv.innerHTML = data.mermaid.replace(/```mermaid/g, "").replace(/```/g, "");
-            chartDiv.removeAttribute("data-processed");
-            mermaid.init(undefined, chartDiv);
+            if (data.mermaid) {
+                chartDiv.innerHTML = data.mermaid.replace(/```mermaid/g, "").replace(/```/g, "");
+                chartDiv.removeAttribute("data-processed");
+                mermaid.init(undefined, chartDiv);
+            } else {
+                chartDiv.innerHTML = "無法生成圖表";
+            }
 
             // 迷思
             const mythDiv = document.getElementById("myth-list");
             mythDiv.innerHTML = "";
-            data.myths.forEach(m => {
-                mythDiv.innerHTML += `
-                <div class="bg-white p-4 rounded-xl border border-red-100 shadow-sm">
-                    <div class="font-bold text-red-600 mb-1"><i class="fa-solid fa-circle-question"></i> ${m.title}</div>
-                    <div class="text-xs text-slate-600">${m.desc}</div>
+            if (data.myths) {
+                data.myths.forEach(m => {
+                    mythDiv.innerHTML += `
+                    <div class="bg-white p-4 rounded-xl border border-red-100 shadow-sm">
+                        <div class="font-bold text-red-600 mb-1"><i class="fa-solid fa-circle-question"></i> ${m.title}</div>
+                        <div class="text-xs text-slate-600">${m.desc}</div>
+                    </div>`;
+                });
+            }
+        }
+
+        function toggleChat() { document.getElementById("xiaoke-window").classList.toggle("closed"); }
+        
+        async function sendChatMessage() {
+            const input = document.getElementById("chat-input");
+            const msg = input.value.trim();
+            if(!msg) return;
+
+            const chatBody = document.getElementById("chat-messages");
+            chatBody.innerHTML += `<div class="self-end bg-blue-600 text-white p-3 rounded-lg rounded-tr-none shadow-sm max-w-[85%] ml-auto text-sm">${msg}</div>`;
+            input.value = "";
+            chatBody.scrollTop = chatBody.scrollHeight;
+
+            try {
+                const res = await fetch(GAS_API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'chat_with_ai', message: msg })
+                });
+                const json = await res.json();
+                
+                chatBody.innerHTML += `<div class="self-start bg-white border border-slate-100 p-3 rounded-lg rounded-tl-none shadow-sm max-w-[85%] text-sm">
+                    <span class="font-bold text-blue-600 block mb-1 text-xs">小科 AI</span>
+                    ${json.data}
                 </div>`;
-            });
+                chatBody.scrollTop = chatBody.scrollHeight;
+            } catch(e) { console.error(e); }
         }
     </script>
 </body>
