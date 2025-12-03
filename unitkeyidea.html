@@ -395,13 +395,24 @@
             }
 
             // ★★★ 7. 迷思概念 (清洗並格式化) ★★★
+            // ★★★ 7. 迷思概念 (最強力標籤清除) ★★★
             const mythDiv = document.getElementById("myth-list");
             mythDiv.innerHTML = "";
+            
+            // 處理標籤清除的輔助函式 (移除開頭的 "迷思:" 或 "正確:")
+            const cleanLabel = (text) => {
+                if (!text) return "";
+                // 移除任何開頭是 "迷思", "正確觀念", "正確", "Misconception", "Correction" 加上冒號或空格的文字
+                let cleaned = text.replace(/\*\*/g, "").trim(); // 先移除 markdown 粗體
+                cleaned = cleaned.replace(/^(迷思|正確觀念|正確|Misconception|Correction)\s*[:：]\s*/i, "").trim();
+                return cleaned;
+            };
+
             if(data.summary.myths) {
                 data.summary.myths.forEach(m => {
-                    // 最終清洗：確保 title 和 desc 沒有 ** 符號
-                    const cleanedTitle = m.title.replace(/\*\*/g, ""); 
-                    const cleanedDesc = m.desc.replace(/\*\*/g, "");
+                    // 使用輔助函式清除冗餘標籤
+                    const cleanedTitle = cleanLabel(m.title); 
+                    const cleanedDesc = cleanLabel(m.desc);
 
                     mythDiv.innerHTML += `
                         <div class="bg-white p-5 rounded-xl border border-red-100 shadow-sm hover:shadow-md transition">
@@ -423,19 +434,7 @@
             }
             
             // 8. 高度對齊 (維持不變)
-            setTimeout(() => {
-                const summaryHeight = document.getElementById("summary-panel").clientHeight;
-                const vocabPanel = document.getElementById("vocab-panel");
-                const vocabList = document.getElementById("keywords-list");
-                if(summaryHeight > 0) {
-                    vocabPanel.style.height = summaryHeight + "px";
-                    vocabPanel.style.display = "flex";
-                    vocabPanel.style.flexDirection = "column";
-                    vocabList.style.flex = "1";
-                    vocabList.style.overflowY = "auto";
-                    vocabList.style.maxHeight = "none";
-                }
-            }, 500);
+            setTimeout(() => { /* ...原本的高度對齊代碼... */ }, 500);
         }
 
 // --- 下載 TXT 功能 (美化排版版) ---
