@@ -330,12 +330,14 @@
         }
 
         function renderResult(data) {
+            // 1. 顯示內容區塊，隱藏 Loading
             document.getElementById("floating-chat").classList.remove("hidden");
             document.getElementById("loading-view").classList.add("hidden");
             document.getElementById("loading-view").classList.remove("flex");
             document.getElementById("content-view").classList.remove("hidden");
-const chatBody = document.getElementById("chat-messages");
-            // 清空舊訊息，確保每次生成都是新的對話開始
+
+            // 2. 自動插入小科開場白
+            const chatBody = document.getElementById("chat-messages");
             chatBody.innerHTML = `
                 <div class="self-start bg-white border border-slate-100 p-3 rounded-lg rounded-tl-none shadow-sm max-w-[85%] text-sm">
                     <span class="font-bold text-blue-600 block mb-1 text-xs">小科 AI</span>
@@ -343,19 +345,20 @@ const chatBody = document.getElementById("chat-messages");
                 </div>
             `;
             
+            // 3. 填入標題與標籤
             document.getElementById("result-title").innerText = data.raw_content.unitName;
-            // 先從資料中找出課次 (G欄 / unitType)
-const uType = data.raw_content.unitType;
-            const lessonStr = (uType && !isNaN(uType)) ? `第${uType}課` : (uType || "");
             
-            // 2. 處理學期 (例如: "上" -> "上學期")
+            // 處理課次與學期
+            const uType = data.raw_content.unitType;
+            const lessonStr = (uType && !isNaN(uType)) ? `第${uType}課` : (uType || "");
             const semRaw = filters.semester;
             const semStr = (semRaw === "上" ? "上學期" : (semRaw === "下" ? "下學期" : semRaw));
-            
-            // 3. 組合字串：南一 • 3年級上學期 • 第1課
             document.getElementById("result-tag").innerText = `${filters.publisher} • ${filters.grade}年級${semStr} • ${lessonStr}`;
+
+            // 4. 填入核心概念摘要
             document.getElementById("summary-text").innerHTML = data.summary.summary_html;
 
+            // 5. 填入科學詞彙
             const vocabContainer = document.getElementById("keywords-list");
             vocabContainer.innerHTML = "";
             if(data.summary.vocab_list) {
@@ -364,22 +367,44 @@ const uType = data.raw_content.unitType;
                 });
             }
 
+            // ★★★ 6. 修復知識架構圖 (強力清洗語法錯誤) ★★★
             const chartDiv = document.getElementById("mermaid-chart");
             if(data.summary.mermaid) {
-                chartDiv.innerHTML = data.summary.mermaid.replace(/```mermaid/g, "").replace(/```/g, "");
-                chartDiv.removeAttribute("data-processed");
-                mermaid.init(undefined, chartDiv);
+                // 先移除 markdown 標記
+                let mermaidCode = data.summary.mermaid.replace(/```mermaid/g, "").replace(/```/g, "");
+                
+                // 【關鍵修正】強力替換所有可能導致語法錯誤的半形符號為全形
+                mermaidCode = mermaidCode.replace(/\(/g, "（").replace(/\)/g, "）")  // 替換小括號
+                                         .replace(/\[/g, "【").replace(/\]/g, "】")  // 替換中括號
+                                         .replace(/:/g, "：")                       // 替換冒號
+                                         .replace(/"/g, "")                         // 移除雙引號
+                                         .replace(/'/g, "");                        // 移除單引號
+
+                chartDiv.innerHTML = mermaidCode;
+                chartDiv.removeAttribute("data-processed"); // 重置 mermaid 狀態
+                mermaid.init(undefined, chartDiv); // 重新渲染
             }
 
+            // ★★★ 7. 修改迷思診斷格式 (紅字迷思 + 綠字正確) ★★★
             const mythDiv = document.getElementById("myth-list");
             mythDiv.innerHTML = "";
             if(data.summary.myths) {
                 data.summary.myths.forEach(m => {
-                    mythDiv.innerHTML += `<div class="bg-white p-4 rounded-xl border border-red-100 shadow-sm"><div class="font-bold text-red-600 mb-1"><i class="fa-solid fa-circle-question"></i> ${m.title}</div><div class="text-xs text-slate-600">${m.desc}</div></div>`;
+                    // 使用新的 HTML 結構，加入顏色與粗體
+                    mythDiv.innerHTML += `
+                        <div class="bg-white p-4 rounded-xl border border-red-100 shadow-sm">
+                            <div class="font-bold text-lg text-slate-800 mb-2 flex items-start">
+                                <i class="fa-solid fa-circle-xmark text-red-500 mt-1 mr-2"></i>
+                                <div><span class="text-red-600 font-black">迷思：</span>${m.title}</div>
+                            </div>
+                            <div class="text-sm text-slate-700 leading-relaxed pl-6 border-l-2 border-green-200">
+                                <span class="text-green-600 font-black">正確：</span>${m.desc}
+                            </div>
+                        </div>`;
                 });
             }
 
-            // 高度對齊
+            // 8. 高度對齊調整 (維持不變)
             setTimeout(() => {
                 const summaryHeight = document.getElementById("summary-panel").clientHeight;
                 const vocabPanel = document.getElementById("vocab-panel");
