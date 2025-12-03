@@ -171,56 +171,82 @@
             };
         }
 
-        function updateLevel(level, value) {
-            if(level === 1) filters = { stage: value };
-            if(level === 2) filters.publisher = value;
-            if(level === 3) filters.grade = value; // 原始值 (如 3)
-            if(level === 4) filters.semester = value; // 原始值 (如 上)
+function updateLevel(level, value) {
+            console.log(`[Debug] Level ${level} 變更為: ${value}`);
 
-            // 清空並鎖定下層
+            // 1. 更新篩選條件 (加入自動清理下游邏輯)
+            if (level === 1) filters = { stage: value }; 
+            if (level === 2) { filters.publisher = value; delete filters.grade; delete filters.semester; delete filters.unitName; }
+            if (level === 3) { filters.grade = value; delete filters.semester; delete filters.unitName; }
+            if (level === 4) { filters.semester = value; delete filters.unitName; }
+
+            // 2. 介面重置：清空並鎖定下層選單
             const ids = ["sel-publisher", "sel-grade", "sel-semester", "sel-unit"];
-            for(let i = level; i < 4; i++) {
+            for (let i = level; i < 4; i++) {
                 const el = document.getElementById(ids[i]);
                 el.innerHTML = '<option value="" disabled selected>請選擇...</option>';
                 el.disabled = true;
             }
             document.getElementById("btn-generate").disabled = true;
 
-            // 篩選資料 (使用 == 寬鬆比對)
+            // 3. 篩選資料 (使用寬容比對，避免型別或空白問題)
             const relevantData = allData.filter(d => {
-                return (!filters.stage || d.stage === filters.stage) &&
-                       (!filters.publisher || d.publisher === filters.publisher) &&
-                       (!filters.grade || d.grade == filters.grade) && 
-                       (!filters.semester || d.semester == filters.semester);
+                const safeMatch = (dataVal, filterVal) => {
+                    if (!filterVal) return true;
+                    // 強制轉字串並去空白 (例如: 3 == "3", "上 " == "上")
+                    return String(dataVal).trim() == String(filterVal).trim();
+                };
+
+                return safeMatch(d.stage, filters.stage) &&
+                       safeMatch(d.publisher, filters.publisher) &&
+                       safeMatch(d.grade, filters.grade) && 
+                       safeMatch(d.semester, filters.semester);
             });
 
-            // 填充下一層
-            if(level === 1) {
+            console.log(`[Debug] 篩選後剩餘筆數: ${relevantData.length}`);
+            if(relevantData.length > 0) {
+                console.log("[Debug] 第一筆資料範例 (檢查欄位名稱):", relevantData[0]);
+            }
+
+            // 4. 填充下一層選單
+            if (level === 1) {
                 const opts = [...new Set(relevantData.map(d => d.publisher))];
                 populate("sel-publisher", opts);
             }
-            if(level === 2) {
-                const opts = [...new Set(relevantData.map(d => d.grade))].sort((a,b)=>a-b);
-                populate("sel-grade", opts, "grade"); // 標記為年級
+            if (level === 2) {
+                const opts = [...new Set(relevantData.map(d => d.grade))].sort((a, b) => a - b);
+                populate("sel-grade", opts, "grade");
             }
-            if(level === 3) {
+            if (level === 3) {
                 const opts = [...new Set(relevantData.map(d => d.semester))];
-                populate("sel-semester", opts, "semester"); // 標記為學期
+                populate("sel-semester", opts, "semester");
             }
-            if(level === 4) {
+            
+            // ★★★ 修正核心：單元名稱載入 (Level 4) ★★★
+            if (level === 4) {
                 const unitSelect = document.getElementById("sel-unit");
                 unitSelect.innerHTML = '<option value="" disabled selected>請選擇單元...</option>';
                 
-                // 列出所有符合的單元
-                relevantData.forEach(d => {
-                    const opt = document.createElement("option");
-                    opt.value = d.unitName; // 傳給後端的 Value (Col H)
-                    opt.text = `第${d.unitType}課 ${d.unitName}`; // 顯示給使用者的 Text
-                    unitSelect.add(opt);
-                });
-                
-                if (relevantData.length > 0) unitSelect.disabled = false;
-                else unitSelect.innerHTML = '<option disabled>無符合單元</option>';
+                if (relevantData.length > 0) {
+                    relevantData.forEach(d => {
+                        const opt = document.createElement("option");
+                        
+                        // ★ 自動嘗試多種欄位名稱 (英文或中文)
+                        // 請依據 Console 裡印出的資料調整這裡
+                        const name = d.unitName || d['單元名稱'] || d['課名'] || d['標題'] || "未命名";
+                        const type = d.unitType || d['課次'] || d['單元'] || ""; 
+
+                        // 組合顯示文字
+                        const prefix = type ? `第${type}課 ` : "";
+                        
+                        opt.value = name; 
+                        opt.text = `${prefix}${name}`;
+                        unitSelect.add(opt);
+                    });
+                    unitSelect.disabled = false;
+                } else {
+                    unitSelect.innerHTML = '<option disabled>無符合單元</option>';
+                }
             }
         }
 
