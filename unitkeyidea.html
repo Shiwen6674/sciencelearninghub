@@ -119,7 +119,7 @@
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-2">
                     <i class="fa-solid fa-filter text-blue-600"></i>
-                    <h2 class="font-bold text-lg">設定學習參數 (對照教材資料庫)</h2>
+                    <h2 class="font-bold text-lg">設定學習參數 (資料庫連動)</h2>
                 </div>
                 <div id="data-status" class="text-xs text-slate-400">正在連線資料庫...</div>
             </div>
@@ -127,49 +127,42 @@
             <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <div class="space-y-1">
                     <label class="text-xs font-bold text-slate-500 uppercase ml-1">學習階段</label>
-                    <select id="sel-stage" onchange="filterData('stage')" class="w-full rounded-xl border-slate-200 bg-white p-2.5 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 outline-none">
-                        <option value="" disabled selected>請選擇...</option>
-                        <option value="國小">國小</option>
-                        <option value="國中">國中</option>
+                    <select id="sel-stage" class="w-full rounded-xl border-slate-200 bg-white p-2.5 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 outline-none">
+                        <option value="" disabled selected>載入中...</option>
                     </select>
                 </div>
 
                 <div class="space-y-1">
                     <label class="text-xs font-bold text-slate-500 uppercase ml-1">版本</label>
-                    <select id="sel-publisher" onchange="filterData('publisher')" class="w-full rounded-xl border-slate-200 bg-white p-2.5 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 outline-none">
+                    <select id="sel-publisher" disabled class="w-full rounded-xl border-slate-200 bg-white p-2.5 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 outline-none disabled:bg-gray-50 disabled:text-gray-400">
                         <option value="" disabled selected>請選擇...</option>
-                        <option value="南一">南一</option>
-                        <option value="康軒">康軒</option>
-                        <option value="翰林">翰林</option>
                     </select>
                 </div>
 
                 <div class="space-y-1">
                     <label class="text-xs font-bold text-slate-500 uppercase ml-1">年級</label>
-                    <select id="sel-grade" onchange="filterData('grade')" class="w-full rounded-xl border-slate-200 bg-white p-2.5 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 outline-none">
+                    <select id="sel-grade" disabled class="w-full rounded-xl border-slate-200 bg-white p-2.5 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 outline-none disabled:bg-gray-50 disabled:text-gray-400">
                         <option value="" disabled selected>請選擇...</option>
-                        </select>
+                    </select>
                 </div>
 
                 <div class="space-y-1">
                     <label class="text-xs font-bold text-slate-500 uppercase ml-1">學期</label>
-                    <select id="sel-semester" onchange="filterData('semester')" class="w-full rounded-xl border-slate-200 bg-white p-2.5 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 outline-none">
+                    <select id="sel-semester" disabled class="w-full rounded-xl border-slate-200 bg-white p-2.5 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 outline-none disabled:bg-gray-50 disabled:text-gray-400">
                         <option value="" disabled selected>請選擇...</option>
-                        <option value="上學期">上學期</option>
-                        <option value="下學期">下學期</option>
                     </select>
                 </div>
 
                 <div class="space-y-1">
                     <label class="text-xs font-bold text-slate-500 uppercase ml-1">單元名稱</label>
-                    <select id="sel-unit" disabled class="w-full rounded-xl border-slate-200 bg-gray-50 p-2.5 text-sm shadow-sm disabled:opacity-50">
-                        <option value="" disabled selected>需先選定上述條件</option>
+                    <select id="sel-unit" disabled class="w-full rounded-xl border-slate-200 bg-gray-50 p-2.5 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 outline-none disabled:bg-gray-50 disabled:text-gray-400">
+                        <option value="" disabled selected>請選擇...</option>
                     </select>
                 </div>
             </div>
 
             <div class="mt-6 flex justify-end">
-                <button onclick="fetchAndGenerate()" id="btn-generate" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-8 rounded-xl shadow-lg shadow-blue-500/30 transition transform active:scale-95 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                <button onclick="fetchAndGenerate()" id="btn-generate" disabled class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-8 rounded-xl shadow-lg shadow-blue-500/30 transition transform active:scale-95 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                     <i class="fa-solid fa-wand-magic-sparkles"></i>
                     <span>AI 分析並生成重點</span>
                 </button>
@@ -189,7 +182,7 @@
             
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                 <div>
-                    <span class="inline-block px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-xs font-bold tracking-wider mb-2" id="result-tag">SCIENCE • G7</span>
+                    <span class="inline-block px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-xs font-bold tracking-wider mb-2" id="result-tag">SCIENCE</span>
                     <h1 class="text-3xl font-black text-slate-800" id="result-title">單元標題</h1>
                 </div>
                 <div class="flex gap-2 no-print">
@@ -269,8 +262,8 @@
         const GAS_API_URL = "https://script.google.com/macros/s/AKfycbx3MW-IOcU-38IqgawidSakL9nVwARmov4cuK0S6Jcqbv3SJFyHUbrvrI43Y6nskJAx/exec";
         
         let currentUser = null;
-        let currentUnitName = ""; // 存儲 "單元 1 植物的構造"
-        let fullMetadata = []; // 存儲從 GAS 抓回來的選單資料
+        let allMetadata = []; // 儲存所有從資料庫抓回來的資料
+        let currentFilters = {}; // 當前選擇的參數
 
         // 初始化
         window.addEventListener('DOMContentLoaded', async () => {
@@ -285,106 +278,174 @@
             document.getElementById("user-name").innerText = currentUser.name;
             document.getElementById("user-avatar").innerText = currentUser.name.charAt(0);
 
-            // 2. 初始化年級選單 (3-9年級)
-            const gradeSel = document.getElementById("sel-grade");
-            for(let i=3; i<=6; i++) gradeSel.innerHTML += `<option value="${i}年級">${i}年級</option>`;
-            for(let i=7; i<=9; i++) gradeSel.innerHTML += `<option value="${i}年級">${i}年級</option>`;
-
-            // 3. 抓取遠端資料以填充單元選單
+            // 2. 抓取完整資料庫 (Metadata)
             await loadMetadata();
+            
+            // 3. 綁定事件監聽
+            bindEvents();
         });
 
-        // 讀取 Metadata (模擬或實際呼叫)
         async function loadMetadata() {
             const statusEl = document.getElementById("data-status");
             statusEl.innerText = "正在同步教材資料庫...";
             
             try {
-                // 這裡呼叫 GAS 取得 Metadata (Col A, C, D, E, G, H)
+                // 呼叫 GAS 取得 Metadata
+                // 注意：後端 GAS 應該回傳 [{stage, publisher, grade, semester, unit}, ...]
                 const res = await fetch(`${GAS_API_URL}?action=get_metadata`);
                 const json = await res.json();
                 
                 if(json.status === "success") {
-                    fullMetadata = json.data; // 假設 data 是 [{stage, publisher, grade, semester, unitStr, unitCode}, ...]
-                    statusEl.innerText = "資料庫連線成功";
+                    allMetadata = json.data;
+                    statusEl.innerText = "資料庫連線成功 (" + allMetadata.length + " 筆資料)";
                     statusEl.className = "text-xs text-green-600 font-bold";
                     
-                    // 啟用篩選器監聽
-                    checkFilters(); 
+                    // 初始化第一層選單：學習階段
+                    initStageSelect();
                 } else {
                     throw new Error("API Error");
                 }
             } catch (e) {
                 console.error(e);
-                // --- Fallback Mock Data (若 API 未通) ---
-                fullMetadata = [
-                    { stage:"國小", publisher:"南一", grade:"3年級", semester:"上學期", unitStr:"單元1 認識植物", unitCode:"單元1" },
-                    { stage:"國小", publisher:"南一", grade:"3年級", semester:"上學期", unitStr:"單元2 空氣與風", unitCode:"單元2" },
-                    { stage:"國中", publisher:"翰林", grade:"7年級", semester:"下學期", unitStr:"第3章 光與影", unitCode:"第3章" }
-                ];
-                statusEl.innerText = "使用離線資料模式";
+                statusEl.innerText = "連線失敗，請檢查網路或 GAS";
+                statusEl.className = "text-xs text-red-500 font-bold";
+                // 這裡不再使用 Mock Data，強迫必須連到真實資料
             }
         }
 
-        // 當任一篩選條件改變時
-        function filterData() {
-            checkFilters();
+        // --- 全頁連動選單邏輯 (Cascading Logic) ---
+
+        function bindEvents() {
+            document.getElementById('sel-stage').addEventListener('change', (e) => updateNextLevel('stage', e.target.value));
+            document.getElementById('sel-publisher').addEventListener('change', (e) => updateNextLevel('publisher', e.target.value));
+            document.getElementById('sel-grade').addEventListener('change', (e) => updateNextLevel('grade', e.target.value));
+            document.getElementById('sel-semester').addEventListener('change', (e) => updateNextLevel('semester', e.target.value));
+            document.getElementById('sel-unit').addEventListener('change', checkGenerateButton);
         }
 
-        function checkFilters() {
-            const stage = document.getElementById("sel-stage").value;
-            const pub = document.getElementById("sel-publisher").value;
-            const grade = document.getElementById("sel-grade").value;
-            const sem = document.getElementById("sel-semester").value;
-            const unitSel = document.getElementById("sel-unit");
-
-            // 若前四個條件都選了，才開啟單元選單
-            if (stage && pub && grade && sem) {
-                unitSel.disabled = false;
-                unitSel.innerHTML = '<option value="" disabled selected>請選擇單元...</option>';
-                
-                // 篩選符合的單元
-                const units = fullMetadata.filter(d => 
-                    d.stage == stage && 
-                    d.publisher == pub && 
-                    d.grade == grade && 
-                    d.semester == sem
-                );
-
-                if(units.length > 0) {
-                    units.forEach(u => {
-                        // 顯示 "課別 + 課名" (依據試算表 G+H 欄)
-                        unitSel.innerHTML += `<option value="${u.unitStr}">${u.unitStr}</option>`;
-                    });
-                } else {
-                    unitSel.innerHTML = '<option value="" disabled>無符合資料</option>';
-                }
-            } else {
-                unitSel.disabled = true;
-                unitSel.innerHTML = '<option value="" disabled selected>需先選定上述條件</option>';
-            }
+        function initStageSelect() {
+            const stages = [...new Set(allMetadata.map(item => item.stage))]; // 取得唯一值
+            populateSelect('sel-stage', stages);
         }
 
-        // 核心功能：生成重點整理
-        async function fetchAndGenerate() {
-            const unitStr = document.getElementById("sel-unit").value;
-            if(!unitStr) return alert("請選擇單元");
+        function updateNextLevel(level, value) {
+            currentFilters[level] = value; // 紀錄當前選擇
             
-            currentUnitName = unitStr;
-            updateNavLinks(unitStr);
+            // 根據層級決定下一步
+            if (level === 'stage') {
+                // 選了階段 -> 更新版本 (Publisher)
+                // 邏輯：在符合 Stage 的資料中，找出有哪些 Publisher
+                const filtered = allMetadata.filter(d => d.stage === value);
+                const publishers = [...new Set(filtered.map(d => d.publisher))];
+                populateSelect('sel-publisher', publishers);
+                resetSelects(['sel-grade', 'sel-semester', 'sel-unit']);
+            } 
+            else if (level === 'publisher') {
+                // 選了版本 -> 更新年級 (Grade)
+                // 邏輯：符合 Stage + Publisher
+                const filtered = allMetadata.filter(d => d.stage === currentFilters.stage && d.publisher === value);
+                
+                // 特別處理：試算表可能是數字 3，前端顯示 "3年級"
+                // 這裡直接顯示資料庫的原始值，讓使用者選，避免轉換錯誤
+                const grades = [...new Set(filtered.map(d => d.grade))].sort(); 
+                populateSelect('sel-grade', grades, true); // true 表示添加 "年級" 後綴供顯示，但值保持原始
+                resetSelects(['sel-semester', 'sel-unit']);
+            }
+            else if (level === 'grade') {
+                // 選了年級 -> 更新學期
+                // 邏輯：符合 Stage + Publisher + Grade
+                // 注意：這裡要比對原始值 (如 "3" 對 "3")
+                const filtered = allMetadata.filter(d => 
+                    d.stage === currentFilters.stage && 
+                    d.publisher === currentFilters.publisher && 
+                    d.grade == value // 使用 loose equality 避免 string/number 差異
+                );
+                const semesters = [...new Set(filtered.map(d => d.semester))];
+                populateSelect('sel-semester', semesters, false, true); // true for semester suffix
+                resetSelects(['sel-unit']);
+            }
+            else if (level === 'semester') {
+                // 選了學期 -> 更新單元
+                const filtered = allMetadata.filter(d => 
+                    d.stage === currentFilters.stage && 
+                    d.publisher === currentFilters.publisher && 
+                    d.grade == currentFilters.grade &&
+                    d.semester == value
+                );
+                
+                // 組合單元名稱：課別(Col G) + 課名(Col H)
+                // 假設 GAS 傳回的資料包含 unit (Col H) 
+                // 若 GAS 沒有回傳 Col G，則只顯示 Col H
+                // 這裡假設 unit 欄位就是 Col H，如果需要 Col G，必須確認 GAS 有回傳
+                const unitSelect = document.getElementById('sel-unit');
+                unitSelect.innerHTML = '<option value="" disabled selected>請選擇單元...</option>';
+                
+                filtered.forEach(item => {
+                    // 嘗試組合，如果沒有 unitType 則只顯示 unit
+                    // 為了匹配試算表每一列就是一個單元，我們直接列出所有符合的 row
+                    const displayText = item.unit; 
+                    const option = document.createElement('option');
+                    option.value = item.unit; // 傳送給後端的 value
+                    option.text = displayText;
+                    unitSelect.add(option);
+                });
+                unitSelect.disabled = false;
+            }
+            
+            checkGenerateButton();
+        }
+
+        // 通用：填充下拉選單
+        function populateSelect(id, options, isGrade = false, isSemester = false) {
+            const select = document.getElementById(id);
+            select.innerHTML = '<option value="" disabled selected>請選擇...</option>';
+            
+            options.forEach(opt => {
+                const el = document.createElement('option');
+                el.value = opt;
+                // 視覺優化：如果是 3 顯示 3年級，如果是 上 顯示 上學期
+                if (isGrade) el.text = opt + (String(opt).includes('年級') ? '' : '年級');
+                else if (isSemester) el.text = opt + (String(opt).includes('學期') ? '' : '學期');
+                else el.text = opt;
+                
+                select.add(el);
+            });
+            select.disabled = false;
+        }
+
+        // 通用：重置下拉選單
+        function resetSelects(ids) {
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                el.innerHTML = '<option value="" disabled selected>請先選擇上層...</option>';
+                el.disabled = true;
+            });
+            document.getElementById('btn-generate').disabled = true;
+        }
+
+        function checkGenerateButton() {
+            const unit = document.getElementById('sel-unit').value;
+            document.getElementById('btn-generate').disabled = !unit;
+        }
+
+        // --- 核心功能：生成重點整理 ---
+        async function fetchAndGenerate() {
+            const unitName = document.getElementById("sel-unit").value;
+            
+            updateNavLinks(unitName);
 
             // UI 切換
             document.getElementById("selection-panel").classList.add("hidden");
             document.getElementById("loading-view").classList.remove("hidden");
             document.getElementById("loading-view").classList.add("flex");
 
-            // 準備參數
+            // 準備參數 (直接使用 currentFilters)
             const filters = {
-                stage: document.getElementById("sel-stage").value,
-                publisher: document.getElementById("sel-publisher").value,
-                grade: document.getElementById("sel-grade").value,
-                semester: document.getElementById("sel-semester").value,
-                unit: unitStr
+                stage: currentFilters.stage,
+                publisher: currentFilters.publisher,
+                grade: currentFilters.grade,
+                semester: currentFilters.semester,
+                unit: unitName
             };
 
             try {
@@ -394,7 +455,7 @@
                     body: JSON.stringify({
                         action: 'get_content_and_generate',
                         email: currentUser.email,
-                        filters: filters
+                        filters: filters // 傳送完整的篩選條件，確保後端能精準找到那一行
                     })
                 });
                 const json = await res.json();
@@ -407,24 +468,11 @@
 
             } catch(e) {
                 console.error(e);
-                // 模擬資料展示 (若後端未完成)
-                setTimeout(() => {
-                    const mockData = {
-                        unitName: unitStr,
-                        // 來自「課文」欄位的分析
-                        summary_html: "<p>本單元探討植物的構造與功能。<strong>根</strong>主要負責固定植株與吸收水分；<strong>莖</strong>負責輸送水分與養分，並支撐植物體；<strong>葉</strong>則是進行光合作用的主要場所。</p>",
-                        // 來自「科學詞彙」欄位
-                        vocab_str: "根,莖,葉,光合作用,蒸散作用",
-                        // AI 生成的 Mermaid (基於課文結構)
-                        mermaid: "graph TD\nA[植物構造] --> B(根)\nA --> C(莖)\nA --> D(葉)\nB --> B1(固定)\nB --> B2(吸收)\nC --> C1(輸送)\nC --> C2(支撐)\nD --> D1(光合作用)",
-                        // AI 模擬教師視角分析的迷思
-                        myths: [
-                            {title: "只有葉子會進行光合作用？", desc: "這是常見迷思。事實上，綠色的莖或未成熟的果實若含有葉綠體，也能進行光合作用，只是葉子是主要場所。"},
-                            {title: "植物晚上只進行呼吸作用？", desc: "植物白天晚上都在進行呼吸作用，只是白天光合作用強烈，釋出的氧氣掩蓋了呼吸作用產生的二氧化碳。"}
-                        ]
-                    };
-                    renderContent(mockData);
-                }, 2000);
+                alert("生成失敗，請稍後再試。錯誤：" + e.message);
+                // 發生錯誤時切換回選單
+                document.getElementById("selection-panel").classList.remove("hidden");
+                document.getElementById("loading-view").classList.add("hidden");
+                document.getElementById("loading-view").classList.remove("flex");
             }
         }
 
@@ -434,23 +482,29 @@
             document.getElementById("content-view").classList.remove("hidden");
 
             // 1. 標題
-            document.getElementById("result-title").innerText = data.unitName;
-            document.getElementById("result-tag").innerText = `${document.getElementById("sel-stage").value} • ${document.getElementById("sel-grade").value} • ${document.getElementById("sel-publisher").value}`;
+            document.getElementById("result-title").innerText = data.raw_content.unitName;
+            document.getElementById("result-tag").innerText = `${currentFilters.stage} • ${currentFilters.grade}年級 • ${currentFilters.publisher}`;
 
             // 2. 科學詞彙處理 (Col S)
-            const vocabList = data.vocab_str.split(/[,、]/).map(v=>v.trim()).filter(v=>v);
+            const vocabStr = data.raw_content.vocab_str || "";
+            const vocabList = vocabStr.split(/[,、]/).map(v=>v.trim()).filter(v=>v);
             const vocabContainer = document.getElementById("keywords-list");
             vocabContainer.innerHTML = "";
-            vocabList.forEach(v => {
-                vocabContainer.innerHTML += `
-                    <div class="bg-white p-2 px-3 rounded-lg border border-slate-100 shadow-sm flex items-center justify-between">
-                        <span class="font-bold text-slate-700">${v}</span>
-                        <i class="fa-solid fa-tag text-blue-200 text-xs"></i>
-                    </div>`;
-            });
+            
+            if(vocabList.length === 0) {
+                 vocabContainer.innerHTML = "<div class='text-slate-400 text-sm'>本單元無特定科學詞彙</div>";
+            } else {
+                vocabList.forEach(v => {
+                    vocabContainer.innerHTML += `
+                        <div class="bg-white p-2 px-3 rounded-lg border border-slate-100 shadow-sm flex items-center justify-between">
+                            <span class="font-bold text-slate-700">${v}</span>
+                            <i class="fa-solid fa-tag text-blue-200 text-xs"></i>
+                        </div>`;
+                });
+            }
 
             // 3. 摘要與螢光筆 (Highlighting)
-            let rawSummary = data.summary_html;
+            let rawSummary = data.summary.summary_html;
             // 將文中的關鍵詞彙加上螢光筆樣式
             vocabList.sort((a,b)=>b.length-a.length).forEach(v => {
                 const regex = new RegExp(v, 'g');
@@ -458,24 +512,34 @@
             });
             document.getElementById("summary-text").innerHTML = rawSummary;
 
-            // 4. Mermaid 圖表 (基於課文)
+            // 4. Mermaid 圖表
             const chartDiv = document.getElementById("mermaid-chart");
-            chartDiv.innerHTML = data.mermaid;
-            chartDiv.removeAttribute("data-processed");
-            mermaid.init(undefined, chartDiv);
+            if (data.mermaid) {
+                 // 清理 Mermaid code (去除 markdown 標記)
+                let cleanMermaid = data.mermaid.replace(/```mermaid/g, '').replace(/```/g, '').trim();
+                chartDiv.innerHTML = cleanMermaid;
+                chartDiv.removeAttribute("data-processed");
+                mermaid.init(undefined, chartDiv);
+            } else {
+                chartDiv.innerHTML = "生成圖表失敗";
+            }
 
-            // 5. 迷思概念 (教師視角)
+            // 5. 迷思概念
             const mythContainer = document.getElementById("myth-list");
             mythContainer.innerHTML = "";
-            data.myths.forEach(m => {
-                mythContainer.innerHTML += `
-                    <div class="bg-white p-4 rounded-xl border-l-4 border-red-400 shadow-sm">
-                        <div class="font-bold text-red-700 mb-1 text-sm flex items-center gap-2">
-                            <i class="fa-solid fa-circle-question"></i> ${m.title}
-                        </div>
-                        <div class="text-xs text-slate-600 leading-relaxed">${m.desc}</div>
-                    </div>`;
-            });
+            if (data.myths && data.myths.length > 0) {
+                data.myths.forEach(m => {
+                    mythContainer.innerHTML += `
+                        <div class="bg-white p-4 rounded-xl border-l-4 border-red-400 shadow-sm">
+                            <div class="font-bold text-red-700 mb-1 text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-circle-question"></i> ${m.title}
+                            </div>
+                            <div class="text-xs text-slate-600 leading-relaxed">${m.desc}</div>
+                        </div>`;
+                });
+            } else {
+                mythContainer.innerHTML = "<div class='text-slate-400'>無常見迷思資料</div>";
+            }
         }
 
         function updateNavLinks(unit) {
@@ -506,21 +570,31 @@
 
             // 呼叫 GAS (Action: chat_with_ai)
             try {
-                // 模擬回覆
-                setTimeout(() => {
-                    chatBody.innerHTML += `<div class="self-start bg-white border border-slate-100 p-3 rounded-lg rounded-tl-none shadow-sm max-w-[85%]">
-                        <span class="font-bold text-blue-600 block mb-1 text-xs">小科 AI</span>
-                        針對「${currentUnitName}」，這是一個很好的問題！根據課文分析...
-                    </div>`;
-                    chatBody.scrollTop = chatBody.scrollHeight;
-                }, 1000);
+                const res = await fetch(GAS_API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'chat_with_ai',
+                        message: msg,
+                        currentUnit: document.getElementById("sel-unit").value || "未選擇單元"
+                    })
+                });
+                const json = await res.json();
+                
+                // 顯示 AI 回覆
+                chatBody.innerHTML += `<div class="self-start bg-white border border-slate-100 p-3 rounded-lg rounded-tl-none shadow-sm max-w-[85%]">
+                    <span class="font-bold text-blue-600 block mb-1 text-xs">小科 AI</span>
+                    ${json.data}
+                </div>`;
+                chatBody.scrollTop = chatBody.scrollHeight;
+
             } catch(e) {
                 console.error(e);
             }
         }
         
-        // 多語系切換 (保留框架)
-        function changeLanguage() { /* ...同原版... */ }
+        function changeLanguage() {
+            // 保留語言切換功能框架
+        }
     </script>
 </body>
 </html>
