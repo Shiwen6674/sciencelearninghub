@@ -763,15 +763,18 @@
                     let heightLeft = imgHeight;
                     let position = 0;
 
-                    doc.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-                    heightLeft -= pdfHeight;
+                   // 第一頁
+doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, imgHeight);
+let heightLeft = imgHeight - pdfHeight;
 
-                    while (heightLeft > 0) {
-                        position = heightLeft - imgHeight;
-                        doc.addPage();
-                        doc.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-                        heightLeft -= pdfHeight;
-                    }
+// ✅ 改成這種寫法
+while (heightLeft > 0) {
+  doc.addPage();
+  const pagePosition = - (imgHeight - heightLeft); // 注意這裡的負號
+  doc.addImage(imgData, 'PNG', 0, pagePosition, pdfWidth, imgHeight);
+  heightLeft -= pdfHeight;
+}
+
 
                     doc.save(`wordcloud_report_${Date.now()}.pdf`);
                     this.showToast("PDF 下載成功", "success");
