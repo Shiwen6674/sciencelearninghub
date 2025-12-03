@@ -329,7 +329,12 @@ const chatBody = document.getElementById("chat-messages");
 const uType = data.raw_content.unitType;
             const lessonStr = (uType && !isNaN(uType)) ? `第${uType}課` : (uType || "");
             
-            document.getElementById("result-tag").innerText = `${filters.publisher} • ${filters.grade}年級 • ${lessonStr}`;
+            // 2. 處理學期 (例如: "上" -> "上學期")
+            const semRaw = filters.semester;
+            const semStr = (semRaw === "上" ? "上學期" : (semRaw === "下" ? "下學期" : semRaw));
+            
+            // 3. 組合字串：南一 • 3年級上學期 • 第1課
+            document.getElementById("result-tag").innerText = `${filters.publisher} • ${filters.grade}年級${semStr} • ${lessonStr}`;
             document.getElementById("summary-text").innerHTML = data.summary.summary_html;
 
             const vocabContainer = document.getElementById("keywords-list");
