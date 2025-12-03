@@ -106,9 +106,20 @@
             </div>
 
             <div class="mt-6 flex justify-end">
-                <button id="btn-generate" onclick="startGeneration()" disabled class="bg-blue-600 text-white px-8 py-2.5 rounded-xl font-bold shadow-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-2">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i> AI 分析並生成
-                </button>
+                <button id="btn-generate" onclick="startGeneration()" disabled
+    class="bg-blue-600 text-white px-8 py-2.5 rounded-xl font-bold shadow-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-2">
+    <!-- 一般狀態 -->
+    <span id="btn-generate-label" class="inline-flex items-center gap-2">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+        <span>AI 分析並生成</span>
+    </span>
+    <!-- 分析中狀態 -->
+    <span id="btn-generate-loading" class="hidden inline-flex items-center gap-2">
+        <i class="fa-solid fa-circle-notch fa-spin"></i>
+        <span>AI 正在分析...</span>
+    </span>
+</button>
+
             </div>
         </div>
 
@@ -166,7 +177,8 @@
     </div>
 
     <script>
-        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxBWrZCp-xLckDGZnhe64K0IUa_8CJZRzqZbrgL8lQdNn3S1WgaEzbdOtpo4mGwN6_H/exec";
+        const GAS_API_URL = "https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLiuRdLYmIfRDoQ9ekvSOIX2AeGCA4RKkcfJe7eTaNQlPwqfdAUbsSYptLZ4R-w6pCwrOJBChE9VCxvmsQ51MRUBqljog2bjgzPGpF4e1AxIZebXNvMHNIl1NcwM8leQ8jruiSZu5Gzilsl_-AMrkEhKXrtXbhnzIDnZtljuHYmq99Csls_optKh_1ogZCo7BGsOokCMCXUhURrFbnZ8RfcVEpihEbhIGfdWzkdvpO4WkMcOWP5JfW3Ppmtpe_m7NVqZaZCgILaL4ID5x2sVTz4HFh694w&lib=MbjRey2FrSAgLtRg7lJ9bm6qTEKzPf8Dl
+";
         
         let allData = [];
         let filters = {};
@@ -292,28 +304,54 @@
             el.disabled = false;
         }
 
-        async function startGeneration() {
-            document.getElementById("selection-panel").classList.add("hidden");
-            document.getElementById("loading-view").classList.remove("hidden");
-            document.getElementById("loading-view").classList.add("flex");
+async function startGeneration() {
+    const btn = document.getElementById("btn-generate");
+    const btnLabel = document.getElementById("btn-generate-label");
+    const btnLoading = document.getElementById("btn-generate-loading");
 
-            try {
-                const res = await fetch(GAS_API_URL, {
-                    method: "POST",
-                    body: JSON.stringify({ action: "get_content_and_generate", filters: filters })
-                });
-                const json = await res.json();
-                
-                if(json.status === "success") {
-                    renderResult(json.data);
-                } else {
-                    throw new Error(json.message);
-                }
-            } catch(e) {
-                alert("生成失敗: " + e.message);
-                location.reload();
-            }
+    // 如果按鈕目前是 disabled，代表還沒選完條件
+    if (btn.disabled) {
+        alert("請先選擇完整的學習階段、版本、年級、學期與單元名稱。");
+        return;
+    }
+
+    // 按鈕切換為「分析中」狀態
+    btn.disabled = true;
+    btnLabel.classList.add("hidden");
+    btnLoading.classList.remove("hidden");
+
+    // 顯示中間的大 loading 畫面
+    document.getElementById("selection-panel").classList.add("hidden");
+    document.getElementById("loading-view").classList.remove("hidden");
+    document.getElementById("loading-view").classList.add("flex");
+
+    try {
+        const res = await fetch(GAS_API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "get_content_and_generate", filters: filters })
+        });
+        const json = await res.json();
+
+        if (json.status === "success") {
+            renderResult(json.data);
+        } else {
+            throw new Error(json.message || "後端未回傳 success 狀態");
         }
+    } catch (e) {
+        alert("生成失敗: " + e.message);
+
+        // 回復到原本畫面，讓你可以重新嘗試或改選單元
+        document.getElementById("selection-panel").classList.remove("hidden");
+        document.getElementById("loading-view").classList.add("hidden");
+        document.getElementById("loading-view").classList.remove("flex");
+
+        btnLabel.classList.remove("hidden");
+        btnLoading.classList.add("hidden");
+        btn.disabled = false;
+    }
+}
+
 
         function renderResult(data) {
             document.getElementById("loading-view").classList.add("hidden");
@@ -380,10 +418,15 @@
             chatBody.scrollTop = chatBody.scrollHeight;
 
             try {
-                const res = await fetch(GAS_API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'chat_with_ai', message: msg })
-                });
+const res = await fetch(GAS_API_URL, {
+    method: 'POST',
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+        action: 'chat_with_ai',
+        message: msg,
+        currentUnit: document.getElementById("result-title").innerText || ""
+    })
+});
                 const json = await res.json();
                 
                 chatBody.innerHTML += `<div class="self-start bg-white border border-slate-100 p-3 rounded-lg rounded-tl-none shadow-sm max-w-[85%] text-sm">
