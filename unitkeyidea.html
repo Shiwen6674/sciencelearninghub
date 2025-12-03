@@ -56,20 +56,30 @@
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col">
 
-    <nav class="glass-panel sticky top-0 z-50 px-6 py-4 flex justify-between items-center no-print">
+<nav class="glass-panel sticky top-0 z-50 px-6 py-4 flex justify-between items-center no-print">
         <div class="flex items-center gap-4">
             <a href="student.html" class="group flex items-center gap-2 text-slate-500 hover:text-blue-600 transition decoration-0">
                 <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow group-hover:shadow-md transition">
                     <i class="fa-solid fa-arrow-left"></i>
                 </div>
-                <span class="font-bold" data-i18n="back_home">返回學習中心</span>
+                <span class="font-bold hidden md:block" data-i18n="back_home">返回學習中心</span>
             </a>
+
+            <a href="sciencebilingual.html" class="group flex items-center gap-2 text-slate-500 hover:text-purple-600 transition decoration-0">
+                <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow group-hover:shadow-md transition">
+                    <i class="fa-solid fa-book-open-reader"></i>
+                </div>
+                <span class="font-bold hidden md:block" data-i18n="btn_bilingual">科學雙語閱讀</span>
+            </a>
+
             <div class="h-8 w-px bg-slate-300 mx-2"></div>
+
             <div>
                 <h1 class="font-bold text-lg" data-i18n="page_title">單元重點整理</h1>
                 <p class="text-xs text-slate-500" data-i18n="page_subtitle">AI 智能筆記生成</p>
             </div>
         </div>
+
         <div class="flex items-center gap-4">
             <select id="language-selector" onchange="changeLanguage()" class="bg-white/50 border text-xs rounded-lg p-1 cursor-pointer outline-none focus:ring-1 focus:ring-blue-300">
                 <option value="zh-TW">繁體中文</option>
@@ -180,11 +190,48 @@
         let currentResultData = null; // 儲存生成的資料供下載用
 
         // 多語系字典
+       // 多語系字典 (已更新 settings_title 為「請挑選你要的學習單元」)
         const i18n = {
-            "zh-TW": { back_home:"返回學習中心", page_title:"單元重點整理", page_subtitle:"AI 智能筆記生成", settings_title:"請挑選你要的學習單元", label_stage:"學習階段", label_publisher:"版本", label_grade:"年級", label_semester:"學期", label_unit:"單元名稱", btn_generate:"AI 分析並生成", btn_txt:"下載 TXT", btn_pdf:"下載 PDF", title_summary:"核心概念摘要", title_vocab:"科學詞彙與定義", title_map:"知識架構圖", title_myth:"常見迷思診斷" },
-            "en": { back_home:"Back Home", page_title:"Unit Summary", page_subtitle:"AI Generator", settings_title:"Settings", label_stage:"Level", label_publisher:"Publisher", label_grade:"Grade", label_semester:"Semester", label_unit:"Unit", btn_generate:"Generate", btn_txt:"Download TXT", btn_pdf:"Download PDF", title_summary:"Core Concepts", title_vocab:"Vocabulary", title_map:"Mind Map", title_myth:"Common Myths" },
-            "ja": { back_home:"ホームに戻る", page_title:"単元のまとめ", page_subtitle:"AIノート生成", settings_title:"学習設定", label_stage:"段階", label_publisher:"出版社", label_grade:"学年", label_semester:"学期", label_unit:"単元", btn_generate:"生成する", btn_txt:"TXTを保存", btn_pdf:"PDFを保存", title_summary:"核心概念", title_vocab:"科学用語", title_map:"知識マップ", title_myth:"よくある誤解" },
-            "zh-CN": { back_home:"返回学习中心", page_title:"单元重点整理", page_subtitle:"AI 智能笔记生成", settings_title:"设定学习参数", label_stage:"学习阶段", label_publisher:"版本", label_grade:"年级", label_semester:"学期", label_unit:"单元名称", btn_generate:"AI 分析并生成", btn_txt:"下载 TXT", btn_pdf:"下载 PDF", title_summary:"核心概念摘要", title_vocab:"科学词汇与定义", title_map:"知识架构图", title_myth:"常见迷思诊断" }
+            "zh-TW": { 
+                back_home:"返回學習中心", 
+                btn_bilingual:"科學雙語閱讀", 
+                page_title:"單元重點整理", page_subtitle:"AI 智能筆記生成", 
+                settings_title:"請挑選你要的學習單元",  // ★ 已修改
+                label_stage:"學習階段", label_publisher:"版本", 
+                label_grade:"年級", label_semester:"學期", label_unit:"單元名稱", 
+                btn_generate:"AI 分析並生成", btn_txt:"下載 TXT", btn_pdf:"下載 PDF", 
+                title_summary:"核心概念摘要", title_vocab:"科學詞彙與定義", title_map:"知識架構圖", title_myth:"常見迷思診斷" 
+            },
+            "en": { 
+                back_home:"Back Home", 
+                btn_bilingual:"Bilingual Reading", 
+                page_title:"Unit Summary", page_subtitle:"AI Generator", 
+                settings_title:"Select Learning Unit",  // ★ 已修改 (對應翻譯)
+                label_stage:"Level", label_publisher:"Publisher", 
+                label_grade:"Grade", label_semester:"Semester", label_unit:"Unit", 
+                btn_generate:"Generate", btn_txt:"Download TXT", btn_pdf:"Download PDF", 
+                title_summary:"Core Concepts", title_vocab:"Vocabulary", title_map:"Mind Map", title_myth:"Common Myths" 
+            },
+            "ja": { 
+                back_home:"ホームに戻る", 
+                btn_bilingual:"二言語読解", 
+                page_title:"単元のまとめ", page_subtitle:"AIノート生成", 
+                settings_title:"学習単元を選択",  // ★ 已修改 (對應翻譯)
+                label_stage:"段階", label_publisher:"出版社", 
+                label_grade:"学年", label_semester:"学期", label_unit:"単元", 
+                btn_generate:"生成する", btn_txt:"TXTを保存", btn_pdf:"PDFを保存", 
+                title_summary:"核心概念", title_vocab:"科学用語", title_map:"知識マップ", title_myth:"よくある誤解" 
+            },
+            "zh-CN": { 
+                back_home:"返回学习中心", 
+                btn_bilingual:"科学双语阅读", 
+                page_title:"单元重点整理", page_subtitle:"AI 智能笔记生成", 
+                settings_title:"请挑选你要的学习单元",  // ★ 已修改 (對應翻譯)
+                label_stage:"学习阶段", label_publisher:"版本", 
+                label_grade:"年级", label_semester:"学期", label_unit:"单元名称", 
+                btn_generate:"AI 分析并生成", btn_txt:"下载 TXT", btn_pdf:"下载 PDF", 
+                title_summary:"核心概念摘要", title_vocab:"科学词汇与定义", title_map:"知识架构图", title_myth:"常见迷思诊断" 
+            }
         };
 
         window.onload = async () => {
