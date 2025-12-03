@@ -19,6 +19,41 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .chat-window { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform-origin: bottom right; }
         .chat-window.closed { transform: scale(0); opacity: 0; pointer-events: none; }
+
+        /* --- 核心摘要標題美化 (Textbook Style) --- */
+        #summary-text h3 {
+            font-size: 1.35rem;       /* 字體加大 */
+            font-weight: 800;         /* 極粗體 */
+            color: #1e3a8a;           /* 深藍色 */
+            margin-top: 1.5rem;       /* 上方留白 */
+            margin-bottom: 0.75rem;   /* 下方留白 */
+            padding: 0.5rem 0.75rem;          /* 內距 */
+            border-left: 5px solid #3b82f6;   /* 左側亮藍色粗線條 */
+            background: linear-gradient(90deg, #eff6ff 0%, rgba(255,255,255,0) 100%); /* 淺藍色漸層背景 */
+            border-radius: 0 8px 8px 0;       /* 右側圓角 */
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.5);
+        }
+
+        /* 優化內文列表 */
+        #summary-text ul {
+            list-style-type: none; 
+            padding-left: 0.5rem;
+        }
+        #summary-text li {
+            position: relative;
+            padding-left: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: #374151; 
+        }
+        #summary-text li::before {
+            content: "•";
+            color: #3b82f6; 
+            font-weight: bold;
+            font-size: 1.2em;
+            position: absolute;
+            left: 0.25rem;
+            top: -2px;
+        }
     </style>
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col">
@@ -28,7 +63,7 @@
             <a href="student.html" class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow text-slate-500 hover:text-blue-600"><i class="fa-solid fa-arrow-left"></i></a>
             <div>
                 <h1 class="font-bold text-lg">單元重點實驗室</h1>
-                <p class="text-xs text-slate-500">AI 智能筆記生成 (Fix v2.0)</p>
+                <p class="text-xs text-slate-500">AI 智能筆記生成 (Final Fixed)</p>
             </div>
         </div>
         <div class="flex items-center gap-3">
@@ -90,16 +125,19 @@
                     <h3 class="font-bold text-blue-800 mb-4"><i class="fa-solid fa-star text-yellow-400"></i> 核心概念摘要</h3>
                     <div id="summary-text" class="prose max-w-none text-slate-600 leading-relaxed"></div>
                 </div>
+                
                 <div class="glass-panel p-6 rounded-2xl bg-gradient-to-br from-white to-blue-50">
-                    <h3 class="font-bold text-slate-700 mb-4">科學詞彙</h3>
-                    <div id="keywords-list" class="space-y-2 max-h-[400px] overflow-y-auto"></div>
+                    <h3 class="font-bold text-slate-700 mb-4">科學詞彙與定義</h3>
+                    <div id="keywords-list" class="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar"></div>
                 </div>
+                
                 <div class="md:col-span-3 glass-panel p-6 rounded-2xl bg-white">
                     <h3 class="font-bold text-purple-700 mb-4"><i class="fa-solid fa-project-diagram"></i> 知識架構圖</h3>
                     <div class="flex justify-center bg-slate-50 rounded-xl p-4 border border-slate-100 overflow-x-auto">
                         <div id="mermaid-chart"></div>
                     </div>
                 </div>
+                
                 <div class="md:col-span-3 glass-panel p-6 rounded-2xl bg-red-50/50 border border-red-100">
                     <h3 class="font-bold text-red-600 mb-4"><i class="fa-solid fa-circle-exclamation"></i> 常見迷思診斷</h3>
                     <div id="myth-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
@@ -124,7 +162,7 @@
     </div>
 
     <script>
-        // ★ 這是您提供的最新 GAS URL
+        // ★ 您的 GAS URL (請確保是最新部署版本)
         const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxBWrZCp-xLckDGZnhe64K0IUa_8CJZRzqZbrgL8lQdNn3S1WgaEzbdOtpo4mGwN6_H/exec";
         
         let allData = [];
@@ -156,29 +194,25 @@
 
         // --- 全頁連動邏輯 (Cascading) ---
         function initSelectors() {
-            // 第一層：學習階段
             const stages = [...new Set(allData.map(d => d.stage))];
             populate("sel-stage", stages);
             
-            // 綁定事件
             document.getElementById("sel-stage").onchange = (e) => updateLevel(1, e.target.value);
             document.getElementById("sel-publisher").onchange = (e) => updateLevel(2, e.target.value);
             document.getElementById("sel-grade").onchange = (e) => updateLevel(3, e.target.value);
             document.getElementById("sel-semester").onchange = (e) => updateLevel(4, e.target.value);
             document.getElementById("sel-unit").onchange = (e) => {
-                filters.unitName = e.target.value; // 這會是課名 (Col H)
+                filters.unitName = e.target.value; 
                 document.getElementById("btn-generate").disabled = false;
             };
         }
 
-function updateLevel(level, value) {
-            // 1. 更新篩選條件
+        function updateLevel(level, value) {
             if (level === 1) filters = { stage: value }; 
             if (level === 2) { filters.publisher = value; delete filters.grade; delete filters.semester; delete filters.unitName; }
             if (level === 3) { filters.grade = value; delete filters.semester; delete filters.unitName; }
             if (level === 4) { filters.semester = value; delete filters.unitName; }
 
-            // 2. 介面重置
             const ids = ["sel-publisher", "sel-grade", "sel-semester", "sel-unit"];
             for (let i = level; i < 4; i++) {
                 const el = document.getElementById(ids[i]);
@@ -187,7 +221,7 @@ function updateLevel(level, value) {
             }
             document.getElementById("btn-generate").disabled = true;
 
-            // 3. 篩選資料 (寬容比對)
+            // 寬鬆比對 (字串 vs 數字)
             const relevantData = allData.filter(d => {
                 const safeMatch = (dataVal, filterVal) => {
                     if (!filterVal) return true;
@@ -199,49 +233,35 @@ function updateLevel(level, value) {
                        safeMatch(d.semester, filters.semester);
             });
 
-            // 4. 填充下層選單
             if (level === 1) {
-                const opts = [...new Set(relevantData.map(d => d.publisher))];
-                populate("sel-publisher", opts);
+                populate("sel-publisher", [...new Set(relevantData.map(d => d.publisher))]);
             }
             if (level === 2) {
                 const opts = [...new Set(relevantData.map(d => d.grade))].sort((a, b) => a - b);
                 populate("sel-grade", opts, "grade");
             }
             if (level === 3) {
-                const opts = [...new Set(relevantData.map(d => d.semester))];
-                populate("sel-semester", opts, "semester");
+                populate("sel-semester", [...new Set(relevantData.map(d => d.semester))], "semester");
             }
-            
-            // ★★★ 單元名稱處理 (G欄+H欄) ★★★
             if (level === 4) {
                 const unitSelect = document.getElementById("sel-unit");
                 unitSelect.innerHTML = '<option value="" disabled selected>請選擇單元...</option>';
                 
                 if (relevantData.length > 0) {
-                    // 智慧讀取函式
                     const getValue = (item, possibleKeys) => {
                         const keys = Object.keys(item);
-                        for (let key of keys) {
-                            if (possibleKeys.includes(key.trim())) return item[key];
-                        }
+                        for (let key of keys) if (possibleKeys.includes(key.trim())) return item[key];
                         return "";
                     };
 
                     relevantData.forEach(d => {
                         const opt = document.createElement("option");
-                        
-                        // 抓取 G欄(課別) 與 H欄(課名)
                         const unitType = getValue(d, ["課別", "unitType", "課次"]);
-                        const unitName = getValue(d, ["課名", "unitName", "課文", "單元名稱"]); // 確保能抓到 H 欄
-
-                        opt.value = unitName; // 傳給後端的值
-                        
-                        // 顯示文字：處理 "第1課" 這種格式
+                        const unitName = getValue(d, ["課名", "unitName", "課文", "單元名稱"]);
+                        opt.value = unitName; 
                         const typeStr = String(unitType).trim();
                         const prefix = (typeStr && !isNaN(typeStr)) ? `第${typeStr}課 ` : `${typeStr} `;
                         opt.text = `${prefix}${unitName}`;
-                        
                         unitSelect.add(opt);
                     });
                     unitSelect.disabled = false;
@@ -256,13 +276,10 @@ function updateLevel(level, value) {
             el.innerHTML = '<option value="" disabled selected>請選擇...</option>';
             options.forEach(o => {
                 const opt = document.createElement("option");
-                opt.value = o; // Value 保持原始資料 (例如 "3", "上")
-                
-                // Text 進行友善轉換
+                opt.value = o; 
                 if(type === "grade") opt.text = o + "年級";
                 else if(type === "semester") opt.text = (o === "上" ? "上學期" : (o === "下" ? "下學期" : o));
                 else opt.text = o;
-                
                 el.add(opt);
             });
             el.disabled = false;
@@ -274,13 +291,11 @@ function updateLevel(level, value) {
             document.getElementById("loading-view").classList.add("flex");
 
             try {
-                // 發送請求
                 const res = await fetch(GAS_API_URL, {
                     method: "POST",
                     body: JSON.stringify({ action: "get_content_and_generate", filters: filters })
                 });
                 const json = await res.json();
-                
                 if(json.status === "success") {
                     renderResult(json.data);
                 } else {
@@ -297,36 +312,50 @@ function updateLevel(level, value) {
             document.getElementById("loading-view").classList.remove("flex");
             document.getElementById("content-view").classList.remove("hidden");
 
-            // 標題
             document.getElementById("result-title").innerText = data.raw_content.unitName;
             document.getElementById("result-tag").innerText = `${filters.grade}年級 • ${filters.publisher}`;
 
-            // 摘要與螢光筆
-            let summary = data.summary.summary_html;
-            document.getElementById("summary-text").innerHTML = summary;
+            // 1. 摘要 (使用 AI 回傳的 HTML，樣式由 CSS 控制)
+            document.getElementById("summary-text").innerHTML = data.summary.summary_html;
 
-            // 詞彙
-            const vocab = (data.raw_content.vocab_str || "").split(/[,、]/).filter(v=>v);
-            const kwList = document.getElementById("keywords-list");
-            kwList.innerHTML = "";
-            if (vocab.length === 0) kwList.innerHTML = "<span class='text-gray-400'>無特定科學詞彙</span>";
-            else vocab.forEach(v => kwList.innerHTML += `<span class="inline-block bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm mr-2 mb-2">#${v.trim()}</span>`);
+            // 2. 詞彙與定義
+            const vocabContainer = document.getElementById("keywords-list");
+            vocabContainer.innerHTML = "";
+            
+            // 判斷是否為新版格式 (vocab_list)
+            if (data.summary.vocab_list && data.summary.vocab_list.length > 0) {
+                data.summary.vocab_list.forEach((item, index) => {
+                    vocabContainer.innerHTML += `
+                        <div class="bg-white p-3 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition">
+                            <div class="flex items-start gap-3">
+                                <span class="flex-shrink-0 bg-blue-100 text-blue-700 font-bold px-2 py-1 rounded text-sm">${index + 1}</span>
+                                <div>
+                                    <div class="font-bold text-slate-800 text-base mb-1">${item.term}</div>
+                                    <div class="text-sm text-slate-600 leading-relaxed text-justify">${item.def}</div>
+                                </div>
+                            </div>
+                        </div>`;
+                });
+            } else {
+                // 舊版相容
+                vocabContainer.innerHTML = "<div class='text-gray-400'>資料載入中...</div>";
+            }
 
-            // Mermaid
+            // 3. Mermaid
             const chartDiv = document.getElementById("mermaid-chart");
-            if (data.mermaid) {
-                chartDiv.innerHTML = data.mermaid.replace(/```mermaid/g, "").replace(/```/g, "");
+            if (data.summary.mermaid) {
+                chartDiv.innerHTML = data.summary.mermaid.replace(/```mermaid/g, "").replace(/```/g, "");
                 chartDiv.removeAttribute("data-processed");
                 mermaid.init(undefined, chartDiv);
             } else {
                 chartDiv.innerHTML = "無法生成圖表";
             }
 
-            // 迷思
+            // 4. 迷思
             const mythDiv = document.getElementById("myth-list");
             mythDiv.innerHTML = "";
-            if (data.myths) {
-                data.myths.forEach(m => {
+            if (data.summary.myths) {
+                data.summary.myths.forEach(m => {
                     mythDiv.innerHTML += `
                     <div class="bg-white p-4 rounded-xl border border-red-100 shadow-sm">
                         <div class="font-bold text-red-600 mb-1"><i class="fa-solid fa-circle-question"></i> ${m.title}</div>
@@ -362,44 +391,6 @@ function updateLevel(level, value) {
                 chatBody.scrollTop = chatBody.scrollHeight;
             } catch(e) { console.error(e); }
         }
-        /* --- 新增：核心摘要標題美化 (Textbook Style) --- */
-#summary-text h3 {
-    font-size: 1.35rem;       /* 字體加大 (約 22px) */
-    font-weight: 800;         /* 極粗體 */
-    color: #1e3a8a;           /* 深藍色 (blue-900) */
-    margin-top: 1.5rem;       /* 上方留白，區隔段落 */
-    margin-bottom: 0.75rem;   /* 下方留白 */
-    
-    /* 教科書風格裝飾 */
-    padding: 0.5rem 0.75rem;          /* 內距 */
-    border-left: 5px solid #3b82f6;   /* 左側亮藍色粗線條 */
-    background: linear-gradient(90deg, #eff6ff 0%, rgba(255,255,255,0) 100%); /* 淺藍色漸層背景 */
-    border-radius: 0 8px 8px 0;       /* 右側圓角 */
-    
-    /* 讓標題與文字有一點陰影，增加立體感 */
-    text-shadow: 1px 1px 0px rgba(255,255,255,0.5);
-}
-
-/* 優化內文列表，讓閱讀更舒適 */
-#summary-text ul {
-    list-style-type: none; /* 移除預設黑點，改用自定義 */
-    padding-left: 0.5rem;
-}
-#summary-text li {
-    position: relative;
-    padding-left: 1.5rem;
-    margin-bottom: 0.5rem;
-    color: #374151; /* 較深的灰色 */
-}
-#summary-text li::before {
-    content: "•";
-    color: #3b82f6; /* 藍色圓點 */
-    font-weight: bold;
-    font-size: 1.2em;
-    position: absolute;
-    left: 0.25rem;
-    top: -2px;
-}
     </script>
 </body>
 </html>
