@@ -3,548 +3,285 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>單元重點整理 | Science Learning Hub</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <title>單元重點實驗室</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
-
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        student: { light: '#bfdbfe', DEFAULT: '#3b82f6', dark: '#1d4ed8' },
-                    },
-                    animation: {
-                        "fade-in-up": "fadeInUp 0.5s ease-out forwards",
-                    },
-                    keyframes: {
-                        fadeInUp: {
-                            "0%": { opacity: "0", transform: "translateY(20px)" },
-                            "100%": { opacity: "1", transform: "translateY(0)" }
-                        }
-                    }
-                }
-            }
-        }
-        mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'loose' });
+        tailwind.config = { theme: { extend: { colors: { student: '#3b82f6' }, animation: { "fade-in-up": "fadeInUp 0.5s ease-out forwards" }, keyframes: { fadeInUp: { "0%": { opacity: "0", transform: "translateY(20px)" }, "100%": { opacity: "1", transform: "translateY(0)" } } } } } }
+        mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
     </script>
-
     <style>
-        body {
-            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            min-height: 100vh;
-            font-family: 'Noto Sans TC', sans-serif;
-            color: #333;
-        }
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-        @media print {
-            nav, #selection-panel, #floating-chat, .no-print { display: none !important; }
-            body { background: white; }
-            .glass-panel { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; }
-        }
-        .sci-vocab {
-            background: linear-gradient(120deg, #fef08a 0%, #fef08a 100%);
-            padding: 0 4px;
-            border-radius: 4px;
-            font-weight: 700;
-            color: #854d0e;
-            box-decoration-break: clone;
-        }
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .chat-window { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform-origin: bottom right; }
-        .chat-window.closed { transform: scale(0); opacity: 0; pointer-events: none; }
+        body { background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); font-family: sans-serif; }
+        .glass-panel { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.7); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .sci-vocab { background: #fef08a; padding: 0 4px; border-radius: 4px; font-weight: bold; color: #854d0e; }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="text-slate-800 font-sans flex flex-col">
+<body class="text-slate-800 min-h-screen flex flex-col">
 
-    <nav class="glass-panel sticky top-0 z-50 w-full border-b border-white/50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16 items-center">
-                <div class="flex items-center gap-4">
-                    <a href="student.html" class="flex items-center justify-center w-10 h-10 rounded-full bg-white text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition shadow-sm">
-                        <i class="fa-solid fa-arrow-left"></i>
-                    </a>
-                    <div class="flex flex-col">
-                        <span class="font-bold text-lg text-slate-800 tracking-tight">單元重點實驗室</span>
-                        <span class="text-xs text-slate-500">AI 智能筆記生成</span>
-                    </div>
-                </div>
-                <div class="flex items-center gap-4">
-                    <div class="flex items-center gap-2 pl-4 border-l border-slate-300">
-                        <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold shadow-md" id="user-avatar">?</div>
-                        <span class="text-sm font-semibold hidden md:block" id="user-name">Loading...</span>
-                    </div>
-                </div>
+    <nav class="glass-panel sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-4">
+            <a href="student.html" class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow text-slate-500 hover:text-blue-600"><i class="fa-solid fa-arrow-left"></i></a>
+            <div>
+                <h1 class="font-bold text-lg">單元重點實驗室</h1>
+                <p class="text-xs text-slate-500">AI 智能筆記生成 (DB 連動版)</p>
             </div>
+        </div>
+        <div class="flex items-center gap-3">
+             <div id="user-info" class="text-sm font-bold text-blue-600">訪客</div>
         </div>
     </nav>
 
-    <div class="bg-white/60 border-b border-white/50 backdrop-blur-sm">
-        <div class="max-w-7xl mx-auto px-4 py-2 flex justify-between items-center">
-            <a href="sciencebilingual.html" id="btn-bilingual" class="text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg text-sm font-bold transition flex items-center gap-2 disabled:opacity-50 disabled:pointer-events-none">
-                <i class="fas fa-book-open"></i> 科學雙語閱讀
-            </a>
-            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest hidden md:block">Current Phase: Concept Mastery</span>
-            <a href="AIevaluation.html" id="btn-evaluation" class="text-green-600 bg-green-50 hover:bg-green-100 px-3 py-1.5 rounded-lg text-sm font-bold transition flex items-center gap-2 disabled:opacity-50 disabled:pointer-events-none">
-                AI 測驗與診斷 <i class="fas fa-arrow-right"></i>
-            </a>
-        </div>
-    </div>
-
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
+    <main class="max-w-7xl mx-auto px-4 py-8 flex-1 w-full">
         
-        <div id="selection-panel" class="glass-panel rounded-2xl p-6 mb-8 transition-all duration-500">
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-filter text-blue-600"></i>
-                    <h2 class="font-bold text-lg">設定學習參數 (資料庫即時連動)</h2>
-                </div>
-                <div id="data-status" class="text-xs text-slate-400">正在連線 GAS 資料庫...</div>
+        <div id="selection-panel" class="glass-panel rounded-2xl p-6 mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-bold text-lg flex items-center gap-2"><i class="fa-solid fa-sliders"></i> 設定學習參數</h2>
+                <span id="db-status" class="text-xs font-bold text-orange-500"><i class="fa-solid fa-circle-notch fa-spin"></i> 資料庫連線中...</span>
             </div>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-                <div class="space-y-1">
-                    <label class="text-xs font-bold text-slate-500 uppercase ml-1">學習階段</label>
-                    <select id="sel-stage" class="w-full rounded-xl border-slate-200 bg-white p-2.5 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 outline-none">
-                        <option value="" disabled selected>載入中...</option>
-                    </select>
+                <div>
+                    <label class="text-xs font-bold text-slate-500 ml-1">學習階段</label>
+                    <select id="sel-stage" class="w-full p-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-blue-500"><option value="" disabled selected>載入中...</option></select>
                 </div>
-
-                <div class="space-y-1">
-                    <label class="text-xs font-bold text-slate-500 uppercase ml-1">版本</label>
-                    <select id="sel-publisher" disabled class="w-full rounded-xl border-slate-200 bg-white p-2.5 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 outline-none disabled:bg-gray-50 disabled:text-gray-400">
-                        <option value="" disabled selected>請選擇...</option>
-                    </select>
+                <div>
+                    <label class="text-xs font-bold text-slate-500 ml-1">版本</label>
+                    <select id="sel-publisher" disabled class="w-full p-2.5 rounded-xl border border-slate-200 text-sm outline-none disabled:bg-slate-50"><option value="" disabled selected>請選擇...</option></select>
                 </div>
-
-                <div class="space-y-1">
-                    <label class="text-xs font-bold text-slate-500 uppercase ml-1">年級</label>
-                    <select id="sel-grade" disabled class="w-full rounded-xl border-slate-200 bg-white p-2.5 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 outline-none disabled:bg-gray-50 disabled:text-gray-400">
-                        <option value="" disabled selected>請選擇...</option>
-                    </select>
+                <div>
+                    <label class="text-xs font-bold text-slate-500 ml-1">年級</label>
+                    <select id="sel-grade" disabled class="w-full p-2.5 rounded-xl border border-slate-200 text-sm outline-none disabled:bg-slate-50"><option value="" disabled selected>請選擇...</option></select>
                 </div>
-
-                <div class="space-y-1">
-                    <label class="text-xs font-bold text-slate-500 uppercase ml-1">學期</label>
-                    <select id="sel-semester" disabled class="w-full rounded-xl border-slate-200 bg-white p-2.5 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 outline-none disabled:bg-gray-50 disabled:text-gray-400">
-                        <option value="" disabled selected>請選擇...</option>
-                    </select>
+                <div>
+                    <label class="text-xs font-bold text-slate-500 ml-1">學期</label>
+                    <select id="sel-semester" disabled class="w-full p-2.5 rounded-xl border border-slate-200 text-sm outline-none disabled:bg-slate-50"><option value="" disabled selected>請選擇...</option></select>
                 </div>
-
-                <div class="space-y-1">
-                    <label class="text-xs font-bold text-slate-500 uppercase ml-1">單元名稱</label>
-                    <select id="sel-unit" disabled class="w-full rounded-xl border-slate-200 bg-gray-50 p-2.5 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 outline-none disabled:bg-gray-50 disabled:text-gray-400">
-                        <option value="" disabled selected>請選擇...</option>
-                    </select>
+                <div>
+                    <label class="text-xs font-bold text-slate-500 ml-1">單元名稱</label>
+                    <select id="sel-unit" disabled class="w-full p-2.5 rounded-xl border border-slate-200 text-sm outline-none disabled:bg-slate-50"><option value="" disabled selected>請選擇...</option></select>
                 </div>
             </div>
 
             <div class="mt-6 flex justify-end">
-                <button onclick="fetchAndGenerate()" id="btn-generate" disabled class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-8 rounded-xl shadow-lg shadow-blue-500/30 transition transform active:scale-95 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i>
-                    <span>AI 分析並生成重點</span>
+                <button id="btn-generate" onclick="startGeneration()" disabled class="bg-blue-600 text-white px-8 py-2.5 rounded-xl font-bold shadow-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> AI 分析並生成
                 </button>
             </div>
         </div>
 
         <div id="loading-view" class="hidden flex-col items-center justify-center py-20">
-            <div class="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
-            <h3 class="text-xl font-bold text-slate-700">AI 正在深入分析「課文」...</h3>
-            <p class="text-slate-500 mt-2 text-center">
-                <i class="fas fa-microscope mr-1"></i> 正在模擬自然科教師思維...<br>
-                <span class="text-xs text-slate-400">分析迷思概念 • 提取科學詞彙 • 建構知識圖譜</span>
-            </p>
+            <div class="loader mb-4"></div>
+            <h3 class="text-xl font-bold text-slate-700">AI 正在閱讀課文...</h3>
+            <p class="text-slate-500 mt-2">分析迷思概念 • 提取科學詞彙 • 繪製知識圖譜</p>
         </div>
 
         <div id="content-view" class="hidden animate-fade-in-up">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                <div>
-                    <span class="inline-block px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-xs font-bold tracking-wider mb-2" id="result-tag">SCIENCE</span>
-                    <h1 class="text-3xl font-black text-slate-800" id="result-title">單元標題</h1>
-                </div>
-                <div class="flex gap-2 no-print">
-                    <button onclick="window.print()" class="bg-white hover:bg-slate-50 text-slate-600 font-medium py-2 px-4 rounded-lg border border-slate-200 shadow-sm transition">
-                        <i class="fa-solid fa-print mr-1"></i> 列印 / PDF
-                    </button>
-                </div>
+            <div class="mb-6">
+                <span id="result-tag" class="text-xs font-bold bg-blue-100 text-blue-600 px-3 py-1 rounded-full">TAG</span>
+                <h1 id="result-title" class="text-3xl font-black text-slate-800 mt-2">單元標題</h1>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="md:col-span-2 glass-panel rounded-2xl p-6 border-l-4 border-blue-500 bg-white">
-                    <h3 class="font-bold text-lg mb-4 flex items-center gap-2 text-blue-800">
-                        <i class="fa-solid fa-star text-yellow-400"></i> <span>單元核心摘要 (Based on Text)</span>
-                    </h3>
-                    <div class="prose prose-blue max-w-none text-slate-600 leading-relaxed text-lg" id="summary-text"></div>
+                <div class="md:col-span-2 glass-panel p-6 rounded-2xl bg-white border-l-4 border-blue-500">
+                    <h3 class="font-bold text-blue-800 mb-4"><i class="fa-solid fa-star text-yellow-400"></i> 核心概念摘要</h3>
+                    <div id="summary-text" class="prose max-w-none text-slate-600 leading-relaxed"></div>
                 </div>
-
-                <div class="glass-panel rounded-2xl p-6 bg-gradient-to-br from-white to-blue-50">
-                    <h3 class="font-bold text-lg mb-4 text-slate-700">科學詞彙 (Vocab)</h3>
-                    <p class="text-xs text-slate-400 mb-3">依據「科學詞彙」欄位分析</p>
-                    <div class="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar" id="keywords-list"></div>
+                <div class="glass-panel p-6 rounded-2xl bg-gradient-to-br from-white to-blue-50">
+                    <h3 class="font-bold text-slate-700 mb-4">科學詞彙</h3>
+                    <div id="keywords-list" class="space-y-2 max-h-[400px] overflow-y-auto"></div>
                 </div>
-
-                <div class="md:col-span-3 glass-panel rounded-2xl p-6 overflow-hidden bg-white">
-                    <h3 class="font-bold text-lg mb-4 flex items-center gap-2 text-purple-700">
-                        <i class="fa-solid fa-project-diagram"></i> <span>知識架構圖 (Knowledge Map)</span>
-                    </h3>
-                    <div class="w-full overflow-x-auto bg-slate-50 rounded-xl p-4 flex justify-center border border-slate-100">
-                        <div class="mermaid" id="mermaid-chart"></div>
+                <div class="md:col-span-3 glass-panel p-6 rounded-2xl bg-white">
+                    <h3 class="font-bold text-purple-700 mb-4"><i class="fa-solid fa-project-diagram"></i> 知識架構圖</h3>
+                    <div class="flex justify-center bg-slate-50 rounded-xl p-4 border border-slate-100 overflow-x-auto">
+                        <div id="mermaid-chart"></div>
                     </div>
                 </div>
-
-                <div class="md:col-span-3 glass-panel rounded-2xl p-6 border border-red-100 bg-red-50/30">
-                    <h3 class="font-bold text-lg mb-4 text-red-600 flex items-center gap-2">
-                        <i class="fa-solid fa-triangle-exclamation"></i> <span>常見迷思診斷 (Misconceptions)</span>
-                    </h3>
-                    <p class="text-xs text-red-400 mb-4">AI 模擬資深自然科教師，依據學術研究與教學現場經驗分析。</p>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="myth-list"></div>
+                <div class="md:col-span-3 glass-panel p-6 rounded-2xl bg-red-50/50 border border-red-100">
+                    <h3 class="font-bold text-red-600 mb-4"><i class="fa-solid fa-circle-exclamation"></i> 常見迷思診斷</h3>
+                    <div id="myth-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
                 </div>
             </div>
         </div>
     </main>
 
-    <div id="floating-chat" class="fixed bottom-6 right-6 z-[100] flex flex-col items-end gap-4">
-        <div id="xiaoke-window" class="chat-window closed w-80 md:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden h-[500px]">
-            <div class="bg-blue-600 p-4 text-white flex justify-between items-center">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center"><i class="fa-solid fa-robot"></i></div>
-                    <span class="font-bold">小科 AI 助教</span>
-                </div>
-                <button onclick="toggleChat()" class="text-white/80 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="flex-1 p-4 bg-slate-50 overflow-y-auto text-sm space-y-3" id="chat-messages">
-                <div class="bg-white p-3 rounded-lg rounded-tl-none shadow-sm border border-slate-100 max-w-[85%]">
-                    嗨！我是小科 👋<br>關於這個單元的課文或迷思概念，有什麼想問的嗎？
-                </div>
-            </div>
-            <div class="p-3 bg-white border-t border-slate-100 flex gap-2">
-                <input type="text" id="chat-input" placeholder="輸入問題..." class="flex-1 bg-slate-100 border-none rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" onkeypress="handleChatKey(event)">
-                <button onclick="sendChatMessage()" class="bg-blue-600 text-white w-10 h-10 rounded-full hover:bg-blue-700 transition flex items-center justify-center">
-                    <i class="fa-solid fa-paper-plane text-xs"></i>
-                </button>
-            </div>
-        </div>
-        <button onclick="toggleChat()" class="w-14 h-14 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full shadow-lg shadow-blue-600/30 text-white flex items-center justify-center text-2xl hover:scale-110 transition duration-300 group">
-            <i class="fa-solid fa-comment-dots group-hover:animate-pulse"></i>
-        </button>
-    </div>
-
     <script>
-        // 您的 GAS Web App URL
-        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbx3MW-IOcU-38IqgawidSakL9nVwARmov4cuK0S6Jcqbv3SJFyHUbrvrI43Y6nskJAx/exec";
+        // ★★★ 請務必確認這裡換成了「新版本」的 GAS URL ★★★
+        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxBWrZCp-xLckDGZnhe64K0IUa_8CJZRzqZbrgL8lQdNn3S1WgaEzbdOtpo4mGwN6_H/exec";
         
-        let currentUser = null;
-        let allMetadata = []; 
-        let currentFilters = {}; 
+        let allData = [];
+        let filters = {};
 
-        window.addEventListener('DOMContentLoaded', async () => {
-            const userJson = sessionStorage.getItem("currentUser");
-            if (!userJson) {
-                alert("請先登入");
-                window.location.href = "index.html";
-                return;
-            }
-            currentUser = JSON.parse(userJson);
-            document.getElementById("user-name").innerText = currentUser.name;
-            document.getElementById("user-avatar").innerText = currentUser.name.charAt(0);
-
-            await loadMetadata();
-            bindEvents();
-        });
-
-        async function loadMetadata() {
-            const statusEl = document.getElementById("data-status");
-            statusEl.innerText = "正在同步教材資料庫...";
+        window.onload = async () => {
+            const user = JSON.parse(sessionStorage.getItem("currentUser") || '{}');
+            if(user.name) document.getElementById("user-info").innerText = user.name;
             
+            // 載入資料庫
             try {
-                const res = await fetch(`${GAS_API_URL}?action=get_metadata`);
+                const res = await fetch(GAS_API_URL + "?action=get_metadata");
                 const json = await res.json();
-                
                 if(json.status === "success") {
-                    allMetadata = json.data;
-                    statusEl.innerText = "資料庫連線成功 (" + allMetadata.length + " 筆資料)";
-                    statusEl.className = "text-xs text-green-600 font-bold";
-                    initStageSelect();
+                    allData = json.data;
+                    document.getElementById("db-status").innerHTML = `<i class="fa-solid fa-check"></i> 已連線 (${allData.length} 筆)`;
+                    document.getElementById("db-status").className = "text-xs font-bold text-green-600";
+                    initSelectors();
                 } else {
-                    throw new Error("API Error");
+                    throw new Error(json.message);
                 }
-            } catch (e) {
+            } catch(e) {
                 console.error(e);
-                statusEl.innerText = "連線失敗，請檢查網路或 GAS";
-                statusEl.className = "text-xs text-red-500 font-bold";
+                document.getElementById("db-status").innerText = "連線失敗 (CORS/Deploy)";
+                document.getElementById("db-status").className = "text-xs font-bold text-red-500";
             }
-        }
+        };
 
-        // --- 連動與資料清洗邏輯 ---
-
-        function bindEvents() {
-            document.getElementById('sel-stage').addEventListener('change', (e) => updateNextLevel('stage', e.target.value));
-            document.getElementById('sel-publisher').addEventListener('change', (e) => updateNextLevel('publisher', e.target.value));
-            document.getElementById('sel-grade').addEventListener('change', (e) => updateNextLevel('grade', e.target.value));
-            document.getElementById('sel-semester').addEventListener('change', (e) => updateNextLevel('semester', e.target.value));
-            document.getElementById('sel-unit').addEventListener('change', (e) => {
-                // 將選擇的課名存入 filters，這裡我們使用 dataset 存放原始 UnitName
-                const selectedOption = e.target.options[e.target.selectedIndex];
-                currentFilters.unitName = selectedOption.dataset.rawName; 
-                checkGenerateButton();
-            });
-        }
-
-        function initStageSelect() {
-            const stages = [...new Set(allMetadata.map(item => item.stage))];
-            populateSelect('sel-stage', stages);
-        }
-
-        function updateNextLevel(level, value) {
-            currentFilters[level] = value;
+        // --- 全頁連動邏輯 (Cascading) ---
+        function initSelectors() {
+            const stages = [...new Set(allData.map(d => d.stage))];
+            populate("sel-stage", stages);
             
-            if (level === 'stage') {
-                const filtered = allMetadata.filter(d => d.stage === value);
-                const publishers = [...new Set(filtered.map(d => d.publisher))];
-                populateSelect('sel-publisher', publishers);
-                resetSelects(['sel-grade', 'sel-semester', 'sel-unit']);
-            } 
-            else if (level === 'publisher') {
-                // 修正：年級過濾邏輯
-                const filtered = allMetadata.filter(d => d.stage === currentFilters.stage && d.publisher === value);
-                const grades = [...new Set(filtered.map(d => d.grade))].sort((a,b) => a-b);
-                populateSelect('sel-grade', grades, 'grade'); 
-                resetSelects(['sel-semester', 'sel-unit']);
-            }
-            else if (level === 'grade') {
-                // 修正：學期過濾邏輯 (注意 DB 存的是 3, 這裡 value 可能被前端轉成 string)
-                const filtered = allMetadata.filter(d => 
-                    d.stage === currentFilters.stage && 
-                    d.publisher === currentFilters.publisher && 
-                    d.grade == value // 使用 == 容許型別差異
-                );
-                const semesters = [...new Set(filtered.map(d => d.semester))];
-                populateSelect('sel-semester', semesters, 'semester');
-                resetSelects(['sel-unit']);
-            }
-            else if (level === 'semester') {
-                const filtered = allMetadata.filter(d => 
-                    d.stage === currentFilters.stage && 
-                    d.publisher === currentFilters.publisher && 
-                    d.grade == currentFilters.grade &&
-                    d.semester == value
-                );
-                
-                // 修正：單元名稱組合 (Col G + Col H)
-                const unitSelect = document.getElementById('sel-unit');
-                unitSelect.innerHTML = '<option value="" disabled selected>請選擇單元...</option>';
-                
-                if (filtered.length > 0) {
-                    filtered.forEach(item => {
-                        const option = document.createElement('option');
-                        // 組合顯示文字：第1課 認識植物
-                        const display = `第${item.unitType}課 ${item.unitName}`;
-                        option.text = display;
-                        option.value = item.unitName; // 傳給後端的值 (Col H)
-                        option.dataset.rawName = item.unitName; // 存原始值
-                        unitSelect.add(option);
-                    });
-                    unitSelect.disabled = false;
-                } else {
-                    unitSelect.innerHTML = '<option value="" disabled>無符合資料</option>';
-                }
-            }
-            checkGenerateButton();
+            document.getElementById("sel-stage").onchange = (e) => updateLevel(1, e.target.value);
+            document.getElementById("sel-publisher").onchange = (e) => updateLevel(2, e.target.value);
+            document.getElementById("sel-grade").onchange = (e) => updateLevel(3, e.target.value);
+            document.getElementById("sel-semester").onchange = (e) => updateLevel(4, e.target.value);
+            document.getElementById("sel-unit").onchange = (e) => {
+                filters.unitName = e.target.value;
+                document.getElementById("btn-generate").disabled = false;
+            };
         }
 
-        // 通用：填充下拉選單 (含顯示文字轉換)
-        function populateSelect(id, options, type = null) {
-            const select = document.getElementById(id);
-            select.innerHTML = '<option value="" disabled selected>請選擇...</option>';
-            
-            options.forEach(opt => {
-                const el = document.createElement('option');
-                el.value = opt; // value 保持原始值 (如 3, 上)
-                
-                // 顯示優化
-                if (type === 'grade') el.text = opt + "年級";
-                else if (type === 'semester') el.text = opt + "學期"; // DB若為 "上" -> "上學期"
-                else el.text = opt;
-                
-                select.add(el);
-            });
-            select.disabled = false;
-        }
+        function updateLevel(level, value) {
+            if(level === 1) filters = { stage: value };
+            if(level === 2) filters.publisher = value;
+            if(level === 3) filters.grade = value; // 這裡是 raw value (如 3)
+            if(level === 4) filters.semester = value; // 這裡是 raw value (如 上)
 
-        function resetSelects(ids) {
-            ids.forEach(id => {
-                const el = document.getElementById(id);
-                el.innerHTML = '<option value="" disabled selected>請先選擇上層...</option>';
+            // 清空下層
+            const ids = ["sel-publisher", "sel-grade", "sel-semester", "sel-unit"];
+            for(let i = level; i < 4; i++) {
+                const el = document.getElementById(ids[i]);
+                el.innerHTML = '<option value="" disabled selected>請選擇...</option>';
                 el.disabled = true;
+            }
+            document.getElementById("btn-generate").disabled = true;
+
+            // 篩選資料
+            const relevantData = allData.filter(d => {
+                return (!filters.stage || d.stage === filters.stage) &&
+                       (!filters.publisher || d.publisher === filters.publisher) &&
+                       (!filters.grade || d.grade == filters.grade) && // 使用 == 寬鬆比對
+                       (!filters.semester || d.semester == filters.semester);
             });
-            document.getElementById('btn-generate').disabled = true;
+
+            // 填充下一層
+            if(level === 1) {
+                const opts = [...new Set(relevantData.map(d => d.publisher))];
+                populate("sel-publisher", opts);
+            }
+            if(level === 2) {
+                const opts = [...new Set(relevantData.map(d => d.grade))].sort((a,b)=>a-b);
+                populate("sel-grade", opts, "grade"); // 標記為年級
+            }
+            if(level === 3) {
+                const opts = [...new Set(relevantData.map(d => d.semester))];
+                populate("sel-semester", opts, "semester"); // 標記為學期
+            }
+            if(level === 4) {
+                // 組合顯示文字: 第1課 認識植物
+                const unitSelect = document.getElementById("sel-unit");
+                unitSelect.innerHTML = '<option value="" disabled selected>請選擇單元...</option>';
+                relevantData.forEach(d => {
+                    const opt = document.createElement("option");
+                    opt.value = d.unitName; // 給後端的值 (Col H)
+                    opt.text = `第${d.unitType}課 ${d.unitName}`; // 給人看的文字
+                    unitSelect.add(opt);
+                });
+                unitSelect.disabled = false;
+            }
         }
 
-        function checkGenerateButton() {
-            const unit = document.getElementById('sel-unit').value;
-            document.getElementById('btn-generate').disabled = !unit;
+        function populate(id, options, type) {
+            const el = document.getElementById(id);
+            el.innerHTML = '<option value="" disabled selected>請選擇...</option>';
+            options.forEach(o => {
+                const opt = document.createElement("option");
+                opt.value = o; // 原始值 (3, 上)
+                
+                // 顯示轉換
+                if(type === "grade") opt.text = o + "年級";
+                else if(type === "semester") opt.text = o + "學期";
+                else opt.text = o;
+                
+                el.add(opt);
+            });
+            el.disabled = false;
         }
 
-        // --- 核心功能：生成重點整理 ---
-        async function fetchAndGenerate() {
-            const unitName = document.getElementById("sel-unit").value; // 這是 Col H
-            updateNavLinks(unitName);
-
+        async function startGeneration() {
             document.getElementById("selection-panel").classList.add("hidden");
             document.getElementById("loading-view").classList.remove("hidden");
             document.getElementById("loading-view").classList.add("flex");
 
-            // 準備參數 (確保傳給 GAS 的是原始值)
-            const filters = {
-                stage: currentFilters.stage,
-                publisher: currentFilters.publisher,
-                grade: currentFilters.grade,
-                semester: currentFilters.semester,
-                unitName: unitName // 對應 Col H
-            };
-
             try {
                 const res = await fetch(GAS_API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: 'get_content_and_generate',
-                        email: currentUser.email,
-                        filters: filters 
-                    })
+                    method: "POST",
+                    body: JSON.stringify({ action: "get_content_and_generate", filters: filters })
                 });
                 const json = await res.json();
-
+                
                 if(json.status === "success") {
-                    renderContent(json.data);
+                    renderResult(json.data);
                 } else {
                     throw new Error(json.message);
                 }
-
             } catch(e) {
-                console.error(e);
-                alert("生成失敗：" + e.message);
-                document.getElementById("selection-panel").classList.remove("hidden");
-                document.getElementById("loading-view").classList.add("hidden");
-                document.getElementById("loading-view").classList.remove("flex");
+                alert("錯誤: " + e.message);
+                location.reload();
             }
         }
 
-        function renderContent(data) {
+        function renderResult(data) {
             document.getElementById("loading-view").classList.add("hidden");
             document.getElementById("loading-view").classList.remove("flex");
             document.getElementById("content-view").classList.remove("hidden");
 
-            // 標題與標籤
+            // 標題
             document.getElementById("result-title").innerText = data.raw_content.unitName;
-            // 修正：標籤顯示轉換 (3 -> 3年級)
-            const displayGrade = currentFilters.grade + "年級";
-            document.getElementById("result-tag").innerText = `${currentFilters.stage} • ${displayGrade} • ${currentFilters.publisher}`;
+            document.getElementById("result-tag").innerText = `${filters.grade}年級 • ${filters.publisher}`;
 
-            // 科學詞彙
-            const vocabStr = data.raw_content.vocab_str || "";
-            const vocabList = vocabStr.split(/[,、]/).map(v=>v.trim()).filter(v=>v);
-            const vocabContainer = document.getElementById("keywords-list");
-            vocabContainer.innerHTML = "";
+            // 詞彙與螢光筆
+            const vocab = (data.raw_content.vocab_str || "").split(/[,、]/).filter(v=>v);
+            let summary = data.summary.summary_html;
             
-            if(vocabList.length === 0) {
-                 vocabContainer.innerHTML = "<div class='text-slate-400 text-sm'>無特定科學詞彙</div>";
-            } else {
-                vocabList.forEach(v => {
-                    vocabContainer.innerHTML += `
-                        <div class="bg-white p-2 px-3 rounded-lg border border-slate-100 shadow-sm flex items-center justify-between">
-                            <span class="font-bold text-slate-700">${v}</span>
-                            <i class="fa-solid fa-tag text-blue-200 text-xs"></i>
-                        </div>`;
-                });
-            }
-
-            // 摘要螢光筆
-            let rawSummary = data.summary.summary_html;
-            vocabList.sort((a,b)=>b.length-a.length).forEach(v => {
-                const regex = new RegExp(v, 'g');
-                rawSummary = rawSummary.replace(regex, `<span class="sci-vocab">${v}</span>`);
+            const kwList = document.getElementById("keywords-list");
+            kwList.innerHTML = "";
+            vocab.forEach(v => {
+                kwList.innerHTML += `<span class="inline-block bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm mr-2 mb-2">#${v.trim()}</span>`;
+                // 替換摘要中的詞彙
+                const reg = new RegExp(v.trim(), "g");
+                summary = summary.replace(reg, `<span class="sci-vocab">${v.trim()}</span>`);
             });
-            document.getElementById("summary-text").innerHTML = rawSummary;
+            
+            document.getElementById("summary-text").innerHTML = summary;
 
             // Mermaid
             const chartDiv = document.getElementById("mermaid-chart");
-            if (data.mermaid) {
-                let cleanMermaid = data.mermaid.replace(/```mermaid/g, '').replace(/```/g, '').trim();
-                chartDiv.innerHTML = cleanMermaid;
-                chartDiv.removeAttribute("data-processed");
-                mermaid.init(undefined, chartDiv);
-            } else {
-                chartDiv.innerHTML = "生成圖表失敗";
-            }
+            chartDiv.innerHTML = data.mermaid.replace(/```mermaid/g, "").replace(/```/g, "");
+            chartDiv.removeAttribute("data-processed");
+            mermaid.init(undefined, chartDiv);
 
             // 迷思
-            const mythContainer = document.getElementById("myth-list");
-            mythContainer.innerHTML = "";
-            if (data.myths && data.myths.length > 0) {
-                data.myths.forEach(m => {
-                    mythContainer.innerHTML += `
-                        <div class="bg-white p-4 rounded-xl border-l-4 border-red-400 shadow-sm">
-                            <div class="font-bold text-red-700 mb-1 text-sm flex items-center gap-2">
-                                <i class="fa-solid fa-circle-question"></i> ${m.title}
-                            </div>
-                            <div class="text-xs text-slate-600 leading-relaxed">${m.desc}</div>
-                        </div>`;
-                });
-            } else {
-                mythContainer.innerHTML = "<div class='text-slate-400'>無常見迷思資料</div>";
-            }
-        }
-
-        function updateNavLinks(unit) {
-            const btnBi = document.getElementById("btn-bilingual");
-            const btnEval = document.getElementById("btn-evaluation");
-            btnBi.href = `sciencebilingual.html?unit=${encodeURIComponent(unit)}`;
-            btnEval.href = `AIevaluation.html?unit=${encodeURIComponent(unit)}`;
-            btnBi.disabled = false;
-            btnEval.disabled = false;
-        }
-
-        // 小科 AI
-        function toggleChat() { document.getElementById("xiaoke-window").classList.toggle("closed"); }
-        function handleChatKey(e) { if(e.key === 'Enter') sendChatMessage(); }
-        
-        async function sendChatMessage() {
-            const input = document.getElementById("chat-input");
-            const msg = input.value.trim();
-            if(!msg) return;
-
-            const chatBody = document.getElementById("chat-messages");
-            chatBody.innerHTML += `<div class="self-end bg-blue-600 text-white p-3 rounded-lg rounded-tr-none shadow-sm max-w-[85%] ml-auto">${msg}</div>`;
-            input.value = "";
-            chatBody.scrollTop = chatBody.scrollHeight;
-
-            try {
-                const res = await fetch(GAS_API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: 'chat_with_ai',
-                        message: msg,
-                        currentUnit: document.getElementById("sel-unit").value || "未選擇單元"
-                    })
-                });
-                const json = await res.json();
-                
-                chatBody.innerHTML += `<div class="self-start bg-white border border-slate-100 p-3 rounded-lg rounded-tl-none shadow-sm max-w-[85%]">
-                    <span class="font-bold text-blue-600 block mb-1 text-xs">小科 AI</span>
-                    ${json.data}
+            const mythDiv = document.getElementById("myth-list");
+            mythDiv.innerHTML = "";
+            data.myths.forEach(m => {
+                mythDiv.innerHTML += `
+                <div class="bg-white p-4 rounded-xl border border-red-100 shadow-sm">
+                    <div class="font-bold text-red-600 mb-1"><i class="fa-solid fa-circle-question"></i> ${m.title}</div>
+                    <div class="text-xs text-slate-600">${m.desc}</div>
                 </div>`;
-                chatBody.scrollTop = chatBody.scrollHeight;
-
-            } catch(e) { console.error(e); }
+            });
         }
     </script>
 </body>
