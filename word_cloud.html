@@ -635,7 +635,6 @@
                         },
                         rotateRatio: 0.15,
                         rotationSteps: 2,
-                        vCenter: 0.35,
                         shape: shape,
                         backgroundColor: 'transparent',
                         drawOutOfBound: false,
@@ -764,18 +763,15 @@
                     let heightLeft = imgHeight;
                     let position = 0;
 
-                   // 第一頁
-doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, imgHeight);
-let heightLeft = imgHeight - pdfHeight;
+                    doc.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+                    heightLeft -= pdfHeight;
 
-// ✅ 改成這種寫法
-while (heightLeft > 0) {
-  doc.addPage();
-  const pagePosition = - (imgHeight - heightLeft); // 注意這裡的負號
-  doc.addImage(imgData, 'PNG', 0, pagePosition, pdfWidth, imgHeight);
-  heightLeft -= pdfHeight;
-}
-
+                    while (heightLeft > 0) {
+                        position = heightLeft - imgHeight;
+                        doc.addPage();
+                        doc.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+                        heightLeft -= pdfHeight;
+                    }
 
                     doc.save(`wordcloud_report_${Date.now()}.pdf`);
                     this.showToast("PDF 下載成功", "success");
