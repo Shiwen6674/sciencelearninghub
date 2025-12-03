@@ -73,7 +73,26 @@
             </a>
 
             <div class="h-8 w-px bg-slate-300 mx-2"></div>
+<div class="flex items-center gap-3">
+            
+            <a href="aievaluation.html" class="group flex items-center gap-2 text-slate-500 hover:text-green-600 transition decoration-0 mr-2">
+                <div class="w-9 h-9 bg-white/80 border border-slate-200 rounded-full flex items-center justify-center shadow-sm group-hover:shadow-md transition">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                </div>
+                <span class="font-bold text-xs hidden lg:block" data-i18n="btn_eval">AI 評分診斷</span>
+            </a>
 
+            <select id="language-selector" onchange="changeLanguage()" class="bg-white/50 border text-xs rounded-lg p-1 cursor-pointer outline-none focus:ring-1 focus:ring-blue-300">
+                <option value="zh-TW">繁體中文</option>
+                <option value="en">English</option>
+                <option value="ja">日本語</option>
+                <option value="zh-CN">简体中文</option>
+            </select>
+            
+            <div class="flex items-center gap-2">
+                 <div id="user-info" class="text-sm font-bold text-blue-600">訪客</div>
+            </div>
+        </div>
             <div>
                 <h1 class="font-bold text-lg" data-i18n="page_title">單元重點整理</h1>
                 <p class="text-xs text-slate-500" data-i18n="page_subtitle">AI 智能筆記生成</p>
@@ -193,23 +212,24 @@
 
         // 多語系字典
        // 多語系字典 (已更新 settings_title 為「請挑選你要的學習單元」)
+        // 多語系字典 (已加入 btn_eval)
         const i18n = {
             "zh-TW": { 
                 back_home:"返回學習中心", 
                 btn_bilingual:"科學雙語閱讀", 
+                btn_eval:"AI 評分診斷", // ★ 新增
                 page_title:"單元重點整理", page_subtitle:"AI 智能筆記生成", 
-                settings_title:"請挑選你要的學習單元",  // ★ 已修改
-                label_stage:"學習階段", label_publisher:"版本", 
+                settings_title:"請挑選你要的學習單元", label_stage:"學習階段", label_publisher:"版本", 
                 label_grade:"年級", label_semester:"學期", label_unit:"單元名稱", 
-                btn_generate:"AI 開始分析", btn_txt:"下載 TXT", btn_pdf:"下載 PDF", 
+                btn_generate:"AI 分析並生成", btn_txt:"下載 TXT", btn_pdf:"下載 PDF", 
                 title_summary:"核心概念摘要", title_vocab:"科學詞彙與定義", title_map:"知識架構圖", title_myth:"常見迷思診斷" 
             },
             "en": { 
                 back_home:"Back Home", 
                 btn_bilingual:"Bilingual Reading", 
+                btn_eval:"AI Assessment", // ★ 新增
                 page_title:"Unit Summary", page_subtitle:"AI Generator", 
-                settings_title:"Select Learning Unit",  // ★ 已修改 (對應翻譯)
-                label_stage:"Level", label_publisher:"Publisher", 
+                settings_title:"Select Learning Unit", label_stage:"Level", label_publisher:"Publisher", 
                 label_grade:"Grade", label_semester:"Semester", label_unit:"Unit", 
                 btn_generate:"Generate", btn_txt:"Download TXT", btn_pdf:"Download PDF", 
                 title_summary:"Core Concepts", title_vocab:"Vocabulary", title_map:"Mind Map", title_myth:"Common Myths" 
@@ -217,9 +237,9 @@
             "ja": { 
                 back_home:"ホームに戻る", 
                 btn_bilingual:"二言語読解", 
+                btn_eval:"AI 診断・採点", // ★ 新增
                 page_title:"単元のまとめ", page_subtitle:"AIノート生成", 
-                settings_title:"学習単元を選択",  // ★ 已修改 (對應翻譯)
-                label_stage:"段階", label_publisher:"出版社", 
+                settings_title:"学習単元を選択", label_stage:"段階", label_publisher:"出版社", 
                 label_grade:"学年", label_semester:"学期", label_unit:"単元", 
                 btn_generate:"生成する", btn_txt:"TXTを保存", btn_pdf:"PDFを保存", 
                 title_summary:"核心概念", title_vocab:"科学用語", title_map:"知識マップ", title_myth:"よくある誤解" 
@@ -227,9 +247,9 @@
             "zh-CN": { 
                 back_home:"返回学习中心", 
                 btn_bilingual:"科学双语阅读", 
+                btn_eval:"AI 评分诊断", // ★ 新增
                 page_title:"单元重点整理", page_subtitle:"AI 智能笔记生成", 
-                settings_title:"请挑选你要的学习单元",  // ★ 已修改 (對應翻譯)
-                label_stage:"学习阶段", label_publisher:"版本", 
+                settings_title:"请挑选你要的学习单元", label_stage:"学习阶段", label_publisher:"版本", 
                 label_grade:"年级", label_semester:"学期", label_unit:"单元名称", 
                 btn_generate:"AI 分析并生成", btn_txt:"下载 TXT", btn_pdf:"下载 PDF", 
                 title_summary:"核心概念摘要", title_vocab:"科学词汇与定义", title_map:"知识架构图", title_myth:"常见迷思诊断" 
