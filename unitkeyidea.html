@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
         tailwind.config = { theme: { extend: { colors: { student: '#3b82f6' }, animation: { "fade-in-up": "fadeInUp 0.5s ease-out forwards" }, keyframes: { fadeInUp: { "0%": { opacity: "0", transform: "translateY(20px)" }, "100%": { opacity: "1", transform: "translateY(0)" } } } } } }
         mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
@@ -45,7 +46,7 @@
         @media print {
             body { background: white; }
             nav, #selection-panel, #floating-chat, .no-print { display: none !important; }
-            ..glass-panel { box-shadow: none; border: none; margin-bottom: 20px; padding: 0; break-inside: avoid; page-break-inside: avoid; }
+            .glass-panel { box-shadow: none; border: none; margin-bottom: 20px; padding: 0; break-inside: avoid; page-break-inside: avoid; }
             .page-break { break-before: page; page-break-before: always; display: block; margin-top: 20px; }
             .grid { display: block; }
             .md\:col-span-2, .md\:col-span-3 { width: 100%; margin-bottom: 20px; }
@@ -140,20 +141,20 @@
                     <button onclick="downloadTXT()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded-lg font-bold text-sm transition">
                         <i class="fa-solid fa-file-lines"></i> <span data-i18n="btn_txt">下載 TXT</span>
                     </button>
-                    <button onclick="window.print()" class="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-lg font-bold text-sm transition">
+                    <button onclick="downloadPDF()" class="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-lg font-bold text-sm transition">
                         <i class="fa-solid fa-file-pdf"></i> <span data-i18n="btn_pdf">下載 PDF</span>
                     </button>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
                 
-                <div id="summary-panel" class="md:col-span-2 glass-panel p-6 rounded-2xl bg-white border-l-4 border-blue-500">
+                <div id="summary-panel" class="md:col-span-2 glass-panel p-6 rounded-2xl bg-white border-l-4 border-blue-500 h-full">
                     <h3 class="font-bold text-blue-800 mb-4"><i class="fa-solid fa-star text-yellow-400"></i> <span data-i18n="title_summary">核心概念摘要</span></h3>
                     <div id="summary-text" class="prose max-w-none text-slate-600 leading-relaxed"></div>
                 </div>
                 
-                <div id="vocab-panel" class="glass-panel p-6 rounded-2xl bg-gradient-to-br from-white to-blue-50 page-break">
+                <div id="vocab-panel" class="glass-panel p-6 rounded-2xl bg-gradient-to-br from-white to-blue-50 page-break h-full">
                     <h3 class="font-bold text-slate-700 mb-4"><span data-i18n="title_vocab">科學詞彙與定義</span></h3>
                     <div id="keywords-list" class="space-y-3 overflow-y-auto custom-scrollbar pr-2"></div>
                 </div>
@@ -173,7 +174,7 @@
                 
                 <div class="md:col-span-3 glass-panel p-6 rounded-2xl bg-red-50/50 border border-red-100 page-break">
                     <h3 class="font-bold text-red-600 mb-4"><i class="fa-solid fa-circle-exclamation"></i> <span data-i18n="title_myth">常見迷思診斷</span></h3>
-                    <div id="myth-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                    <div id="myth-list" class="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch"></div>
                 </div>
             </div>
         </div>
@@ -366,73 +367,69 @@
             // 6. 知識架構圖 (強力清洗修復)
             // ★★★ 6. 知識架構圖 (終極強力清洗與方向修正) ★★★
             const chartDiv = document.getElementById("mermaid-chart");
+            chartDiv.innerHTML = "";
             if(data.summary.mermaid) {
-                let mCode = data.summary.mermaid.replace(/```mermaid/g, "").replace(/```/g, "").trim();
+                let mCode = data.summary.mermaid
+                    .replace(/```mermaid/gi, "")
+                    .replace(/```/g, "")
+                    .trim();
                 
-                // 修正 1: 清理 Markdown 和所有危險半形符號
-                mCode = mCode.replace(/\(/g, "（").replace(/\)/g, "）")
-                             .replace(/\[/g, "【").replace(/\]/g, "】")
-                             .replace(/:/g, "：").replace(/"/g, "").replace(/'/g, "");
-                
-                // 修正 2: 消除不必要的換行符號，防止 Mermaid 誤判指令中斷
-                mCode = mCode.replace(/\n/g, ' '); 
-
-                // 修正 3: 強制方向 (LR)，並確保代碼以 graph LR 開頭
-                if (!mCode.startsWith("graph")) {
-                    mCode = "graph LR " + mCode;
+                if (!/^graph\s+/i.test(mCode)) {
+                    mCode = "graph LR\n" + mCode;
                 } else {
-                    mCode = mCode.replace(/graph TD|graph TB/g, "graph LR");
+                    mCode = mCode.replace(/graph\s+TD/gi, "graph LR")
+                                 .replace(/graph\s+TB/gi, "graph LR");
                 }
-                
-                // 修正 4: 確保箭頭符號 (-->) 正確
-                mCode = mCode.replace(/ -> /g, ' --> ');
 
-                chartDiv.innerHTML = mCode;
-                chartDiv.removeAttribute("data-processed");
+                const mermaidEl = document.createElement("div");
+                mermaidEl.className = "mermaid";
+                mermaidEl.textContent = mCode;
+                chartDiv.appendChild(mermaidEl);
+
                 // 讓圖表在錯誤時顯示錯誤代碼 (方便除錯，而不是空白)
                 mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'loose' }); 
-                mermaid.init(undefined, chartDiv);
+                mermaid.init(undefined, ".mermaid");
             }
 
             // ★★★ 7. 迷思概念 (清洗並格式化) ★★★
             // ★★★ 7. 迷思概念 (最強力標籤清除) ★★★
 const mythDiv = document.getElementById("myth-list");
-            mythDiv.innerHTML = "";
-            
-            // 處理標籤清除的輔助函式 (移除開頭的 "迷思:", "正確:")
-            const cleanLabel = (text) => {
-                if (!text) return "";
-                // 移除任何開頭是 "迷思", "正確觀念", "正確", "Misconception", "Correction" 加上冒號或空格的文字
-                let cleaned = text.replace(/\*\*/g, "").trim(); // 先移除 markdown 粗體
-                cleaned = cleaned.replace(/^(迷思|正確觀念|正確|Misconception|Correction)\s*[:：]\s*/i, "").trim();
-                return cleaned;
-            };
+            mythDiv.innerHTML = "";
+            
+            // 處理標籤清除的輔助函式 (移除開頭的 "迷思:", "正確:")
+            const cleanLabel = (text) => {
+                if (!text) return "";
+                // 移除任何開頭是 "迷思", "正確觀念", "正確", "Misconception", "Correction" 加上冒號或空格的文字
+                let cleaned = text.replace(/\*\*/g, "").trim(); // 先移除 markdown 粗體
+                cleaned = cleaned.replace(/^(迷思|正確觀念|正確|Misconception|Correction)\s*[:：]\s*/i, "").trim();
+                return cleaned;
+            };
 
-            if(data.summary.myths) {
-                data.summary.myths.forEach(m => {
-                    // ★★★ 關鍵修改：從 m.title / m.desc 改為 m.myth / m.correct ★★★
-                    // 確保即使 AI 加上了標籤，也只取內容。
-                    const cleanedMyth = cleanLabel(m.myth); 
-                    const cleanedCorrect = cleanLabel(m.correct);
+            if(data.summary.myths) {
+                data.summary.myths.forEach(m => {
+                    // ★★★ 關鍵修改：從 m.title / m.desc 改為 m.myth / m.correct ★★★
+                    // 確保即使 AI 加上了標籤，也只取內容。
+                    const cleanedMyth = cleanLabel(m.myth); 
+                    const cleanedCorrect = cleanLabel(m.correct);
 
-                    mythDiv.innerHTML += `
-                        <div class="bg-white p-5 rounded-xl border border-red-100 shadow-sm hover:shadow-md transition">
-                            <div class="flex items-start gap-3 mb-3">
-                                <div class="bg-red-100 text-red-600 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1"><i class="fa-solid fa-xmark font-bold"></i></div>
-                                <div>
-                                    <span class="text-red-600 font-black text-base block mb-1">迷思：</span>
-                                    <div class="text-slate-800 font-bold">${cleanedMyth}</div> 
-                                </div>
-                            </div>
-                            <div class="flex items-start gap-3 pl-2 border-l-2 border-green-100 ml-4">
-                                <div>
-                                    <span class="text-green-600 font-black text-sm block mb-1">正確觀念：</span>
-                                    <div class="text-sm text-slate-600 leading-relaxed text-justify">${cleanedCorrect}</div> 
-                                </div>
-                            </div>
-                        </div>`;
-                });
-            }
+                    mythDiv.innerHTML += `
+                        <div class="bg-white p-5 rounded-xl border border-red-100 shadow-sm hover:shadow-md transition h-full flex flex-col">
+                            <div class="flex items-start gap-3 mb-3">
+                                <div class="bg-red-100 text-red-600 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1"><i class="fa-solid fa-xmark font-bold"></i></div>
+                                <div>
+                                    <span class="text-red-600 font-black text-base block mb-1">迷思：</span>
+                                    <div class="text-slate-800 font-bold">${cleanedMyth}</div> 
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-3 pl-2 border-l-2 border-green-100 ml-4">
+                                <div>
+                                    <span class="text-green-600 font-black text-sm block mb-1">正確觀念：</span>
+                                    <div class="text-sm text-slate-600 leading-relaxed text-justify">${cleanedCorrect}</div> 
+                                </div>
+                            </div>
+                        </div>`;
+                });
+            }
             
             // 8. 高度對齊 (維持不變)
             setTimeout(() => { /* ...原本的高度對齊代碼... */ }, 500);
@@ -475,14 +472,14 @@ const mythDiv = document.getElementById("myth-list");
             
             // --- 3. 常見迷思 ---
             content += `【 常見迷思診斷 】\n`;
-            content += `----------------------------------------\n`;
-            if (currentResultData.summary.myths) {
-                currentResultData.summary.myths.forEach((m, i) => {
-                    // ★★★ 關鍵修改：從 m.title / m.desc 改為 m.myth / m.correct ★★★
-                    content += `● 迷思 ${i+1}：${m.myth}\n`;
-                    content += `   正確：${m.correct}\n\n`; // 縮排並空一行
-                });
-            } else {
+            content += `----------------------------------------\n`;
+            if (currentResultData.summary.myths) {
+                currentResultData.summary.myths.forEach((m, i) => {
+                    // ★★★ 關鍵修改：從 m.title / m.desc 改為 m.myth / m.correct ★★★
+                    content += `● 迷思 ${i+1}：${m.myth}\n`;
+                     content += `   正確：${m.correct}\n\n`; // 縮排並空一行
+                });
+            } else {
                 content += "   (無迷思資料)\n";
             }
             
@@ -496,6 +493,22 @@ const mythDiv = document.getElementById("myth-list");
             link.href = URL.createObjectURL(blob);
             link.download = `${currentResultData.raw_content.unitName}_重點整理.txt`;
             link.click();
+        }
+
+        function downloadPDF() {
+            if (!currentResultData) {
+                alert("請先生成內容後再下載！");
+                return;
+            }
+            const element = document.getElementById("content-view");
+            const opt = {
+                margin:       10,
+                filename:     currentResultData.raw_content.unitName + "_重點整理.pdf",
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
         }
 
         function toggleChat() { document.getElementById("xiaoke-window").classList.toggle("closed"); }
