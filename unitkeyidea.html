@@ -338,47 +338,37 @@
 
             // 2. 小科開場白
             const chatBody = document.getElementById("chat-messages");
-            chatBody.innerHTML = `
-                <div class="self-start bg-white border border-slate-100 p-3 rounded-lg rounded-tl-none shadow-sm max-w-[85%] text-sm">
-                    <span class="font-bold text-blue-600 block mb-1 text-xs">小科 AI</span>
-                    嗨，同學你好！我是小科，關於【${data.raw_content.unitName}】單元，你有什麼問題要問我呢？
-                </div>
-            `;
+            chatBody.innerHTML = `<div class="self-start bg-white border border-slate-100 p-3 rounded-lg rounded-tl-none shadow-sm max-w-[85%] text-sm"><span class="font-bold text-blue-600 block mb-1 text-xs">小科 AI</span>嗨，同學你好！我是小科，關於【${data.raw_content.unitName}】單元，你有什麼問題要問我呢？</div>`;
 
-            // 3. 填入標題與標籤
+            // 3. 填入標題與標籤 (包含學期與課次)
             document.getElementById("result-title").innerText = data.raw_content.unitName;
             const uType = data.raw_content.unitType;
             const lessonStr = (uType && !isNaN(uType)) ? `第${uType}課` : (uType || "");
             const semStr = (filters.semester === "上" ? "上學期" : (filters.semester === "下" ? "下學期" : filters.semester));
             document.getElementById("result-tag").innerText = `${filters.publisher} • ${filters.grade}年級${semStr} • ${lessonStr}`;
 
-            // 4. 填入摘要
-            document.getElementById("summary-text").innerHTML = data.summary.summary_html;
+            // 4. 填入核心概念摘要 (最終清洗)
+            // 這裡將摘要內容也清洗一次，確保沒有 ** 符號遺留
+            const cleanedSummary = data.summary.summary_html.replace(/\*\*/g, ""); 
+            document.getElementById("summary-text").innerHTML = cleanedSummary;
 
             // 5. 填入詞彙
             const vocabContainer = document.getElementById("keywords-list");
             vocabContainer.innerHTML = "";
             if(data.summary.vocab_list) {
                 data.summary.vocab_list.forEach((item, index) => {
-                    vocabContainer.innerHTML += `<div class="bg-white p-3 rounded-xl border border-slate-100 shadow-sm mb-2 vocab-item"><div class="flex gap-3"><span class="bg-blue-100 text-blue-700 font-bold px-2 py-1 rounded text-sm h-fit">${index+1}</span><div><div class="font-bold text-slate-800">${item.term}</div><div class="text-sm text-slate-600">${item.def}</div></div></div></div>`;
+                    // 清洗詞彙定義
+                    const cleanedDef = item.def.replace(/\*\*/g, ""); 
+                    vocabContainer.innerHTML += `<div class="bg-white p-3 rounded-xl border border-slate-100 shadow-sm mb-2 vocab-item"><div class="flex gap-3"><span class="bg-blue-100 text-blue-700 font-bold px-2 py-1 rounded text-sm h-fit">${index+1}</span><div><div class="font-bold text-slate-800">${item.term}</div><div class="text-sm text-slate-600">${cleanedDef}</div></div></div></div>`;
                 });
             }
 
-            // ★★★ 6. 知識架構圖 (強力清洗修復) ★★★
+            // 6. 知識架構圖 (強力清洗修復)
             const chartDiv = document.getElementById("mermaid-chart");
             if(data.summary.mermaid) {
-                // 步驟 A: 移除 Markdown 語法
                 let mCode = data.summary.mermaid.replace(/```mermaid/g, "").replace(/```/g, "").trim();
+                mCode = mCode.replace(/\(/g, "（").replace(/\)/g, "）").replace(/\[/g, "【").replace(/\]/g, "】").replace(/:/g, "：").replace(/"/g, "").replace(/'/g, "");
                 
-                // 步驟 B: 強制替換所有會導致報錯的半形符號為全形
-                // 這行是救命關鍵，它把 ( ) [ ] : " ' 全部換掉
-                mCode = mCode.replace(/\(/g, "（").replace(/\)/g, "）")
-                             .replace(/\[/g, "【").replace(/\]/g, "】")
-                             .replace(/:/g, "：")
-                             .replace(/"/g, "")
-                             .replace(/'/g, "");
-
-                // 步驟 C: 確保第一行是 graph LR (由左至右)
                 if (!mCode.startsWith("graph")) {
                     mCode = "graph LR\n" + mCode;
                 } else {
@@ -390,31 +380,35 @@
                 mermaid.init(undefined, chartDiv);
             }
 
-            // 7. 迷思概念 (紅字迷思 / 綠字正確)
+            // ★★★ 7. 迷思概念 (清洗並格式化) ★★★
             const mythDiv = document.getElementById("myth-list");
             mythDiv.innerHTML = "";
             if(data.summary.myths) {
                 data.summary.myths.forEach(m => {
+                    // 最終清洗：確保 title 和 desc 沒有 ** 符號
+                    const cleanedTitle = m.title.replace(/\*\*/g, ""); 
+                    const cleanedDesc = m.desc.replace(/\*\*/g, "");
+
                     mythDiv.innerHTML += `
                         <div class="bg-white p-5 rounded-xl border border-red-100 shadow-sm hover:shadow-md transition">
                             <div class="flex items-start gap-3 mb-3">
                                 <div class="bg-red-100 text-red-600 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1"><i class="fa-solid fa-xmark font-bold"></i></div>
                                 <div>
                                     <span class="text-red-600 font-black text-base block mb-1">迷思：</span>
-                                    <div class="text-slate-800 font-bold">${m.title}</div>
+                                    <div class="text-slate-800 font-bold">${cleanedTitle}</div> 
                                 </div>
                             </div>
                             <div class="flex items-start gap-3 pl-2 border-l-2 border-green-100 ml-4">
                                 <div>
                                     <span class="text-green-600 font-black text-sm block mb-1">正確觀念：</span>
-                                    <div class="text-sm text-slate-600 leading-relaxed text-justify">${m.desc}</div>
+                                    <div class="text-sm text-slate-600 leading-relaxed text-justify">${cleanedDesc}</div> 
                                 </div>
                             </div>
                         </div>`;
                 });
             }
             
-            // 8. 高度對齊
+            // 8. 高度對齊 (維持不變)
             setTimeout(() => {
                 const summaryHeight = document.getElementById("summary-panel").clientHeight;
                 const vocabPanel = document.getElementById("vocab-panel");
