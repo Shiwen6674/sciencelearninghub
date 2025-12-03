@@ -219,7 +219,8 @@
                 <canvas id="word-cloud-canvas" class="hidden"></canvas>
             </div>
 
-            <button onclick="App.downloadImage()" id="btn-download" class="hidden absolute bottom-12 right-12 bg-white text-gray-800 hover:text-brand border border-gray-300 px-8 py-4 rounded-full shadow-xl font-bold transition transform hover:-translate-y-1 flex items-center gap-3 z-30 group text-base">
+            <button onclick="App.downloadImage()" id="btn-download" class="hidden absolute bottom-12 right-12 bg-white text-gray-8
+00 hover:text-brand border border-gray-300 px-8 py-4 rounded-full shadow-xl font-bold transition transform hover:-translate-y-1 flex items-center gap-3 z-30 group text-base">
                 <span class="group-hover:text-brand transition" data-i18n="btn_download">下載圖片</span> <i class="fa-solid fa-download group-hover:animate-bounce"></i>
             </button>
 
@@ -272,7 +273,8 @@
                 },
                 "ja": {
                     "back": "戻る", "title": "AI ワードクラウド", "tab_text": "入力", "btn_example": "例文", "btn_clear": "クリア", "sec_options": "設定",
-                    "sec_options_desc": "オプションを選択", "label_model": "モデル", "label_shape": "形状", "label_pos_filter": "品詞フィルタ", "label_max_words": "単語数", "opt_freq": "頻度", "opt_tfidf": "TF-IDF", "opt_textrank": "TextRank", "shape_circle": "円形", "shape_square": "四角", "shape_heart": "ハート", "shape_star": "星", "shape_diamond": "菱形", "btn_visualize": "生成する", "tab_ai": "AI分析", "tab_data": "データ", "col_rank": "#", "col_word": "単語", "col_pos": "品詞", "col_weight": "重み", "state_ready": "準備完了", "state_ready_desc": "テキストを入力してください", "state_loading": "処理中...", "btn_download": "画像保存", "msg_input_empty": "入力してください", "msg_processing": "計算中...", "msg_success": "完了", "msg_error": "エラー"
+                    "sec_options_desc": "オプションを選択", "label_model": "モデル", "label_shape": "形状", "label_pos_filter": "品詞フィルタ", "label_max_words": "単語数", "opt_freq": "頻度", "opt_tfidf": "TF-IDF", "opt_textrank": "TextRank", "shape_circle": "円形", "shape_square": "四角", "shape_heart": "ハート", "shape_star": "星", "shape_diamond": "菱形", "btn_visualize": "生成する", "tab_ai": "AI分析", "tab_data": "データ", "col_rank": "#", "col_word": "単語", "col_pos": "品詞", "col_weight": "重み", "state_ready": "準備完了", "state_ready_desc": "テキ
+ストを入力してください", "state_loading": "処理中...", "btn_download": "画像保存", "msg_input_empty": "入力してください", "msg_processing": "計算中...", "msg_success": "完了", "msg_error": "エラー"
                 },
                 "zh-CN": {
                     "back": "返回", "title": "AI 智能文字云", "tab_text": "文字输入", "btn_example": "范例", "btn_clear": "清空", "sec_options": "选项", "sec_options_desc": "自定义参数", "label_model": "权重模型", "label_shape": "形状", "label_pos_filter": "词性过滤", "label_max_words": "词汇数量", "opt_freq": "词频", "opt_tfidf": "TF-IDF", "opt_textrank": "TextRank", "shape_circle": "圆形", "shape_square": "方形", "shape_heart": "心形", "shape_star": "星形", "shape_diamond": "菱形", "btn_visualize": "生成文字云", "tab_ai": "AI 洞察", "tab_data": "数据列表", "col_rank": "#", "col_word": "词汇", "col_pos": "词性", "col_weight": "权重", "state_ready": "准备就绪", "state_ready_desc": "请输入文字", "state_loading": "运算中...", "btn_download": "下载图片", "msg_input_empty": "请输入文字", "msg_processing": "处理中...", "msg_success": "分析完成", "msg_error": "发生错误"
@@ -308,6 +310,7 @@
                 slider.addEventListener('input', (e) => {
                     this.state.maxWords = parseInt(e.target.value);
                     valDisplay.innerText = this.state.maxWords;
+                    if (this.state.words.length > 0) this.renderWordCloud();
                 });
 
                 document.getElementById('shape-select').addEventListener('change', () => {
@@ -358,7 +361,6 @@
                     el.innerText = t[el.getAttribute('data-i18n')] || el.innerText;
                 });
                 
-                // 修正下拉選單選項文字更新
                 const opts = ['opt_freq','opt_tfidf','opt_textrank','shape_circle','shape_square','shape_heart','shape_star','shape_diamond'];
                 opts.forEach(k => {
                     const el = document.querySelector(`option[data-i18n="${k}"]`) || document.querySelector(`option[value="${k.split('_')[1]}"]`);
@@ -420,8 +422,7 @@
                         document.getElementById('loading-state').classList.add('hidden');
                         document.getElementById('results-container').classList.remove('hidden');
                         
-                        // 🟢 關鍵修復：強制延遲確保 Canvas 可見後再繪製
-                        canvas = document.getElementById('word-cloud-canvas');
+                        const canvas = document.getElementById('word-cloud-canvas');
                         canvas.classList.remove('hidden'); // 確保先顯示
                         setTimeout(() => this.renderWordCloud(), 100);
                         
@@ -441,6 +442,11 @@
             },
 
             renderWordCloud() {
+                if (typeof WordCloud !== "function") {
+                    this.showToast("WordCloud 函式庫載入失敗，請重新整理頁面。", "error");
+                    return;
+                }
+
                 const canvas = document.getElementById('word-cloud-canvas');
                 const wrapper = document.getElementById('canvas-wrapper');
                 const shape = document.getElementById('shape-select').value;
@@ -457,6 +463,8 @@
                     return;
                 }
 
+                const limitedList = filteredList.slice(0, this.state.maxWords);
+
                 canvas.classList.remove('hidden');
                 document.getElementById('btn-download').classList.remove('hidden');
                 
@@ -465,15 +473,15 @@
                 canvas.width = w;
                 canvas.height = h;
 
-                const maxWeight = Math.max(...filteredList.map(i => i.weight)) || 1;
+                const maxWeight = Math.max(...limitedList.map(i => i.weight)) || 1;
                 const factor = (w / 8) / maxWeight;
 
-                const list = filteredList.map(i => [i.word, i.weight * factor + 14]);
+                const list = limitedList.map(i => [i.word, i.weight * factor + 14]);
 
                 setTimeout(() => {
                     WordCloud(canvas, {
                         list: list,
-                        gridSize: 8, 
+                        gridSize: 12,
                         weightFactor: 1,
                         fontFamily: '"Work Sans", "Noto Sans TC", sans-serif',
                         fontWeight: 'bold',
@@ -538,10 +546,8 @@
                 } else if (type === 'pdf') {
                     this.showToast("正在生成 PDF，請稍候...", "info");
                     
-                    // 🟢 解決中文亂碼與表格擠壓的終極方案：生成隱藏的完美排版 HTML，再截圖
                     const container = document.getElementById('pdf-generator-container');
                     
-                    // 1. 建構 PDF 專用 HTML 內容
                     let pdfContent = `
                         <div style="font-family: 'Noto Sans TC', sans-serif; color: #333;">
                             <h1 style="font-size: 24px; font-weight: bold; color: #BB50E0; margin-bottom: 10px;">AI 智能文字雲分析報告</h1>
@@ -580,7 +586,6 @@
                     pdfContent += `</tbody></table></div>`;
                     container.innerHTML = pdfContent;
 
-                    // 2. 使用 html2canvas 截取這個隱藏容器
                     try {
                         const canvas = await html2canvas(container, { scale: 2 });
                         const imgData = canvas.toDataURL('image/png');
@@ -592,7 +597,6 @@
                         const imgProps = doc.getImageProperties(imgData);
                         const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
                         
-                        // 處理長圖分頁
                         let heightLeft = imgHeight;
                         let position = 0;
 
