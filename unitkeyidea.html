@@ -330,13 +330,13 @@
         }
 
         function renderResult(data) {
-            // 1. 顯示內容區塊，隱藏 Loading
+            // 1. 顯示內容區塊
             document.getElementById("floating-chat").classList.remove("hidden");
             document.getElementById("loading-view").classList.add("hidden");
             document.getElementById("loading-view").classList.remove("flex");
             document.getElementById("content-view").classList.remove("hidden");
 
-            // 2. 自動插入小科開場白
+            // 2. 小科開場白
             const chatBody = document.getElementById("chat-messages");
             chatBody.innerHTML = `
                 <div class="self-start bg-white border border-slate-100 p-3 rounded-lg rounded-tl-none shadow-sm max-w-[85%] text-sm">
@@ -344,21 +344,18 @@
                     嗨，同學你好！我是小科，關於【${data.raw_content.unitName}】單元，你有什麼問題要問我呢？
                 </div>
             `;
-            
+
             // 3. 填入標題與標籤
             document.getElementById("result-title").innerText = data.raw_content.unitName;
-            
-            // 處理課次與學期
             const uType = data.raw_content.unitType;
             const lessonStr = (uType && !isNaN(uType)) ? `第${uType}課` : (uType || "");
-            const semRaw = filters.semester;
-            const semStr = (semRaw === "上" ? "上學期" : (semRaw === "下" ? "下學期" : semRaw));
+            const semStr = (filters.semester === "上" ? "上學期" : (filters.semester === "下" ? "下學期" : filters.semester));
             document.getElementById("result-tag").innerText = `${filters.publisher} • ${filters.grade}年級${semStr} • ${lessonStr}`;
 
-            // 4. 填入核心概念摘要
+            // 4. 填入摘要
             document.getElementById("summary-text").innerHTML = data.summary.summary_html;
 
-            // 5. 填入科學詞彙
+            // 5. 填入詞彙
             const vocabContainer = document.getElementById("keywords-list");
             vocabContainer.innerHTML = "";
             if(data.summary.vocab_list) {
@@ -367,44 +364,57 @@
                 });
             }
 
-            // ★★★ 6. 修復知識架構圖 (強力清洗語法錯誤) ★★★
+            // ★★★ 6. 知識架構圖 (強力清洗修復) ★★★
             const chartDiv = document.getElementById("mermaid-chart");
             if(data.summary.mermaid) {
-                // 先移除 markdown 標記
-                let mermaidCode = data.summary.mermaid.replace(/```mermaid/g, "").replace(/```/g, "");
+                // 步驟 A: 移除 Markdown 語法
+                let mCode = data.summary.mermaid.replace(/```mermaid/g, "").replace(/```/g, "").trim();
                 
-                // 【關鍵修正】強力替換所有可能導致語法錯誤的半形符號為全形
-                mermaidCode = mermaidCode.replace(/\(/g, "（").replace(/\)/g, "）")  // 替換小括號
-                                         .replace(/\[/g, "【").replace(/\]/g, "】")  // 替換中括號
-                                         .replace(/:/g, "：")                       // 替換冒號
-                                         .replace(/"/g, "")                         // 移除雙引號
-                                         .replace(/'/g, "");                        // 移除單引號
+                // 步驟 B: 強制替換所有會導致報錯的半形符號為全形
+                // 這行是救命關鍵，它把 ( ) [ ] : " ' 全部換掉
+                mCode = mCode.replace(/\(/g, "（").replace(/\)/g, "）")
+                             .replace(/\[/g, "【").replace(/\]/g, "】")
+                             .replace(/:/g, "：")
+                             .replace(/"/g, "")
+                             .replace(/'/g, "");
 
-                chartDiv.innerHTML = mermaidCode;
-                chartDiv.removeAttribute("data-processed"); // 重置 mermaid 狀態
-                mermaid.init(undefined, chartDiv); // 重新渲染
+                // 步驟 C: 確保第一行是 graph LR (由左至右)
+                if (!mCode.startsWith("graph")) {
+                    mCode = "graph LR\n" + mCode;
+                } else {
+                    mCode = mCode.replace(/graph TD|graph TB/g, "graph LR");
+                }
+
+                chartDiv.innerHTML = mCode;
+                chartDiv.removeAttribute("data-processed");
+                mermaid.init(undefined, chartDiv);
             }
 
-            // ★★★ 7. 修改迷思診斷格式 (紅字迷思 + 綠字正確) ★★★
+            // 7. 迷思概念 (紅字迷思 / 綠字正確)
             const mythDiv = document.getElementById("myth-list");
             mythDiv.innerHTML = "";
             if(data.summary.myths) {
                 data.summary.myths.forEach(m => {
-                    // 使用新的 HTML 結構，加入顏色與粗體
                     mythDiv.innerHTML += `
-                        <div class="bg-white p-4 rounded-xl border border-red-100 shadow-sm">
-                            <div class="font-bold text-lg text-slate-800 mb-2 flex items-start">
-                                <i class="fa-solid fa-circle-xmark text-red-500 mt-1 mr-2"></i>
-                                <div><span class="text-red-600 font-black">迷思：</span>${m.title}</div>
+                        <div class="bg-white p-5 rounded-xl border border-red-100 shadow-sm hover:shadow-md transition">
+                            <div class="flex items-start gap-3 mb-3">
+                                <div class="bg-red-100 text-red-600 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1"><i class="fa-solid fa-xmark font-bold"></i></div>
+                                <div>
+                                    <span class="text-red-600 font-black text-base block mb-1">迷思：</span>
+                                    <div class="text-slate-800 font-bold">${m.title}</div>
+                                </div>
                             </div>
-                            <div class="text-sm text-slate-700 leading-relaxed pl-6 border-l-2 border-green-200">
-                                <span class="text-green-600 font-black">正確：</span>${m.desc}
+                            <div class="flex items-start gap-3 pl-2 border-l-2 border-green-100 ml-4">
+                                <div>
+                                    <span class="text-green-600 font-black text-sm block mb-1">正確觀念：</span>
+                                    <div class="text-sm text-slate-600 leading-relaxed text-justify">${m.desc}</div>
+                                </div>
                             </div>
                         </div>`;
                 });
             }
-
-            // 8. 高度對齊調整 (維持不變)
+            
+            // 8. 高度對齊
             setTimeout(() => {
                 const summaryHeight = document.getElementById("summary-panel").clientHeight;
                 const vocabPanel = document.getElementById("vocab-panel");
