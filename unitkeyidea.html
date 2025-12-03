@@ -364,19 +364,33 @@
             }
 
             // 6. 知識架構圖 (強力清洗修復)
+            // ★★★ 6. 知識架構圖 (終極強力清洗與方向修正) ★★★
             const chartDiv = document.getElementById("mermaid-chart");
             if(data.summary.mermaid) {
                 let mCode = data.summary.mermaid.replace(/```mermaid/g, "").replace(/```/g, "").trim();
-                mCode = mCode.replace(/\(/g, "（").replace(/\)/g, "）").replace(/\[/g, "【").replace(/\]/g, "】").replace(/:/g, "：").replace(/"/g, "").replace(/'/g, "");
                 
+                // 修正 1: 清理 Markdown 和所有危險半形符號
+                mCode = mCode.replace(/\(/g, "（").replace(/\)/g, "）")
+                             .replace(/\[/g, "【").replace(/\]/g, "】")
+                             .replace(/:/g, "：").replace(/"/g, "").replace(/'/g, "");
+                
+                // 修正 2: 消除不必要的換行符號，防止 Mermaid 誤判指令中斷
+                mCode = mCode.replace(/\n/g, ' '); 
+
+                // 修正 3: 強制方向 (LR)，並確保代碼以 graph LR 開頭
                 if (!mCode.startsWith("graph")) {
-                    mCode = "graph LR\n" + mCode;
+                    mCode = "graph LR " + mCode;
                 } else {
                     mCode = mCode.replace(/graph TD|graph TB/g, "graph LR");
                 }
+                
+                // 修正 4: 確保箭頭符號 (-->) 正確
+                mCode = mCode.replace(/ -> /g, ' --> ');
 
                 chartDiv.innerHTML = mCode;
                 chartDiv.removeAttribute("data-processed");
+                // 讓圖表在錯誤時顯示錯誤代碼 (方便除錯，而不是空白)
+                mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'loose' }); 
                 mermaid.init(undefined, chartDiv);
             }
 
