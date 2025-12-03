@@ -316,13 +316,7 @@
                     if (this.state.words.length > 0) this.renderWordCloud();
                 });
                 
-                window.addEventListener('resize', () => {
-                    if (this.state.words.length > 0) {
-                        clearTimeout(this.state.resizeTimer);
-                        this.state.resizeTimer = setTimeout(() => this.renderWordCloud(), 300);
-                    }
-                });
-            },
+                 },
 
             initResizer() {
                 const resizer = document.getElementById('resizer');
@@ -487,7 +481,7 @@
                     WordCloud(canvas, {
                         list: list,
                         gridSize: 8,
-                        weightFactor: 1,
+                        weightFactor: 0.6,
                         fontFamily: '"Work Sans", "Noto Sans TC", sans-serif',
                         fontWeight: 'bold',
                         color: (word) => {
@@ -565,7 +559,7 @@
                                 ${document.getElementById('panel-ai').innerHTML}
                             </div>
 
-                            <h2 style="font-size: 18px; font-weight: bold; border-bottom: 2px solid #eee; padding-bottom: 5px; margin-bottom: 10px;">2. 數據列表 (前 50 筆)</h2>
+                            <h2 style="font-size: 18px; font-weight: bold; border-bottom: 2px solid #eee; padding-bottom: 5px; margin-bottom: 10px;">2. 數據列表 (前 15 筆)</h2>
                             <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
                                 <thead>
                                     <tr style="background-color: #f5f5f5;">
@@ -578,7 +572,7 @@
                                 <tbody>
                     `;
 
-                    this.state.words.slice(0, 50).forEach((w, i) => {
+                    this.state.words.slice(0, 15).forEach((w, i) => {
                         const bg = i % 2 === 0 ? '#fff' : '#fafafa';
                         pdfContent += `
                             <tr style="background-color: ${bg};">
