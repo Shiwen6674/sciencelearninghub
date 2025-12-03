@@ -43,7 +43,7 @@
                 <span id="db-status" class="text-xs font-bold text-orange-500"><i class="fa-solid fa-circle-notch fa-spin"></i> 連線資料庫中...</span>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                     <label class="text-xs font-bold text-slate-500 ml-1">學習階段</label>
                     <select id="sel-stage" class="w-full p-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-blue-500"><option value="" disabled selected>載入中...</option></select>
@@ -172,15 +172,13 @@
         }
 
 function updateLevel(level, value) {
-            console.log(`[Debug] Level ${level} 變更為: ${value}`);
-
-            // 1. 更新篩選
+            // 1. 更新篩選條件
             if (level === 1) filters = { stage: value }; 
             if (level === 2) { filters.publisher = value; delete filters.grade; delete filters.semester; delete filters.unitName; }
             if (level === 3) { filters.grade = value; delete filters.semester; delete filters.unitName; }
             if (level === 4) { filters.semester = value; delete filters.unitName; }
 
-            // 2. 重置介面
+            // 2. 介面重置
             const ids = ["sel-publisher", "sel-grade", "sel-semester", "sel-unit"];
             for (let i = level; i < 4; i++) {
                 const el = document.getElementById(ids[i]);
@@ -189,7 +187,7 @@ function updateLevel(level, value) {
             }
             document.getElementById("btn-generate").disabled = true;
 
-            // 3. 篩選資料
+            // 3. 篩選資料 (寬容比對)
             const relevantData = allData.filter(d => {
                 const safeMatch = (dataVal, filterVal) => {
                     if (!filterVal) return true;
@@ -201,7 +199,7 @@ function updateLevel(level, value) {
                        safeMatch(d.semester, filters.semester);
             });
 
-            // 4. 填充下層
+            // 4. 填充下層選單
             if (level === 1) {
                 const opts = [...new Set(relevantData.map(d => d.publisher))];
                 populate("sel-publisher", opts);
@@ -215,39 +213,40 @@ function updateLevel(level, value) {
                 populate("sel-semester", opts, "semester");
             }
             
-            // ★★★ 終極偵錯區：讓選單顯示所有欄位 ★★★
+            // ★★★ 單元名稱處理 (G欄+H欄) ★★★
             if (level === 4) {
                 const unitSelect = document.getElementById("sel-unit");
-                unitSelect.innerHTML = '<option value="" disabled selected>--- 資料欄位檢測中 ---</option>';
+                unitSelect.innerHTML = '<option value="" disabled selected>請選擇單元...</option>';
                 
                 if (relevantData.length > 0) {
-                    const firstItem = relevantData[0]; // 抓第一筆符合的資料
-                    const allKeys = Object.keys(firstItem); // 抓所有欄位名稱
-                    
-                    unitSelect.innerHTML = ""; // 清空
-                    
-                    // 1. 顯示一個提示選項
-                    const infoOpt = document.createElement("option");
-                    infoOpt.text = `⬇請查看下方哪些欄位是課名⬇`;
-                    infoOpt.disabled = true;
-                    unitSelect.add(infoOpt);
+                    // 智慧讀取函式
+                    const getValue = (item, possibleKeys) => {
+                        const keys = Object.keys(item);
+                        for (let key of keys) {
+                            if (possibleKeys.includes(key.trim())) return item[key];
+                        }
+                        return "";
+                    };
 
-                    // 2. 把所有欄位都列出來
-                    allKeys.forEach(key => {
+                    relevantData.forEach(d => {
                         const opt = document.createElement("option");
-                        // 顯示格式：[欄位名稱] : 資料內容
-                        opt.text = `[${key}] : ${firstItem[key]}`; 
-                        opt.value = key;
+                        
+                        // 抓取 G欄(課別) 與 H欄(課名)
+                        const unitType = getValue(d, ["課別", "unitType", "課次"]);
+                        const unitName = getValue(d, ["課名", "unitName", "課文", "單元名稱"]); // 確保能抓到 H 欄
+
+                        opt.value = unitName; // 傳給後端的值
+                        
+                        // 顯示文字：處理 "第1課" 這種格式
+                        const typeStr = String(unitType).trim();
+                        const prefix = (typeStr && !isNaN(typeStr)) ? `第${typeStr}課 ` : `${typeStr} `;
+                        opt.text = `${prefix}${unitName}`;
+                        
                         unitSelect.add(opt);
                     });
-                    
                     unitSelect.disabled = false;
-                    // 自動展開 (模擬) - 使用者需要手動點開看
-                    console.log("偵錯模式：已將所有欄位寫入選單");
-                    console.log(firstItem); 
-
                 } else {
-                    unitSelect.innerHTML = '<option disabled>無符合資料</option>';
+                    unitSelect.innerHTML = '<option disabled>無符合單元</option>';
                 }
             }
         }
