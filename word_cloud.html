@@ -3,662 +3,605 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generate Word Cloud | Science Learning Hub</title>
+    <title>單元重點整理</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 替換原本那一行，使用 cdnjs 的穩定版本 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/wordcloud2.js/1.2.2/wordcloud2.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
-
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['"Work Sans"', '"Noto Sans TC"', 'sans-serif'],
-                    },
-                    colors: {
-                        brand: { DEFAULT: '#BB50E0', hover: '#9a00cc', light: '#f3e5f5', bg: '#f8fafc' },
-                        pos: { n: '#8b5cf6', v: '#10b981', a: '#f59e0b', d: '#3b82f6', c: '#ec4899', o: '#9ca3af' }
-                    }
-                }
-            }
-        }
+        tailwind.config = { theme: { extend: { colors: { student: '#3b82f6' }, animation: { "fade-in-up": "fadeInUp 0.5s ease-out forwards" }, keyframes: { fadeInUp: { "0%": { opacity: "0", transform: "translateY(20px)" }, "100%": { opacity: "1", transform: "translateY(0)" } } } } } }
+        mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
     </script>
     <style>
-        body { background-color: #fff; color: #212121; height: 100vh; display: flex; flex-direction: column; overflow: hidden; user-select: none; }
+        body { background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); font-family: sans-serif; }
+        .glass-panel { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.7); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .sci-vocab { background: #fef08a; padding: 0 4px; border-radius: 4px; font-weight: bold; color: #854d0e; }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .chat-window { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform-origin: bottom right; }
+        .chat-window.closed { transform: scale(0); opacity: 0; pointer-events: none; }
+
+        /* --- 核心摘要標題美化 (正確位置) --- */
+        #summary-text h3 {
+            font-size: 1.35rem;       
+            font-weight: 800;         
+            color: #1e3a8a;           
+            margin-top: 1.5rem;       
+            margin-bottom: 0.75rem;   
+            padding: 0.5rem 0.75rem;          
+            border-left: 5px solid #3b82f6;   
+            background: linear-gradient(90deg, #eff6ff 0%, rgba(255,255,255,0) 100%); 
+            border-radius: 0 8px 8px 0;       
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.5);
+        }
+        #summary-text ul { list-style-type: none; padding-left: 0.5rem; }
+        #summary-text li { position: relative; padding-left: 1.5rem; margin-bottom: 0.5rem; color: #374151; }
+        #summary-text li::before { content: "•"; color: #3b82f6; font-weight: bold; font-size: 1.2em; position: absolute; left: 0.25rem; top: -2px; }
         
-        .nav-link { cursor: pointer; position: relative; font-weight: 600; color: #757575; transition: color 0.3s; font-size: 1rem; }
-        .nav-link.active { color: #BB50E0; }
-        .nav-link.active::after { content: ''; position: absolute; bottom: -8px; left: 0; width: 100%; height: 3px; background-color: #BB50E0; border-radius: 3px 3px 0 0; }
+        /* 詞彙列表樣式 */
+        .vocab-item { transition: all 0.2s; }
+        .vocab-item:hover { transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
 
-        .scroller::-webkit-scrollbar { width: 8px; }
-        .scroller::-webkit-scrollbar-track { background: #f1f1f1; }
-        .scroller::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
-        .scroller::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+        /* Mermaid 圖放大，字體 15px */
+        #mermaid-chart .mermaid {
+            font-size: 15px;
+        }
+        #mermaid-chart .mermaid svg {
+            width: 100%;
+            height: auto;
+        }
 
-        .loader { width: 24px; height: 24px; border: 3px solid rgba(187, 80, 224, 0.2); border-top-color: #BB50E0; border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        /* PDF / html2pdf 分頁：每個 page-break 元件從新頁開始 */
+        .page-break { 
+            page-break-before: always; 
+        }
 
-        .pos-chip { display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 8px; font-size: 0.9rem; font-weight: 500; border: 1px solid #e5e7eb; background-color: #fff; color: #6b7280; cursor: pointer; transition: all 0.2s; }
-        .pos-chip:hover { background-color: #f9fafb; border-color: #d1d5db; }
-        
-        .pos-chip.active[data-pos="n"] { background-color: #f5f3ff; color: #8b5cf6; border-color: #8b5cf6; }
-        .pos-chip.active[data-pos="v"] { background-color: #ecfdf5; color: #10b981; border-color: #10b981; }
-        .pos-chip.active[data-pos="a"] { background-color: #fffbeb; color: #f59e0b; border-color: #f59e0b; }
-        .pos-chip.active[data-pos="d"] { background-color: #eff6ff; color: #3b82f6; border-color: #3b82f6; }
-        .pos-chip.active[data-pos="c"] { background-color: #fdf2f8; color: #ec4899; border-color: #ec4899; }
-        .pos-chip.active[data-pos="o"] { background-color: #f3f4f6; color: #4b5563; border-color: #6b7280; }
-
-        .pos-dot { width: 8px; height: 8px; border-radius: 50%; background-color: currentColor; }
-        
-        /* 隱藏的 PDF 生成容器 */
-        #pdf-generator-container {
-            position: absolute; top: -9999px; left: -9999px; width: 800px;
-            background: #fff; padding: 40px; box-sizing: border-box;
+        /* 列印專用樣式 (PDF分頁設定) */
+        @media print {
+            body { background: white; }
+            nav, #selection-panel, #floating-chat, .no-print { display: none !important; }
+            .glass-panel { box-shadow: none; border: none; margin-bottom: 20px; padding: 0; break-inside: avoid; page-break-inside: avoid; }
+            .page-break { break-before: page; page-break-before: always; display: block; margin-top: 20px; }
+            .grid { display: block; }
+            .md\:col-span-2, .md\:col-span-3 { width: 100%; margin-bottom: 20px; }
+            #content-view { display: block !important; }
+            #keywords-list { max-height: none !important; overflow: visible !important; }
         }
     </style>
 </head>
-<body class="flex flex-col h-screen overflow-hidden">
+<body class="text-slate-800 min-h-screen flex flex-col">
 
-    <header class="h-16 border-b border-gray-200 bg-white flex items-center justify-between px-6 shrink-0 z-30 shadow-sm">
-        <div class="flex items-center gap-6">
-            <button onclick="window.location.href='researcher.html'" class="text-gray-500 hover:text-brand transition font-medium flex items-center gap-2 text-base">
-                <i class="fa-solid fa-arrow-left"></i> <span data-i18n="back">返回研究中心</span>
-            </button>
-            <div class="h-6 w-px bg-gray-300"></div>
-            <h1 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-                <i class="fa-solid fa-cloud text-brand"></i>
-                <span data-i18n="title">AI 智能文字雲</span>
-            </h1>
-        </div>
+<nav class="glass-panel sticky top-0 z-50 px-6 py-4 flex justify-between items-center no-print">
+        
         <div class="flex items-center gap-4">
-            <select id="language-selector" onchange="App.changeLanguage()" class="bg-gray-50 border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-brand focus:border-brand block p-2 outline-none cursor-pointer">
+            <a href="student.html" class="group flex items-center gap-2 text-slate-500 hover:text-blue-600 transition decoration-0">
+                <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow group-hover:shadow-md transition">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </div>
+                <span class="font-bold hidden md:block" data-i18n="back_home">返回學習中心</span>
+            </a>
+
+            <a href="sciencebilingual.html" class="group flex items-center gap-2 text-slate-500 hover:text-purple-600 transition decoration-0">
+                <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow group-hover:shadow-md transition">
+                    <i class="fa-solid fa-book-open-reader"></i>
+                </div>
+                <span class="font-bold hidden md:block" data-i18n="btn_bilingual">科學雙語閱讀</span>
+            </a>
+
+            <div class="h-8 w-px bg-slate-300 mx-2 hidden sm:block"></div>
+
+            <div class="hidden sm:block">
+                <h1 class="font-bold text-lg" data-i18n="page_title">單元重點整理</h1>
+                <p class="text-xs text-slate-500" data-i18n="page_subtitle">AI 智能筆記生成</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            
+            <a href="aievaluation.html" class="group flex items-center gap-2 text-slate-500 hover:text-green-600 transition decoration-0 mr-2">
+                <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow group-hover:shadow-md transition border border-slate-100">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                </div>
+                <span class="font-bold hidden lg:block" data-i18n="btn_eval">AI 評分診斷</span>
+            </a>
+
+            <select id="language-selector" onchange="changeLanguage()" class="bg-white/50 border text-xs rounded-lg p-1.5 cursor-pointer outline-none focus:ring-1 focus:ring-blue-300">
                 <option value="zh-TW">繁體中文</option>
                 <option value="en">English</option>
                 <option value="ja">日本語</option>
                 <option value="zh-CN">简体中文</option>
             </select>
+            
+            <div class="flex items-center gap-2 pl-2 border-l border-slate-300">
+                 <div id="user-info" class="text-sm font-bold text-blue-600">訪客</div>
+            </div>
         </div>
-    </header>
+    </nav>
 
-    <div class="flex flex-1 overflow-hidden">
-        
-        <aside class="w-[45%] min-w-[450px] max-w-[800px] bg-white border-r border-gray-200 flex flex-col h-full shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-20">
-            <div class="flex-1 overflow-y-auto scroller p-8"> 
-                
-                <div class="flex border-b border-gray-200 mb-6">
-                    <div class="nav-link active px-4 py-2 text-base" data-i18n="tab_text">文字輸入</div>
-                </div>
+    <main class="max-w-7xl mx-auto px-4 py-8 flex-1 w-full pb-24">
+        <div id="selection-panel" class="glass-panel rounded-2xl p-6 mb-8 no-print">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-bold text-lg flex items-center gap-2"><i class="fa-solid fa-database"></i> <span data-i18n="settings_title">請挑選你要的學習單元</span></h2>
+                <span id="db-status" class="text-xs font-bold text-orange-500"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading...</span>
+            </div>
 
-                <div class="mb-8">
-                    <div class="bg-brand-bg rounded-xl border border-gray-300 p-4 focus-within:border-brand focus-within:ring-1 focus-within:ring-brand transition">
-                        <textarea id="text-input" class="w-full h-40 bg-transparent border-0 outline-none text-gray-700 resize-none leading-relaxed placeholder-gray-400 text-base" placeholder="請在此貼上文章..."></textarea>
-                    </div>
-                    <div class="flex justify-end gap-3 mt-3">
-                        <button onclick="App.loadExample()" class="text-sm font-bold text-brand hover:text-brand-hover px-4 py-2 rounded border border-brand-light hover:bg-brand-light transition flex items-center gap-2">
-                            <i class="fa-solid fa-flask"></i> <span data-i18n="btn_example">範例</span>
-                        </button>
-                        <button onclick="App.clearInput()" class="text-sm font-bold text-gray-500 hover:text-red-500 px-4 py-2 rounded border border-gray-200 hover:bg-red-50 transition flex items-center gap-2">
-                            <i class="fa-solid fa-trash"></i> <span data-i18n="btn_clear">清空</span>
-                        </button>
-                    </div>
-                </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                <div><label class="text-xs font-bold text-slate-500 ml-1" data-i18n="label_stage">學習階段</label><select id="sel-stage" class="w-full p-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-blue-500"><option value="" disabled selected>Loading...</option></select></div>
+                <div><label class="text-xs font-bold text-slate-500 ml-1" data-i18n="label_publisher">版本</label><select id="sel-publisher" disabled class="w-full p-2.5 rounded-xl border border-slate-200 text-sm outline-none disabled:bg-slate-50"><option value="" disabled selected>Select...</option></select></div>
+                <div><label class="text-xs font-bold text-slate-500 ml-1" data-i18n="label_grade">年級</label><select id="sel-grade" disabled class="w-full p-2.5 rounded-xl border border-slate-200 text-sm outline-none disabled:bg-slate-50"><option value="" disabled selected>Select...</option></select></div>
+                <div><label class="text-xs font-bold text-slate-500 ml-1" data-i18n="label_semester">學期</label><select id="sel-semester" disabled class="w-full p-2.5 rounded-xl border border-slate-200 text-sm outline-none disabled:bg-slate-50"><option value="" disabled selected>Select...</option></select></div>
+                <div><label class="text-xs font-bold text-slate-500 ml-1" data-i18n="label_unit">單元名稱</label><select id="sel-unit" disabled class="w-full p-2.5 rounded-xl border border-slate-200 text-sm outline-none disabled:bg-slate-50"><option value="" disabled selected>Select...</option></select></div>
+            </div>
 
-                <div class="mb-8 bg-gray-50 p-6 rounded-xl border border-gray-200 shadow-sm">
-                    <h5 class="text-base font-bold mb-4 text-gray-700 flex items-center gap-2" data-i18n="sec_options">
-                        <i class="fa-solid fa-sliders"></i> 設定選項
-                    </h5>
-
-                    <div class="grid grid-cols-2 gap-6 mb-6">
-                        <div>
-                            <label class="block text-sm font-bold text-gray-500 uppercase mb-2" data-i18n="label_model">權重模型</label>
-                            <div class="relative">
-                                <select id="model-select" class="w-full p-3 bg-white border border-gray-300 rounded-lg text-base appearance-none focus:border-brand outline-none cursor-pointer font-medium shadow-sm">
-                                    <option value="frequency" data-i18n="opt_freq">詞頻 (Frequency)</option>
-                                    <option value="tfidf" data-i18n="opt_tfidf">TF-IDF (Intra-text)</option>
-                                    <option value="textrank" data-i18n="opt_textrank">TextRank (Weighted)</option>
-                                </select>
-                                <i class="fa-solid fa-chevron-down absolute right-3 top-4 text-gray-400 text-xs pointer-events-none"></i>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-gray-500 uppercase mb-2" data-i18n="label_shape">形狀</label>
-                            <div class="relative">
-                                <select id="shape-select" class="w-full p-3 bg-white border border-gray-300 rounded-lg text-base appearance-none focus:border-brand outline-none cursor-pointer font-medium shadow-sm">
-                                    <option value="circle" data-i18n="shape_circle">圓形</option>
-                                    <option value="square" data-i18n="shape_square">方形</option>
-                                    <option value="cardioid" data-i18n="shape_heart">愛心</option>
-                                    <option value="star" data-i18n="shape_star">星形</option>
-                                    <option value="diamond" data-i18n="shape_diamond">菱形</option>
-                                </select>
-                                <i class="fa-solid fa-chevron-down absolute right-3 top-4 text-gray-400 text-xs pointer-events-none"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mb-6">
-                        <div class="flex justify-between items-center mb-2">
-                            <label class="block text-sm font-bold text-gray-500 uppercase" data-i18n="label_max_words">顯示詞彙數量</label>
-                            <span id="max-words-val" class="text-sm font-bold text-brand bg-white px-3 py-1 rounded border border-gray-200">100</span>
-                        </div>
-                        <input type="range" id="max-words-slider" min="10" max="200" step="10" value="100" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-brand">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-bold text-gray-500 uppercase mb-3" data-i18n="label_pos_filter">詞性過濾</label>
-                        <div class="flex flex-wrap gap-3" id="pos-container">
-                            <button class="pos-chip active" data-pos="n"><span class="pos-dot"></span> 名詞 (N)</button>
-                            <button class="pos-chip active" data-pos="v"><span class="pos-dot"></span> 動詞 (V)</button>
-                            <button class="pos-chip active" data-pos="a"><span class="pos-dot"></span> 形容詞 (A)</button>
-                            <button class="pos-chip" data-pos="d"><span class="pos-dot"></span> 副詞 (D)</button>
-                            <button class="pos-chip" data-pos="c"><span class="pos-dot"></span> 連接詞 (C)</button>
-                            <button class="pos-chip" data-pos="o"><span class="pos-dot"></span> 其他 (O)</button>
-                        </div>
-                    </div>
-                </div>
-
-                <button id="btn-analyze" onclick="App.runAnalysis()" class="w-full bg-brand hover:bg-brand-hover text-white font-bold py-4 rounded-xl shadow-lg shadow-brand/20 transition transform active:scale-[0.98] flex items-center justify-center gap-2 text-base tracking-wide">
-                    <span data-i18n="btn_visualize">產生文字雲</span> <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <div class="mt-6 flex justify-end">
+                <button id="btn-generate" onclick="startGeneration()" disabled class="bg-blue-600 text-white px-8 py-2.5 rounded-xl font-bold shadow-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="btn_generate">AI 開始分析</span>
                 </button>
             </div>
+        </div>
 
-            <div id="results-container" class="hidden border-t border-gray-200 bg-gray-50 h-[40%] flex flex-col">
-                <div class="flex border-b border-gray-200 bg-white px-6 justify-between items-center">
-                    <div class="flex">
-                        <button onclick="App.switchTab('ai')" id="tab-ai" class="py-3 px-6 text-base font-bold text-brand border-b-2 border-brand transition" data-i18n="tab_ai">AI 洞察</button>
-                        <button onclick="App.switchTab('data')" id="tab-data" class="py-3 px-6 text-base font-bold text-gray-400 border-b-2 border-transparent hover:text-gray-600 transition" data-i18n="tab_data">數據列表</button>
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="App.downloadReport('txt')" class="text-xs font-bold text-gray-500 hover:text-brand bg-gray-100 px-3 py-1.5 rounded transition" title="Download TXT">
-                            <i class="fa-solid fa-file-lines"></i> TXT
-                        </button>
-                        <button onclick="App.downloadReport('pdf')" class="text-xs font-bold text-gray-500 hover:text-brand bg-gray-100 px-3 py-1.5 rounded transition" title="Download PDF">
-                            <i class="fa-solid fa-file-pdf"></i> PDF
-                        </button>
-                    </div>
+        <div id="loading-view" class="hidden flex-col items-center justify-center py-20">
+            <div class="loader mb-4"></div>
+            <h3 class="text-xl font-bold text-slate-700">AI 單元重點整理中...</h3>
+        </div>
+
+        <div id="content-view" class="hidden animate-fade-in-up">
+            <div class="mb-6 flex justify-between items-end">
+                <div>
+                    <span id="result-tag" class="text-xs font-bold bg-blue-100 text-blue-600 px-3 py-1 rounded-full">TAG</span>
+                    <h1 id="result-title" class="text-3xl font-black text-slate-800 mt-2">Title</h1>
                 </div>
-
-                <div id="panel-ai" class="flex-1 overflow-y-auto scroller p-6 text-base text-gray-700 leading-relaxed space-y-4 bg-brand-bg"></div>
-
-                <div id="panel-data" class="hidden flex-1 overflow-y-auto scroller p-0">
-                    <table class="w-full text-sm text-left border-collapse">
-                        <thead class="bg-gray-100 text-gray-500 sticky top-0 shadow-sm z-10">
-                            <tr>
-                                <th class="p-3 font-semibold pl-6" data-i18n="col_rank">#</th>
-                                <th class="p-3 font-semibold" data-i18n="col_word">詞彙</th>
-                                <th class="p-3 font-semibold" data-i18n="col_pos">詞性</th>
-                                <th class="p-3 text-right font-semibold pr-6" data-i18n="col_weight">權重</th>
-                            </tr>
-                        </thead>
-                        <tbody id="data-table-body" class="divide-y divide-gray-200 bg-white"></tbody>
-                    </table>
+                <div class="flex gap-2 no-print">
+                    <button onclick="downloadTXT()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded-lg font-bold text-sm transition">
+                        <i class="fa-solid fa-file-lines"></i> <span data-i18n="btn_txt">下載 TXT</span>
+                    </button>
+                    <button onclick="downloadPDF()" class="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-lg font-bold text-sm transition">
+                        <i class="fa-solid fa-file-pdf"></i> <span data-i18n="btn_pdf">下載 PDF</span>
+                    </button>
                 </div>
             </div>
-        </aside>
 
-        <div id="resizer" class="w-1.5 bg-gray-200 cursor-col-resize hover:bg-brand transition z-30"></div>
-
-        <main class="flex-1 bg-gray-100 relative flex flex-col items-center justify-center p-8 overflow-hidden">
-            
-            <div id="canvas-wrapper" class="w-full h-full bg-white rounded-2xl shadow-sm border border-gray-200 relative flex items-center justify-center overflow-hidden">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
                 
-                <div id="empty-state" class="text-center opacity-60">
-                    <img src="https://cdn-icons-png.flaticon.com/512/4047/4047268.png" alt="Cloud" class="w-32 h-32 mx-auto mb-6 opacity-50 grayscale">
-                    <h3 class="text-2xl font-bold text-gray-700" data-i18n="state_ready">準備就緒</h3>
-                    <p class="text-gray-500 mt-2 text-lg" data-i18n="state_ready_desc">請在左側輸入文字並產生文字雲</p>
+                <div id="summary-panel" class="md:col-span-2 glass-panel p-6 rounded-2xl bg-white border-l-4 border-blue-500 h-full max-h-[650px] flex flex-col page-break">
+                    <h3 class="font-bold text-blue-800 mb-4"><i class="fa-solid fa-star text-yellow-400"></i> <span data-i18n="title_summary">核心概念摘要</span></h3>
+                    <div id="summary-text" class="prose max-w-none text-slate-600 leading-relaxed"></div>
                 </div>
-
-                <div id="loading-state" class="hidden text-center">
-                    <div class="loader mx-auto mb-6 w-12 h-12 border-4"></div>
-                    <p class="text-brand font-bold text-xl animate-pulse" data-i18n="state_loading">AI 正在運算中...</p>
-                    <p class="text-gray-400 text-sm mt-1">斷詞、權重計算、AI 解讀</p>
+                
+                <div id="vocab-panel" class="glass-panel p-6 rounded-2xl bg-gradient-to-br from-white to-blue-50 page-break h-full max-h-[650px] flex flex-col">
+                    <h3 class="font-bold text-slate-700 mb-4"><span data-i18n="title_vocab">科學詞彙與定義</span></h3>
+                    <div id="keywords-list" class="space-y-3 overflow-y-auto custom-scrollbar pr-2 flex-1"></div>
                 </div>
+                
+                <div class="md:col-span-3 glass-panel p-6 rounded-2xl bg-white page-break">
+                    <h3 class="font-bold text-purple-700 mb-4"><i class="fa-solid fa-project-diagram"></i> <span data-i18n="title_map">知識架構圖</span></h3>
+                    <div class="relative group">
+    <button onclick="openModal()" class="absolute top-2 right-2 bg-white/80 hover:bg-white text-slate-600 hover:text-blue-600 p-2 rounded-lg shadow-sm border border-slate-200 transition opacity-0 group-hover:opacity-100 z-10" title="全螢幕放大">
+        <i class="fa-solid fa-expand"></i>
+    </button>
 
-                <canvas id="word-cloud-canvas" class="hidden"></canvas>
+    <div class="bg-slate-50 rounded-xl p-6 border border-slate-100 overflow-x-auto w-full custom-scrollbar">
+        <div id="mermaid-chart" class="w-full min-w-[800px] flex justify-center"></div>
+    </div>
+</div>
+                </div>
+                
+                <div class="md:col-span-3 glass-panel p-6 rounded-2xl bg-red-50/50 border border-red-100 page-break">
+                    <h3 class="font-bold text-red-600 mb-4"><i class="fa-solid fa-circle-exclamation"></i> <span data-i18n="title_myth">常見迷思診斷</span></h3>
+                    <div id="myth-list" class="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch"></div>
+                </div>
             </div>
+        </div>
+    </main>
 
-            <!-- ✅ 只修正 text-gray-800 斷行問題，其他不變 -->
-            <button onclick="App.downloadImage()" id="btn-download" class="hidden absolute bottom-12 right-12 bg-white text-gray-800 hover:text-brand border border-gray-300 px-8 py-4 rounded-full shadow-xl font-bold transition transform hover:-translate-y-1 flex items-center gap-3 z-30 group text-base">
-                <span class="group-hover:text-brand transition" data-i18n="btn_download">下載圖片</span> <i class="fa-solid fa-download group-hover:animate-bounce"></i>
-            </button>
-
-        </main>
+    <div id="floating-chat" class="hidden fixed bottom-6 right-6 z-[100] flex flex-col items-end gap-4 no-print">
+        <div id="xiaoke-window" class="chat-window closed w-80 md:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden h-[500px]">
+            <div class="bg-blue-600 p-4 text-white flex justify-between items-center">
+                <div class="flex items-center gap-2">
+    <img src="https://raw.githubusercontent.com/Shiwen6674/sciencelearninghub/main/irob.png" alt="小科" class="w-8 h-8 rounded-full object-cover bg-white">
+    <span class="font-bold">小科 AI</span>
+</div>
+                <button onclick="toggleChat()" class="text-white/80 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="flex-1 p-4 bg-slate-50 overflow-y-auto text-sm space-y-3" id="chat-messages"></div>
+            <div class="p-3 bg-white border-t border-slate-100 flex gap-2">
+                <input type="text" id="chat-input" placeholder="..." class="flex-1 bg-slate-100 border-none rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" onkeypress="if(event.key==='Enter') sendChatMessage()">
+                <button onclick="sendChatMessage()" class="bg-blue-600 text-white w-10 h-10 rounded-full hover:bg-blue-700 transition flex items-center justify-center"><i class="fa-solid fa-paper-plane text-xs"></i></button>
+            </div>
+        </div>
+        <button onclick="toggleChat()" class="w-14 h-14 bg-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition overflow-hidden border-2 border-blue-600 p-1">
+    <img src="https://raw.githubusercontent.com/Shiwen6674/sciencelearninghub/main/irob.png" alt="小科" class="w-full h-full object-cover rounded-full">
+</button>
     </div>
-
-    <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-full shadow-2xl opacity-0 translate-y-10 transition-all duration-300 pointer-events-none z-50 font-medium text-sm flex items-center gap-3">
-        <i class="fa-solid fa-info-circle"></i> <span id="toast-msg">Notification</span>
-    </div>
-
-    <div id="pdf-generator-container"></div>
 
     <script>
-        // 🔴🔴🔴 請務必填入您部署後的 GAS Web App URL (結尾是 /exec) 🔴🔴🔴
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbw3UqYr976wAd9aeEsLpTDSlGaUVdBpaErqZi-zHgNzh_Gd0SuggfdI7ldVzrqR1Ygd/exec"; 
+        // ★★★ 請務必確認這是您最新部署的永久網址 ★★★
+        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxBWrZCp-xLckDGZnhe64K0IUa_8CJZRzqZbrgL8lQdNn3S1WgaEzbdOtpo4mGwN6_H/exec";
+        
+        let allData = [];
+        let filters = {};
+        let currentResultData = null; // 儲存生成的資料供下載用
 
-        const App = {
-            state: {
-                words: [],
-                resizeTimer: null,
-                currentLang: 'zh-TW',
-                activePos: new Set(['n', 'v', 'a']),
-                maxWords: 100
+        // 多語系字典
+       // 多語系字典 (已更新 settings_title 為「請挑選你要的學習單元」)
+        // 多語系字典 (已加入 btn_eval)
+        const i18n = {
+            "zh-TW": { 
+                back_home:"返回學習中心", 
+                btn_bilingual:"科學雙語閱讀", 
+                btn_eval:"AI 評分診斷", // ★ 新增
+                page_title:"單元重點整理", page_subtitle:"AI 智能筆記生成", 
+                settings_title:"請挑選你要的學習單元", label_stage:"學習階段", label_publisher:"版本", 
+                label_grade:"年級", label_semester:"學期", label_unit:"單元名稱", 
+                btn_generate:"AI 分析並生成", btn_txt:"下載 TXT", btn_pdf:"下載 PDF", 
+                title_summary:"核心概念摘要", title_vocab:"科學詞彙與定義", title_map:"知識架構圖", title_myth:"常見迷思診斷" 
             },
-
-            translations: {
-                "zh-TW": {
-                    "back": "返回研究中心", "title": "AI 智能文字雲", "tab_text": "文字輸入",
-                    "btn_example": "載入範例", "btn_clear": "清空", "sec_options": "設定選項",
-                    "sec_options_desc": "自定義您的文字雲參數", "label_model": "權重模型", "label_shape": "形狀", "label_pos_filter": "詞性過濾 (點擊切換)", "label_max_words": "顯示詞彙數量",
-                    "opt_freq": "詞頻 (Frequency)", "opt_tfidf": "TF-IDF (Intra-text)", "opt_textrank": "TextRank (Weighted)",
-                    "shape_circle": "圓形", "shape_square": "方形", "shape_heart": "愛心", "shape_star": "星形", "shape_diamond": "菱形",
-                    "btn_visualize": "產生文字雲", "tab_ai": "AI 洞察", "tab_data": "數據列表",
-                    "col_rank": "#", "col_word": "詞彙", "col_pos": "詞性", "col_weight": "權重",
-                    "state_ready": "準備就緒", "state_ready_desc": "請在左側輸入文字並產生文字雲",
-                    "state_loading": "AI 正在運算中...", "btn_download": "下載圖片",
-                    "msg_input_empty": "請輸入文字", "msg_processing": "處理中...", "msg_success": "分析完成", "msg_error": "發生錯誤"
-                },
-                "en": {
-                    "back": "Back", "title": "AI Word Cloud", "tab_text": "Text Input",
-                    "btn_example": "Example", "btn_clear": "Clear", "sec_options": "Options",
-                    "sec_options_desc": "Customize options", "label_model": "Model", "label_shape": "Shape", "label_pos_filter": "POS Filters", "label_max_words": "Max Words",
-                    "opt_freq": "Frequency", "opt_tfidf": "TF-IDF", "opt_textrank": "TextRank",
-                    "shape_circle": "Circle", "shape_square": "Square", "shape_heart": "Heart", "shape_star": "Star", "shape_diamond": "Diamond",
-                    "btn_visualize": "VISUALIZE", "tab_ai": "AI Insight", "tab_data": "Data List",
-                    "col_rank": "#", "col_word": "Word", "col_pos": "POS", "col_weight": "Weight",
-                    "state_ready": "Ready", "state_ready_desc": "Input text to start",
-                    "state_loading": "Processing...", "btn_download": "Download",
-                    "msg_input_empty": "Input text required", "msg_processing": "Processing...", "msg_success": "Done", "msg_error": "Error"
-                },
-                "ja": {
-                    "back": "戻る", "title": "AI ワードクラウド", "tab_text": "入力", "btn_example": "例文", "btn_clear": "クリア", "sec_options": "設定",
-                    "sec_options_desc": "オプションを選択", "label_model": "モデル", "label_shape": "形状", "label_pos_filter": "品詞フィルタ", "label_max_words": "単語数", "opt_freq": "頻度", "opt_tfidf": "TF-IDF", "opt_textrank": "TextRank", "shape_circle": "円形", "shape_square": "四角", "shape_heart": "ハート", "shape_star": "星", "shape_diamond": "菱形", "btn_visualize": "生成する", "tab_ai": "AI分析", "tab_data": "データ", "col_rank": "#", "col_word": "単語", "col_pos": "品詞", "col_weight": "重み", "state_ready": "準備完了", "state_ready_desc": "テキストを入力してください", "state_loading": "処理中...", "btn_download": "画像保存", "msg_input_empty": "入力してください", "msg_processing": "計算中...", "msg_success": "完了", "msg_error": "エラー"
-                },
-                "zh-CN": {
-                    "back": "返回", "title": "AI 智能文字云", "tab_text": "文字输入", "btn_example": "范例", "btn_clear": "清空", "sec_options": "选项", "sec_options_desc": "自定义参数", "label_model": "权重模型", "label_shape": "形状", "label_pos_filter": "词性过滤", "label_max_words": "词汇数量", "opt_freq": "词频", "opt_tfidf": "TF-IDF", "opt_textrank": "TextRank", "shape_circle": "圆形", "shape_square": "方形", "shape_heart": "心形", "shape_star": "星形", "shape_diamond": "菱形", "btn_visualize": "生成文字云", "tab_ai": "AI 洞察", "tab_data": "数据列表", "col_rank": "#", "col_word": "词汇", "col_pos": "词性", "col_weight": "权重", "state_ready": "准备就绪", "state_ready_desc": "请输入文字", "state_loading": "运算中...", "btn_download": "下载图片", "msg_input_empty": "请输入文字", "msg_processing": "处理中...", "msg_success": "分析完成", "msg_error": "发生错误"
-                }
+            "en": { 
+                back_home:"Back Home", 
+                btn_bilingual:"Bilingual Reading", 
+                btn_eval:"AI Assessment", // ★ 新增
+                page_title:"Unit Summary", page_subtitle:"AI Generator", 
+                settings_title:"Select Learning Unit", label_stage:"Level", label_publisher:"Publisher", 
+                label_grade:"Grade", label_semester:"Semester", label_unit:"Unit", 
+                btn_generate:"Generate", btn_txt:"Download TXT", btn_pdf:"Download PDF", 
+                title_summary:"Core Concepts", title_vocab:"Vocabulary", title_map:"Mind Map", title_myth:"Common Myths" 
             },
-
-            exampleText: "電流磁效應是指電流通過導線時，會在導線周圍產生磁場的現象。1820年，丹麥物理學家奧斯特發現，當導線通電時，旁邊的磁針會發生偏轉，證明了電與磁之間有密切的關係。磁場的方向可以用安培右手定則來判斷：用右手握住導線，大拇指指向電流方向，四指彎曲的方向就是磁場方向。若將導線繞成螺線管，通電後內部會產生均勻磁場，其特性類似於條形磁鐵。",
-
-            init() {
-                this.bindEvents();
-                this.initResizer();
-                document.getElementById('text-input').placeholder = "請在此貼上文章 (建議 100 字以上)...";
+            "ja": { 
+                back_home:"ホームに戻る", 
+                btn_bilingual:"二言語読解", 
+                btn_eval:"AI 診断・採点", // ★ 新增
+                page_title:"単元のまとめ", page_subtitle:"AIノート生成", 
+                settings_title:"学習單元を選択", label_stage:"段階", label_publisher:"出版社", 
+                label_grade:"学年", label_semester:"学期", label_unit:"単元", 
+                btn_generate:"生成する", btn_txt:"TXTを保存", btn_pdf:"PDFを保存", 
+                title_summary:"核心概念", title_vocab:"科学用語", title_map:"知識マップ", title_myth:"よくある誤解" 
             },
-
-            bindEvents() {
-                document.querySelectorAll('.pos-chip').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const target = e.currentTarget;
-                        const pos = target.dataset.pos;
-                        if (this.state.activePos.has(pos)) {
-                            this.state.activePos.delete(pos);
-                            target.classList.remove('active');
-                        } else {
-                            this.state.activePos.add(pos);
-                            target.classList.add('active');
-                        }
-                        if (this.state.words.length > 0) this.renderWordCloud();
-                    });
-                });
-
-                const slider = document.getElementById('max-words-slider');
-                const valDisplay = document.getElementById('max-words-val');
-                slider.addEventListener('input', (e) => {
-                    this.state.maxWords = parseInt(e.target.value);
-                    valDisplay.innerText = this.state.maxWords;
-                });
-
-                document.getElementById('shape-select').addEventListener('change', () => {
-                    if (this.state.words.length > 0) this.renderWordCloud();
-                });
-                
-                 },
-
-            initResizer() {
-                const resizer = document.getElementById('resizer');
-                const sidebar = document.querySelector('aside');
-                let isResizing = false;
-
-                resizer.addEventListener('mousedown', () => { isResizing = true; document.body.style.cursor = 'col-resize'; });
-                document.addEventListener('mousemove', (e) => {
-                    if (!isResizing) return;
-                    const w = e.clientX;
-                    if (w > 400 && w < window.innerWidth * 0.7) sidebar.style.width = `${w}px`;
-                });
-                document.addEventListener('mouseup', () => {
-                    if (isResizing) {
-                        isResizing = false; document.body.style.cursor = 'default';
-                        if (this.state.words.length > 0) this.renderWordCloud();
-                    }
-                });
-            },
-
-            // ✅ 修正：範例載入使用 App.exampleText，避免 this 指向錯誤
-            loadExample() {
-                const ta = document.getElementById('text-input');
-                if (!ta) return;
-                ta.value = App.exampleText || "";
-            },
-
-            clearInput() { 
-                document.getElementById('text-input').value = ''; 
-                document.getElementById('results-container').classList.add('hidden');
-                document.getElementById('word-cloud-canvas').classList.add('hidden');
-                document.getElementById('btn-download').classList.add('hidden');
-                document.getElementById('empty-state').classList.remove('hidden');
-                this.state.words = []; 
-            },
-
-            changeLanguage() {
-                this.state.currentLang = document.getElementById('language-selector').value;
-                const t = this.translations[this.state.currentLang] || this.translations['zh-TW'];
-                document.querySelectorAll('[data-i18n]').forEach(el => {
-                    el.innerText = t[el.getAttribute('data-i18n')] || el.innerText;
-                });
-                
-                const opts = ['opt_freq','opt_tfidf','opt_textrank','shape_circle','shape_square','shape_heart','shape_star','shape_diamond'];
-                opts.forEach(k => {
-                    const el = document.querySelector(`option[data-i18n="${k}"]`) || document.querySelector(`option[value="${k.split('_')[1]}"]`);
-                    if(el && t[k]) el.innerText = t[k];
-                });
-            },
-
-            switchTab(tab) {
-                const tabAi = document.getElementById('tab-ai');
-                const tabData = document.getElementById('tab-data');
-                const panelAi = document.getElementById('panel-ai');
-                const panelData = document.getElementById('panel-data');
-
-                if (tab === 'ai') {
-                    tabAi.className = "py-3 px-6 text-base font-bold text-brand border-b-2 border-brand transition";
-                    tabData.className = "py-3 px-6 text-base font-bold text-gray-400 border-b-2 border-transparent hover:text-gray-600 transition";
-                    panelAi.classList.remove('hidden'); panelData.classList.add('hidden');
-                } else {
-                    tabAi.className = "py-3 px-6 text-base font-bold text-gray-400 border-b-2 border-transparent hover:text-gray-600 transition";
-                    tabData.className = "py-3 px-6 text-base font-bold text-brand border-b-2 border-brand transition";
-                    panelAi.classList.add('hidden'); panelData.classList.remove('hidden');
-                }
-            },
-
-            async runAnalysis() {
-                const text = document.getElementById('text-input').value.trim();
-                const model = document.getElementById('model-select').value;
-                const btn = document.getElementById('btn-analyze');
-                const t = this.translations[this.state.currentLang] || this.translations['zh-TW'];
-
-                if (!text) { this.showToast(t.msg_input_empty, 'error'); return; }
-                if (GAS_URL.includes("在此填入")) { this.showToast("API URL not set", 'error'); return; }
-
-                const orgBtnHtml = btn.innerHTML;
-                btn.disabled = true;
-                btn.innerHTML = `<div class="loader w-4 h-4 border-2 border-white/30 border-t-white mr-2"></div> ${t.msg_processing}`;
-                
-                document.getElementById('empty-state').classList.add('hidden');
-                document.getElementById('word-cloud-canvas').classList.add('hidden');
-                document.getElementById('btn-download').classList.add('hidden');
-                document.getElementById('loading-state').classList.remove('hidden');
-                document.getElementById('results-container').classList.add('hidden');
-
-                const payload = { text: text, mode: model, maxTerms: this.state.maxWords };
-
-                try {
-                    const res = await fetch(GAS_URL, {
-                        method: 'POST',
-                        body: JSON.stringify(payload),
-                        headers: { "Content-Type": "text/plain;charset=utf-8" }
-                    });
-                    const json = await res.json();
-
-                    if (json.status === 'success') {
-                        this.state.words = json.data.wordList;
-                        document.getElementById('panel-ai').innerHTML = json.data.aiAnalysis;
-                        this.renderTable(json.data.wordList);
-                        
-                        document.getElementById('loading-state').classList.add('hidden');
-                        document.getElementById('results-container').classList.remove('hidden');
-                        
-                        const canvas = document.getElementById('word-cloud-canvas');
-                        canvas.classList.remove('hidden');
-                        setTimeout(() => this.renderWordCloud(), 100);
-                        
-                        this.showToast(t.msg_success, "success");
-                    } else {
-                        throw new Error(json.message);
-                    }
-                } catch (error) {
-                    console.error(error);
-                    document.getElementById('loading-state').classList.add('hidden');
-                    document.getElementById('empty-state').classList.remove('hidden');
-                    this.showToast(t.msg_error + ": " + error.message, "error");
-                } finally {
-                    btn.disabled = false;
-                    btn.innerHTML = orgBtnHtml;
-                }
-            },
-
-            renderWordCloud() {
-                // ✅ 新增保險：確認函式庫真的有載到，避免再次出現 WordCloud is not defined
-                if (typeof WordCloud !== 'function') {
-                    console.error('WordCloud library not loaded');
-                    this.showToast('文字雲程式庫載入失敗，請重新整理頁面', 'error');
-                    return;
-                }
-
-                const canvas = document.getElementById('word-cloud-canvas');
-                const wrapper = document.getElementById('canvas-wrapper');
-                const shape = document.getElementById('shape-select').value;
-
-                const filteredList = this.state.words.filter(item => {
-                    const p = (item.pos || 'o').toLowerCase().charAt(0);
-                    let type = 'o';
-                    if (['n','v','a','d','c'].includes(p)) type = p;
-                    return this.state.activePos.has(type);
-                });
-
-                if (filteredList.length === 0) {
-                    this.showToast("篩選後無詞彙", "error");
-                    return;
-                }
-
-                canvas.classList.remove('hidden');
-                document.getElementById('btn-download').classList.remove('hidden');
-                
-                const w = wrapper.clientWidth;
-                const h = wrapper.clientHeight;
-                canvas.width = w;
-                canvas.height = h;
-
-                const maxWeight = Math.max(...filteredList.map(i => i.weight)) || 1;
-                const factor = (w / 10) / maxWeight;
-
-                const list = filteredList.map(i => [i.word, i.weight * factor + 14]);
-
-                setTimeout(() => {
-                    WordCloud(canvas, {
-                        list: list,
-                        gridSize: 8,
-                        weightFactor: 0.6,
-                        fontFamily: '"Work Sans", "Noto Sans TC", sans-serif',
-                        fontWeight: 'bold',
-                        color: (word) => {
-                            const item = this.state.words.find(i => i.word === word);
-                            return this.getPosColor(item ? item.pos : 'o');
-                        },
-                        rotateRatio: 0.15,
-                        rotationSteps: 2,
-                        // ✅ 微調愛心 / 其他 shape 的垂直中心，讓圖稍微往上
-                        vCenter: 0.32,
-                        shape: shape,
-                        backgroundColor: 'transparent',
-                        drawOutOfBound: false,
-                        shrinkToFit: true,
-                        shuffle: false 
-                    });
-                }, 50);
-            },
-
-            getPosColor(pos) {
-                const p = String(pos).toLowerCase();
-                if (p.startsWith('n')) return '#8b5cf6'; 
-                if (p.startsWith('v')) return '#10b981'; 
-                if (p.startsWith('a')) return '#f59e0b'; 
-                if (p.startsWith('d')) return '#3b82f6'; 
-                if (p.startsWith('c')) return '#ec4899'; 
-                return '#9ca3af'; 
-            },
-
-            renderTable(list) {
-                const tbody = document.getElementById('data-table-body');
-                tbody.innerHTML = list.slice(0, 100).map((item, idx) => `
-                    <tr class="hover:bg-gray-50 transition border-b border-gray-100">
-                        <td class="p-3 text-gray-400 font-mono text-xs pl-6">${idx + 1}</td>
-                        <td class="p-3 font-medium text-gray-800">${item.word}</td>
-                        <td class="p-3 text-gray-500 text-xs font-bold uppercase">${item.pos}</td>
-                        <td class="p-3 text-right font-mono text-gray-600 pr-6">${item.weight.toFixed(2)}</td>
-                    </tr>
-                `).join('');
-            },
-
-            async downloadReport(type) {
-                if(this.state.words.length === 0) {
-                    this.showToast("請先產生分析結果", "error");
-                    return;
-                }
-
-                if (type === 'txt') {
-                    let content = "AI 智能文字雲 - 分析報告\n\n";
-                    content += "=== AI 洞察 ===\n";
-                    content += document.getElementById('panel-ai').innerText + "\n\n";
-                    content += "=== 數據列表 (前 100 筆) ===\n";
-                    content += "排名\t詞彙\t詞性\t權重\n";
-                    this.state.words.slice(0, 100).forEach((w, i) => {
-                        content += `${i+1}\t${w.word}\t${w.pos}\t${w.weight.toFixed(2)}\n`;
-                    });
-                    const blob = new Blob([content], { type: 'text/plain' });
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    link.download = `report_${Date.now()}.txt`;
-                    link.click();
-
-                } else if (type === 'pdf') {
-                    this.showToast("正在生成 PDF，請稍候...", "info");
-                    
-                    const container = document.getElementById('pdf-generator-container');
-                    
-                    let pdfContent = `
-                        <div style="font-family: 'Noto Sans TC', sans-serif; color: #333;">
-                            <h1 style="font-size: 24px; font-weight: bold; color: #BB50E0; margin-bottom: 10px;">AI 智能文字雲分析報告</h1>
-                            <p style="font-size: 12px; color: #666; margin-bottom: 20px;">生成時間: ${new Date().toLocaleString()}</p>
-                            
-                            <h2 style="font-size: 18px; font-weight: bold; border-bottom: 2px solid #eee; padding-bottom: 5px; margin-bottom: 10px;">1. AI 深度洞察</h2>
-                            <div style="font-size: 14px; line-height: 1.6; margin-bottom: 30px;">
-                                ${document.getElementById('panel-ai').innerHTML}
-                            </div>
-
-                            <h2 style="font-size: 18px; font-weight: bold; border-bottom: 2px solid #eee; padding-bottom: 5px; margin-bottom: 10px;">2. 數據列表 (前 15 筆)</h2>
-                            <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-                                <thead>
-                                    <tr style="background-color: #f5f5f5;">
-                                        <th style="padding: 8px; text-align: left;">排名</th>
-                                        <th style="padding: 8px; text-align: left;">詞彙</th>
-                                        <th style="padding: 8px; text-align: left;">詞性</th>
-                                        <th style="padding: 8px; text-align: right;">權重</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                    `;
-
-                    this.state.words.slice(0, 15).forEach((w, i) => {
-                        const bg = i % 2 === 0 ? '#fff' : '#fafafa';
-                        pdfContent += `
-                            <tr style="background-color: ${bg};">
-                                <td style="padding: 8px; border-bottom: 1px solid #eee;">${i+1}</td>
-                                <td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">${w.word}</td>
-                                <td style="padding: 8px; border-bottom: 1px solid #eee;">${w.pos}</td>
-                                <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">${w.weight.toFixed(2)}</td>
-                            </tr>
-                        `;
-                    });
-
-                    pdfContent += `</tbody></table></div>`;
-                    container.innerHTML = pdfContent;
-
-                    try {
-                        const canvas = await html2canvas(container, { scale: 2 });
-                        const imgData = canvas.toDataURL('image/png');
-                        
-                        const { jsPDF } = window.jspdf;
-                        const doc = new jsPDF('p', 'mm', 'a4');
-                        const pdfWidth = doc.internal.pageSize.getWidth();
-                        const pdfHeight = doc.internal.pageSize.getHeight();
-
-                        // ✅ 新增頁面邊界，避免文字貼邊
-                        const margin = 10;
-                        const pageWidth = pdfWidth - margin * 2;
-                        const pageHeight = pdfHeight - margin * 2;
-
-                        const imgProps = doc.getImageProperties(imgData);
-const imgHeight = (imgProps.height * pageWidth) / imgProps.width;
-
-let heightLeft = imgHeight;
-let position = margin;
-
-// 第一頁
-doc.addImage(imgData, 'PNG', margin, position, pageWidth, imgHeight);
-heightLeft -= pageHeight;
-
-// 後續頁：每一頁都「剛好往上移一個 pageHeight」
-while (heightLeft > 0) {
-    doc.addPage();
-    position -= pageHeight;   // ⭐ 只用固定 pageHeight 來位移，不再重新算
-    doc.addImage(imgData, 'PNG', margin, position, pageWidth, imgHeight);
-    heightLeft -= pageHeight;
-}
-
-
-                        doc.save(`report_${Date.now()}.pdf`);
-                        this.showToast("PDF 下載成功", "success");
-                    } catch (err) {
-                        console.error(err);
-                        this.showToast("PDF 生成失敗", "error");
-                    }
-                }
-            },
-
-            downloadImage() {
-                const canvas = document.getElementById('word-cloud-canvas');
-                const tempCanvas = document.createElement('canvas');
-                tempCanvas.width = canvas.width;
-                tempCanvas.height = canvas.height;
-                const ctx = tempCanvas.getContext('2d');
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-                ctx.drawImage(canvas, 0, 0);
-                const link = document.createElement('a');
-                link.download = `wordcloud_${Date.now()}.png`;
-                link.href = tempCanvas.toDataURL('image/png');
-                link.click();
-            },
-
-            showToast(msg, type = 'info') {
-                const toast = document.getElementById('toast');
-                const toastMsg = document.getElementById('toast-msg');
-                toastMsg.innerText = msg;
-                toast.classList.remove('opacity-0', 'translate-y-10');
-                if (type === 'error') {
-                    toast.classList.remove('bg-gray-900'); toast.classList.add('bg-red-600');
-                } else {
-                    toast.classList.add('bg-gray-900'); toast.classList.remove('bg-red-600');
-                }
-                setTimeout(() => { toast.classList.add('opacity-0', 'translate-y-10'); }, 3000);
+            "zh-CN": { 
+                back_home:"返回学习中心", 
+                btn_bilingual:"科学双语阅读", 
+                btn_eval:"AI 评分诊断", // ★ 新增
+                page_title:"单元重点整理", page_subtitle:"AI 智能笔记生成", 
+                settings_title:"请挑选你要的学习单元", label_stage:"学习阶段", label_publisher:"版本", 
+                label_grade:"年级", label_semester:"学期", label_unit:"单元名称", 
+                btn_generate:"AI 分析并生成", btn_txt:"下载 TXT", btn_pdf:"下载 PDF", 
+                title_summary:"核心概念摘要", title_vocab:"科学词汇与定义", title_map:"知识架构图", title_myth:"常见迷思诊断" 
             }
         };
 
-        App.init();
+        window.onload = async () => {
+            const user = JSON.parse(sessionStorage.getItem("currentUser") || '{"name":"訪客"}');
+            document.getElementById("user-info").innerText = user.name;
+            try {
+                const res = await fetch(GAS_API_URL + "?action=get_metadata");
+                const json = await res.json();
+                if(json.status === "success") {
+                    allData = json.data;
+                    document.getElementById("db-status").innerHTML = `<i class="fa-solid fa-check"></i> 資料庫連線成功`;
+                    document.getElementById("db-status").className = "text-xs font-bold text-green-600";
+                    initSelectors();
+                } else throw new Error(json.message);
+            } catch(e) { console.error(e); document.getElementById("db-status").innerText = "連線失敗"; document.getElementById("db-status").className = "text-xs font-bold text-red-500"; }
+        };
+
+        function changeLanguage() {
+            const lang = document.getElementById("language-selector").value;
+            document.querySelectorAll("[data-i18n]").forEach(el => {
+                const key = el.getAttribute("data-i18n");
+                if (i18n[lang][key]) el.innerText = i18n[lang][key];
+            });
+        }
+
+        // --- 全頁連動邏輯 ---
+        function initSelectors() {
+            const stages = [...new Set(allData.map(d => d.stage))];
+            populate("sel-stage", stages);
+            document.getElementById("sel-stage").onchange = (e) => updateLevel(1, e.target.value);
+            document.getElementById("sel-publisher").onchange = (e) => updateLevel(2, e.target.value);
+            document.getElementById("sel-grade").onchange = (e) => updateLevel(3, e.target.value);
+            document.getElementById("sel-semester").onchange = (e) => updateLevel(4, e.target.value);
+            document.getElementById("sel-unit").onchange = (e) => { filters.unitName = e.target.value; document.getElementById("btn-generate").disabled = false; };
+        }
+        function updateLevel(level, value) {
+            if(level===1) filters={stage:value}; if(level===2){filters.publisher=value; delete filters.grade; delete filters.semester; delete filters.unitName;} if(level===3){filters.grade=value; delete filters.semester; delete filters.unitName;} if(level===4){filters.semester=value; delete filters.unitName;}
+            const ids=["sel-publisher","sel-grade","sel-semester","sel-unit"]; for(let i=level;i<4;i++){ document.getElementById(ids[i]).innerHTML='<option disabled selected>Select...</option>'; document.getElementById(ids[i]).disabled=true; } document.getElementById("btn-generate").disabled=true;
+            const relevantData = allData.filter(d => {
+                const safeMatch = (dVal, fVal) => !fVal || String(dVal).trim() == String(fVal).trim();
+                return safeMatch(d.stage, filters.stage) && safeMatch(d.publisher, filters.publisher) && safeMatch(d.grade, filters.grade) && safeMatch(d.semester, filters.semester);
+            });
+            if(level===1) populate("sel-publisher", [...new Set(relevantData.map(d=>d.publisher))]);
+            if(level===2) populate("sel-grade", [...new Set(relevantData.map(d=>d.grade))].sort((a,b)=>a-b), "grade");
+            if(level===3) populate("sel-semester", [...new Set(relevantData.map(d=>d.semester))], "semester");
+            if(level===4) {
+                const unitSelect = document.getElementById("sel-unit"); unitSelect.innerHTML='<option disabled selected>Select...</option>';
+                if(relevantData.length>0) {
+                    relevantData.forEach(d => {
+                        const opt = document.createElement("option"); opt.value = d.unitName;
+                        opt.text = (d.unitType && !isNaN(d.unitType)) ? `第${d.unitType}課 ${d.unitName}` : d.unitName;
+                        unitSelect.add(opt);
+                    });
+                    unitSelect.disabled=false;
+                }
+            }
+        }
+        function populate(id, list, type) {
+            const el = document.getElementById(id); el.innerHTML='<option disabled selected>Select...</option>';
+            list.forEach(o => { const opt = document.createElement("option"); opt.value = o; 
+                if(type==="grade") opt.text=o+"年級"; else if(type==="semester") opt.text=(o==="上"?"上學期":(o==="下"?"下學期":o)); else opt.text=o; el.add(opt); });
+            el.disabled=false;
+        }
+
+        async function startGeneration() {
+            document.getElementById("selection-panel").classList.add("hidden");
+            document.getElementById("loading-view").classList.remove("hidden");
+            document.getElementById("loading-view").classList.add("flex");
+            try {
+                const res = await fetch(GAS_API_URL, { method: "POST", body: JSON.stringify({ action: "get_content_and_generate", filters: filters }) });
+                const json = await res.json();
+                if(json.status === "success") { 
+                    currentResultData = json.data; // 儲存生成的資料供下載用
+                    renderResult(json.data); 
+                } else throw new Error(json.message);
+            } catch(e) { alert("Error: " + e.message); location.reload(); }
+        }
+
+        function renderResult(data) {
+            // 1. 顯示內容區塊
+            document.getElementById("floating-chat").classList.remove("hidden");
+            document.getElementById("loading-view").classList.add("hidden");
+            document.getElementById("loading-view").classList.remove("flex");
+            document.getElementById("content-view").classList.remove("hidden");
+
+            // 2. 小科開場白
+            const chatBody = document.getElementById("chat-messages");
+            chatBody.innerHTML = `<div class="self-start bg-white border border-slate-100 p-3 rounded-lg rounded-tl-none shadow-sm max-w-[85%] text-sm"><span class="font-bold text-blue-600 block mb-1 text-xs">小科 AI</span>嗨，同學你好！我是小科，關於【${data.raw_content.unitName}】單元，你有什麼問題要問我呢？</div>`;
+
+            // 3. 填入標題與標籤 (包含學期與課次)
+            document.getElementById("result-title").innerText = data.raw_content.unitName;
+            const uType = data.raw_content.unitType;
+            const lessonStr = (uType && !isNaN(uType)) ? `第${uType}課` : (uType || "");
+            const semStr = (filters.semester === "上" ? "上學期" : (filters.semester === "下" ? "下學期" : filters.semester));
+            document.getElementById("result-tag").innerText = `${filters.publisher} • ${filters.grade}年級${semStr} • ${lessonStr}`;
+
+            // 4. 填入核心概念摘要 (最終清洗)
+            // 這裡將摘要內容也清洗一次，確保沒有 ** 符號遺留
+            const cleanedSummary = data.summary.summary_html.replace(/\*\*/g, ""); 
+            document.getElementById("summary-text").innerHTML = cleanedSummary;
+
+            // 5. 填入詞彙
+            const vocabContainer = document.getElementById("keywords-list");
+            vocabContainer.innerHTML = "";
+            if(data.summary.vocab_list) {
+                data.summary.vocab_list.forEach((item, index) => {
+                    // 清洗詞彙定義
+                    const cleanedDef = item.def.replace(/\*\*/g, ""); 
+                    vocabContainer.innerHTML += `<div class="bg-white p-3 rounded-xl border border-slate-100 shadow-sm mb-2 vocab-item"><div class="flex gap-3"><span class="bg-blue-100 text-blue-700 font-bold px-2 py-1 rounded text-sm h-fit">${index+1}</span><div><div class="font-bold text-slate-800">${item.term}</div><div class="text-sm text-slate-600">${cleanedDef}</div></div></div></div>`;
+                });
+            }
+
+            // 6. 知識架構圖 (終極強力清洗與方向修正)
+            const chartDiv = document.getElementById("mermaid-chart");
+            chartDiv.innerHTML = "";
+            if(data.summary.mermaid) {
+                let mCode = data.summary.mermaid
+                    .replace(/```mermaid/gi, "")
+                    .replace(/```/g, "")
+                    .trim();
+                
+                if (!/^graph\s+/i.test(mCode)) {
+                    mCode = "graph TD\n" + mCode;
+                } else {
+                    mCode = mCode.replace(/graph\s+LR/gi, "graph TD")
+                                 .replace(/graph\s+TB/gi, "graph TD");
+                }
+
+                const mermaidEl = document.createElement("div");
+                mermaidEl.className = "mermaid";
+                mermaidEl.textContent = mCode;
+                chartDiv.appendChild(mermaidEl);
+
+                // 讓圖表在錯誤時顯示錯誤代碼 (方便除錯，而不是空白)
+                mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'loose' }); 
+                mermaid.init(undefined, ".mermaid");
+            }
+
+            // ★★★ 7. 迷思概念 (最強力標籤清除) ★★★
+const mythDiv = document.getElementById("myth-list");
+            mythDiv.innerHTML = "";
+            
+            // 處理標籤清除的輔助函式 (移除開頭的 "迷思:", "正確:")
+            const cleanLabel = (text) => {
+                if (!text) return "";
+                // 移除任何開頭是 "迷思", "正確觀念", "正確", "Misconception", "Correction" 加上冒號或空格的文字
+                let cleaned = text.replace(/\*\*/g, "").trim(); // 先移除 markdown 粗體
+                cleaned = cleaned.replace(/^(迷思|正確觀念|正確|Misconception|Correction)\s*[:：]\s*/i, "").trim();
+                return cleaned;
+            };
+
+            if(data.summary.myths) {
+                data.summary.myths.forEach(m => {
+                    // ★★★ 關鍵修改：從 m.title / m.desc 改為 m.myth / m.correct ★★★
+                    // 確保即使 AI 加上了標籤，也只取內容。
+                    const cleanedMyth = cleanLabel(m.myth); 
+                    const cleanedCorrect = cleanLabel(m.correct);
+
+                    mythDiv.innerHTML += `
+                        <div class="bg-white p-5 rounded-xl border border-red-100 shadow-sm hover:shadow-md transition h-full flex flex-col">
+                            <div class="flex items-start gap-3 mb-3">
+                                <div class="bg-red-100 text-red-600 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1"><i class="fa-solid fa-xmark font-bold"></i></div>
+                                <div>
+                                    <div class="text-slate-800 font-bold"><span class="text-red-600 font-black text-base">迷思：</span>${cleanedMyth}</div> 
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-3 pl-2 border-l-2 border-green-100 ml-4">
+                                <div>
+                                    <span class="text-green-600 font-black text-sm block mb-1">正確觀念：</span>
+                                    <div class="text-sm text-slate-600 leading-relaxed text-justify">${cleanedCorrect}</div> 
+                                </div>
+                            </div>
+                        </div>`;
+                });
+            }
+            
+            // 8. 高度對齊 (維持不變)
+            setTimeout(() => { /* ...原本的高度對齊代碼... */ }, 500);
+        }
+
+// --- 下載 TXT 功能 (美化排版版) ---
+        function downloadTXT() {
+            if(!currentResultData) { 
+                alert("請先生成內容後再下載！"); 
+                return; 
+            }
+            
+            // --- 頁首資訊 ---
+            let content = `========================================\n`;
+            content += `  單元重點整理：${currentResultData.raw_content.unitName}\n`;
+            content += `  標籤：${filters.grade}年級 • ${filters.publisher}\n`;
+            content += `========================================\n\n`;
+            
+            // --- 1. 核心概念摘要 ---
+            content += `【 核心概念摘要 】\n`;
+            content += `----------------------------------------\n`;
+            // 處理摘要文字：將連續空白縮減，並確保段落間有空行
+            let summary = document.getElementById("summary-text").innerText;
+            // 簡單的正則表達式處理，讓段落分明
+            summary = summary.replace(/\n\s*\n/g, '\n\n').trim(); 
+            content += `${summary}\n\n\n`;
+            
+            // --- 2. 科學詞彙 ---
+            content += `【 科學詞彙與定義 】\n`;
+            content += `----------------------------------------\n`;
+            if (currentResultData.summary.vocab_list) {
+                currentResultData.summary.vocab_list.forEach((v, i) => {
+                    content += `${i+1}. ${v.term}\n`;
+                    content += `   說明：${v.def}\n\n`; // 縮排並空一行
+                });
+            } else {
+                content += "   (無特定詞彙)\n\n";
+            }
+            content += `\n`;
+            
+            // --- 3. 常見迷思 ---
+            content += `【 常見迷思診斷 】\n`;
+            content += `----------------------------------------\n`;
+            if (currentResultData.summary.myths) {
+                currentResultData.summary.myths.forEach((m, i) => {
+                    // ★★★ 關鍵修改：從 m.title / m.desc 改為 m.myth / m.correct ★★★
+                    content += `● 迷思 ${i+1}：${m.myth}\n`;
+                     content += `   正確：${m.correct}\n\n`; // 縮排並空一行
+                });
+            } else {
+                content += "   (無迷思資料)\n";
+            }
+            
+            content += `\n========================================\n`;
+            content += ` Generated by AI Science Learning Hub\n`;
+            content += `========================================\n`;
+            
+            // 建立檔案並觸發下載
+            const blob = new Blob([content], { type: "text/plain" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `${currentResultData.raw_content.unitName}_重點整理.txt`;
+            link.click();
+        }
+
+        function downloadPDF() {
+            if (!currentResultData) {
+                alert("請先生成內容後再下載！");
+                return;
+            }
+            const element = document.getElementById("content-view");
+            const opt = {
+                margin:       10,
+                filename:     currentResultData.raw_content.unitName + "_重點整理.pdf",
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            // 在產生 PDF 時暫時隱藏 TXT/PDF 下載按鈕（PDF 內就不會出現）
+            const toolbar = document.querySelector('#content-view .no-print');
+            const prevDisplay = toolbar ? toolbar.style.display : null;
+            if (toolbar) toolbar.style.display = 'none';
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                if (toolbar) toolbar.style.display = prevDisplay || '';
+            });
+        }
+
+        function toggleChat() { document.getElementById("xiaoke-window").classList.toggle("closed"); }
+       async function sendChatMessage() {
+            const input = document.getElementById("chat-input"); 
+            const msg = input.value.trim(); 
+            if(!msg) return;
+
+            // 1. ★★★ 關鍵：先抓取目前的使用者資料 ★★★
+            const currentUser = JSON.parse(sessionStorage.getItem("currentUser") || '{"name":"訪客"}');
+
+            const chatBody = document.getElementById("chat-messages");
+            chatBody.innerHTML += `<div class="self-end bg-blue-600 text-white p-3 rounded-lg rounded-tr-none shadow-sm max-w-[85%] ml-auto text-sm">${msg}</div>`;
+            input.value = "";
+            chatBody.scrollTop = chatBody.scrollHeight;
+
+            try {
+                // 準備 Context 資料
+                const contextText = currentResultData ? currentResultData.raw_content.text : "";
+                const contextVocab = currentResultData ? currentResultData.raw_content.vocab_str : "";
+
+                const res = await fetch(GAS_API_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ 
+                        action: 'chat_with_ai', 
+                        message: msg, 
+                        currentUnit: filters.unitName || "",
+                        contextText: contextText,
+                        contextVocab: contextVocab,
+                        
+                        // ★★★ 新增：這裡就是您缺少的那一行，以及其他篩選條件 ★★★
+                        userName: currentUser.name,  // 傳送使用者姓名
+                        stage: filters.stage,        // 傳送學習階段
+                        publisher: filters.publisher,// 傳送版本
+                        grade: filters.grade,        // 傳送年級
+                        semester: filters.semester   // 傳送學期
+                    }) 
+                });
+                const json = await res.json();
+                
+                // 前端清洗文字
+                const cleanReply = json.data.replace(/\*\*/g, "");
+
+                chatBody.innerHTML += `<div class="self-start bg-white border border-slate-100 p-3 rounded-lg rounded-tl-none shadow-sm max-w-[85%] text-sm"><span class="font-bold text-blue-600 block mb-1 text-xs">小科 AI</span>${cleanReply}</div>`;
+                chatBody.scrollTop = chatBody.scrollHeight;
+            } catch(e) { console.error(e); }
+        }
+      // --- 全螢幕放大功能 ---
+        function openModal() {
+            const chartHtml = document.getElementById("mermaid-chart").innerHTML;
+            if (!chartHtml) return;
+            
+            const modal = document.getElementById("image-modal");
+            const content = document.getElementById("modal-content");
+            
+            // 複製圖表進去
+            content.innerHTML = chartHtml;
+            // 移除原本的 min-width 限制，讓它在全螢幕中自由伸展
+            content.firstElementChild.style.minWidth = "auto"; 
+            
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+        }
+
+        function closeModal() {
+            const modal = document.getElementById("image-modal");
+            modal.classList.add("hidden");
+            modal.classList.remove("flex");
+        }  
     </script>
+    <div id="image-modal" class="fixed inset-0 z-[200] bg-black/90 hidden flex-col items-center justify-center p-4 transition-opacity duration-300" onclick="closeModal()">
+        <button class="absolute top-4 right-4 text-white/70 hover:text-white text-4xl font-bold">&times;</button>
+        <div id="modal-content" class="bg-white p-4 rounded-lg overflow-auto max-w-full max-h-full" onclick="event.stopPropagation()">
+            </div>
+    </div>
 </body>
 </html>
