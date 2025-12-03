@@ -325,6 +325,7 @@
                 const json = await res.json();
                 
                 if(json.status === "success") {
+                   currentResultData = json.data;
                     renderResult(json.data);
                 } else {
                     throw new Error(json.message);
