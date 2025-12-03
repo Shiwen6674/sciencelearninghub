@@ -174,13 +174,13 @@
 function updateLevel(level, value) {
             console.log(`[Debug] Level ${level} 變更為: ${value}`);
 
-            // 1. 更新篩選條件
+            // 1. 更新篩選
             if (level === 1) filters = { stage: value }; 
             if (level === 2) { filters.publisher = value; delete filters.grade; delete filters.semester; delete filters.unitName; }
             if (level === 3) { filters.grade = value; delete filters.semester; delete filters.unitName; }
             if (level === 4) { filters.semester = value; delete filters.unitName; }
 
-            // 2. 介面重置
+            // 2. 重置介面
             const ids = ["sel-publisher", "sel-grade", "sel-semester", "sel-unit"];
             for (let i = level; i < 4; i++) {
                 const el = document.getElementById(ids[i]);
@@ -189,7 +189,7 @@ function updateLevel(level, value) {
             }
             document.getElementById("btn-generate").disabled = true;
 
-            // 3. 篩選資料 (寬容比對)
+            // 3. 篩選資料
             const relevantData = allData.filter(d => {
                 const safeMatch = (dataVal, filterVal) => {
                     if (!filterVal) return true;
@@ -201,7 +201,7 @@ function updateLevel(level, value) {
                        safeMatch(d.semester, filters.semester);
             });
 
-            // 4. 填充下層選單
+            // 4. 填充下層
             if (level === 1) {
                 const opts = [...new Set(relevantData.map(d => d.publisher))];
                 populate("sel-publisher", opts);
@@ -215,43 +215,39 @@ function updateLevel(level, value) {
                 populate("sel-semester", opts, "semester");
             }
             
-            // ★★★ 核心修正：針對 G欄(課別) 與 H欄(課名) 的組裝邏輯 ★★★
+            // ★★★ 終極偵錯區：讓選單顯示所有欄位 ★★★
             if (level === 4) {
                 const unitSelect = document.getElementById("sel-unit");
-                unitSelect.innerHTML = '<option value="" disabled selected>請選擇單元...</option>';
+                unitSelect.innerHTML = '<option value="" disabled selected>--- 資料欄位檢測中 ---</option>';
                 
                 if (relevantData.length > 0) {
-                    // 輔助函式：用來抓取欄位，自動忽略前後空白
-                    const getValue = (item, possibleKeys) => {
-                        const keys = Object.keys(item);
-                        for (let key of keys) {
-                            // 將資料庫的 key 去除空白後比對 (例如 "課別 " -> "課別")
-                            if (possibleKeys.includes(key.trim())) return item[key];
-                        }
-                        return "";
-                    };
+                    const firstItem = relevantData[0]; // 抓第一筆符合的資料
+                    const allKeys = Object.keys(firstItem); // 抓所有欄位名稱
+                    
+                    unitSelect.innerHTML = ""; // 清空
+                    
+                    // 1. 顯示一個提示選項
+                    const infoOpt = document.createElement("option");
+                    infoOpt.text = `⬇請查看下方哪些欄位是課名⬇`;
+                    infoOpt.disabled = true;
+                    unitSelect.add(infoOpt);
 
-                    relevantData.forEach(d => {
+                    // 2. 把所有欄位都列出來
+                    allKeys.forEach(key => {
                         const opt = document.createElement("option");
-                        
-                        // 1. 抓取 G欄 (課別)
-                        const unitType = getValue(d, ["課別", "unitType"]);
-                        // 2. 抓取 H欄 (課名)
-                        const unitName = getValue(d, ["課名", "unitName", "課文"]);
-
-                        // 設定給後端的值：維持使用「課名」(H欄)，這樣生成內容時才找得到
-                        opt.value = unitName; 
-                        
-                        // 設定顯示文字：G欄 + H欄 組合 (例如：第1課 認識植物)
-                        // 如果課別是數字，加個 "第...課" 比較好看，如果不是就直接顯示
-                        const prefix = (unitType && !isNaN(unitType)) ? `第${unitType}課 ` : `${unitType} `;
-                        opt.text = `${prefix}${unitName}`;
-                        
+                        // 顯示格式：[欄位名稱] : 資料內容
+                        opt.text = `[${key}] : ${firstItem[key]}`; 
+                        opt.value = key;
                         unitSelect.add(opt);
                     });
+                    
                     unitSelect.disabled = false;
+                    // 自動展開 (模擬) - 使用者需要手動點開看
+                    console.log("偵錯模式：已將所有欄位寫入選單");
+                    console.log(firstItem); 
+
                 } else {
-                    unitSelect.innerHTML = '<option disabled>無符合單元</option>';
+                    unitSelect.innerHTML = '<option disabled>無符合資料</option>';
                 }
             }
         }
