@@ -42,13 +42,23 @@
         .vocab-item { transition: all 0.2s; }
         .vocab-item:hover { transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
 
-        /* Mermaid 圖放大 */
-        #mermaid-chart .mermaid {
-            font-size: 1.1rem;
-        }
-        #mermaid-chart .mermaid svg {
+/* Mermaid 圖放大與樣式修正 */
+/* Mermaid 優化樣式：解決字太小問題，並限制高度避免版面過長 */
+        #mermaid-chart {
             width: 100%;
+            overflow-x: auto;       /* 寬度超出時，下方顯示捲軸 */
+            padding-bottom: 10px;   /* 預留空間給捲軸 */
+            display: flex;
+            justify-content: center; /* 如果圖很小，讓它置中 */
+        }
+
+        #mermaid-chart .mermaid svg {
+            /* ★關鍵設定：確保字體清晰，不被壓縮★ */
             height: auto;
+            width: auto !important;      /* 讓寬度依照內容自動撐開 */
+            max-width: none !important;  /* 禁止瀏覽器強制縮小它 */
+            min-width: 100%;             /* 至少跟框框一樣寬 */
+            font-family: "Microsoft JhengHei", sans-serif !important; /* 確保中文字體 */
         }
 
         /* 列印專用樣式 (PDF分頁設定) */
@@ -376,48 +386,53 @@
             // 6. 知識架構圖 (強力清洗修復)
             // ★★★ 6. 知識架構圖 (終極強力清洗與方向修正) ★★★
             c// ★★★ 6. 知識架構圖 (終極強力修復版) ★★★
+// ★★★ 6. 知識架構圖 (方向強制修正 + 字體放大版) ★★★
             const chartDiv = document.getElementById("mermaid-chart");
             chartDiv.innerHTML = "";
             
             if(data.summary.mermaid) {
                 let mCode = data.summary.mermaid;
 
-                // 1. 移除 Markdown 標籤 (包含可能出現的 json 或 mermaid 字樣)
+                // 1. 清洗 Markdown
                 mCode = mCode.replace(/```(mermaid|json)?/gi, "").replace(/```/g, "").trim();
 
-                // 2. 強制修復常見語法錯誤 (將節點內的半形符號轉全形)
-                // 這段正則會嘗試保留 ID[... ] 結構，但將內容裡的 : ( ) 轉全形
-                mCode = mCode.replace(/\[(.*?)\]/g, (match, content) => {
-                    let safeContent = content
-                        .replace(/:/g, "：")  // 冒號轉全形
-                        .replace(/\(/g, "（") // 左括號轉全形
-                        .replace(/\)/g, "）") // 右括號轉全形
-                        .replace(/"/g, "")    // 移除雙引號
-                        .replace(/'/g, "");   // 移除單引號
-                    return `[${safeContent}]`;
-                });
-
-                // 3. 確保開頭是 graph TD (直向比較適合手機與長內容)
-                if (!/^graph\s+(TD|TB|LR)/i.test(mCode)) {
+                // 2. ★強制修正方向★：不管 AI 給什麼 (LR, TB)，一律無情替換為 TD (由上而下)
+                if (/^graph\s+(LR|RL|TB)/i.test(mCode)) {
+                    mCode = mCode.replace(/^graph\s+(LR|RL|TB)/i, "graph TD");
+                } else if (!/^graph\s+TD/i.test(mCode)) {
+                    // 如果完全沒寫方向，就補上
                     mCode = "graph TD\n" + mCode;
                 }
 
-                // 4. 建立元素並渲染
+                // 3. 修復半形符號 (維持不變)
+                mCode = mCode.replace(/\[(.*?)\]/g, (match, content) => {
+                    let safeContent = content
+                        .replace(/:/g, "：").replace(/\(/g, "（").replace(/\)/g, "）")
+                        .replace(/"/g, "").replace(/'/g, "");
+                    return `[${safeContent}]`;
+                });
+
+                // 4. 建立元素
                 const mermaidEl = document.createElement("div");
                 mermaidEl.className = "mermaid";
                 mermaidEl.textContent = mCode;
                 chartDiv.appendChild(mermaidEl);
 
                 try {
-                    // 重新初始化並渲染
+                    // ★關鍵設定★：useMaxWidth: false (禁止縮放，字體變大)
+                    mermaid.initialize({ 
+                        startOnLoad: false, 
+                        theme: 'neutral', 
+                        securityLevel: 'loose',
+                        flowchart: { 
+                            useMaxWidth: false, // 讓圖表保持原尺寸，不要擠在框框裡
+                            htmlLabels: true 
+                        } 
+                    });
                     mermaid.init(undefined, mermaidEl);
                 } catch (err) {
                     console.error("Mermaid Render Error:", err);
-                    chartDiv.innerHTML = `<div class="text-red-500 p-4 border border-red-200 bg-red-50 rounded-lg">
-                        <p class="font-bold">圖表產生失敗</p>
-                        <p class="text-xs mt-1">原因：AI 生成的語法結構異常。</p>
-                        <pre class="text-xs mt-2 overflow-auto bg-white p-2 border">${mCode}</pre>
-                    </div>`;
+                    chartDiv.innerHTML = `<div class="text-red-500 p-4 border border-red-200 bg-red-50 rounded-lg"><p class="font-bold">圖表繪製失敗</p><pre class="text-xs mt-2">${mCode}</pre></div>`;
                 }
             }
 
