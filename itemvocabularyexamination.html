@@ -106,7 +106,7 @@
         </div>
     </nav>
 
-    <<main class="max-w-7xl mx-auto animate-fade-in-up">
+    <main class="max-w-7xl mx-auto animate-fade-in-up">
     <div class="text-center mb-10">
         <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 to-emerald-600 mb-3" data-i18n="page_title">
             中小學自然科命題用詞 AI 檢核
@@ -461,6 +461,7 @@ showToast("範例已載入，請按「開始 AI 檢測」", "success");
 
         function renderResults(data) {
     document.getElementById('res-score').innerText = data.summary.score;
+    document.getElementById('res-score-detail').innerText = data.summary.scoreFormula || "無扣分資料";        
     document.getElementById('res-total').innerText = data.summary.total;
     document.getElementById('res-safe').innerText = data.summary.safe;
     document.getElementById('res-risk').innerText = data.summary.risk;
