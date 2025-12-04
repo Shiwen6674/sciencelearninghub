@@ -640,32 +640,35 @@ const translations = {
             document.getElementById(`fields-${role}`).classList.remove('hidden-section'); 
         }
         
-        function switchAuthMode(mode) { 
-            const tabLogin = document.getElementById('tab-login'); 
-            const tabRegister = document.getElementById('tab-register'); 
-            const formLogin = document.getElementById('form-login'); 
-            const formRegister = document.getElementById('form-register'); 
-            const roleDisplay = document.getElementById('role-display-block'); 
-            const roleSelect = document.getElementById('role-select-block'); 
-            
-            if (mode === 'login') { 
-                tabLogin.className = "w-1/2 py-4 text-xl font-bold text-blue-600 border-b-4 border-blue-600 focus:outline-none transition-colors"; 
-                tabRegister.className = "w-1/2 py-4 text-xl font-bold text-gray-400 hover:text-gray-600 focus:outline-none transition-colors"; 
-                formLogin.classList.remove('hidden-section'); 
-                formRegister.classList.add('hidden-section'); 
-                roleDisplay.classList.add('hidden'); 
-                roleSelect.classList.add('hidden'); 
-            } else { 
-                tabRegister.className = "w-1/2 py-4 text-xl font-bold text-green-600 border-b-4 border-green-600 focus:outline-none transition-colors"; 
-                tabLogin.className = "w-1/2 py-4 text-xl font-bold text-gray-400 hover:text-gray-600 focus:outline-none transition-colors"; 
-                formLogin.classList.add('hidden-section'); 
-                formRegister.classList.remove('hidden-section'); 
-                roleDisplay.classList.remove('hidden'); 
-                roleSelect.classList.remove('hidden'); 
-                // 如果沒有預選角色，預設為學生
-                if(!targetRole) preSelectRole('student'); else syncRoleFromSelector(); 
-            } 
-        }
+       function switchAuthMode(mode) { 
+    const tabLogin = document.getElementById('tab-login'); 
+    const tabRegister = document.getElementById('tab-register'); 
+    const formLogin = document.getElementById('form-login'); 
+    const formRegister = document.getElementById('form-register'); 
+    const roleDisplay = document.getElementById('role-display-block'); 
+    const roleSelect = document.getElementById('role-select-block'); 
+    
+    if (mode === 'login') { 
+        tabLogin.className = "w-1/2 py-4 text-xl font-bold text-blue-600 border-b-4 border-blue-600 focus:outline-none transition-colors"; 
+        tabRegister.className = "w-1/2 py-4 text-xl font-bold text-gray-400 hover:text-gray-600 focus:outline-none transition-colors"; 
+        formLogin.classList.remove('hidden-section'); 
+        formRegister.classList.add('hidden-section'); 
+        roleDisplay.classList.add('hidden'); 
+        roleSelect.classList.add('hidden'); // 這裡確保登入頁隱藏
+    } else { 
+        tabRegister.className = "w-1/2 py-4 text-xl font-bold text-green-600 border-b-4 border-green-600 focus:outline-none transition-colors"; 
+        tabLogin.className = "w-1/2 py-4 text-xl font-bold text-gray-400 hover:text-gray-600 focus:outline-none transition-colors"; 
+        formLogin.classList.add('hidden-section'); 
+        formRegister.classList.remove('hidden-section'); 
+        roleDisplay.classList.remove('hidden'); // 註冊頁顯示角色標題
+        
+        // 🚨 關鍵修改：始終隱藏角色選擇區塊
+        roleSelect.classList.add('hidden'); 
+        
+        // 如果沒有預選角色，預設為學生
+        if(!targetRole) preSelectRole('student'); else syncRoleFromSelector(); 
+    } 
+}
         
         function togglePassword(inputId, icon) { 
             const input = document.getElementById(inputId); 
