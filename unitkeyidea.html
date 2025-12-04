@@ -6,7 +6,7 @@
     <title>單元重點整理</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
         tailwind.config = { theme: { extend: { colors: { student: '#3b82f6' }, animation: { "fade-in-up": "fadeInUp 0.5s ease-out forwards" }, keyframes: { fadeInUp: { "0%": { opacity: "0", transform: "translateY(20px)" }, "100%": { opacity: "1", transform: "translateY(0)" } } } } } }
@@ -375,29 +375,50 @@
 
             // 6. 知識架構圖 (強力清洗修復)
             // ★★★ 6. 知識架構圖 (終極強力清洗與方向修正) ★★★
+            c// ★★★ 6. 知識架構圖 (終極強力修復版) ★★★
             const chartDiv = document.getElementById("mermaid-chart");
             chartDiv.innerHTML = "";
+            
             if(data.summary.mermaid) {
-                let mCode = data.summary.mermaid
-                    .replace(/```mermaid/gi, "")
-                    .replace(/```/g, "")
-                    .trim();
-                
-                if (!/^graph\s+/i.test(mCode)) {
-                    mCode = "graph LR\n" + mCode;
-                } else {
-                    mCode = mCode.replace(/graph\s+TD/gi, "graph LR")
-                                 .replace(/graph\s+TB/gi, "graph LR");
+                let mCode = data.summary.mermaid;
+
+                // 1. 移除 Markdown 標籤 (包含可能出現的 json 或 mermaid 字樣)
+                mCode = mCode.replace(/```(mermaid|json)?/gi, "").replace(/```/g, "").trim();
+
+                // 2. 強制修復常見語法錯誤 (將節點內的半形符號轉全形)
+                // 這段正則會嘗試保留 ID[... ] 結構，但將內容裡的 : ( ) 轉全形
+                mCode = mCode.replace(/\[(.*?)\]/g, (match, content) => {
+                    let safeContent = content
+                        .replace(/:/g, "：")  // 冒號轉全形
+                        .replace(/\(/g, "（") // 左括號轉全形
+                        .replace(/\)/g, "）") // 右括號轉全形
+                        .replace(/"/g, "")    // 移除雙引號
+                        .replace(/'/g, "");   // 移除單引號
+                    return `[${safeContent}]`;
+                });
+
+                // 3. 確保開頭是 graph TD (直向比較適合手機與長內容)
+                if (!/^graph\s+(TD|TB|LR)/i.test(mCode)) {
+                    mCode = "graph TD\n" + mCode;
                 }
 
+                // 4. 建立元素並渲染
                 const mermaidEl = document.createElement("div");
                 mermaidEl.className = "mermaid";
                 mermaidEl.textContent = mCode;
                 chartDiv.appendChild(mermaidEl);
 
-                // 讓圖表在錯誤時顯示錯誤代碼 (方便除錯，而不是空白)
-                mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'loose' }); 
-                mermaid.init(undefined, ".mermaid");
+                try {
+                    // 重新初始化並渲染
+                    mermaid.init(undefined, mermaidEl);
+                } catch (err) {
+                    console.error("Mermaid Render Error:", err);
+                    chartDiv.innerHTML = `<div class="text-red-500 p-4 border border-red-200 bg-red-50 rounded-lg">
+                        <p class="font-bold">圖表產生失敗</p>
+                        <p class="text-xs mt-1">原因：AI 生成的語法結構異常。</p>
+                        <pre class="text-xs mt-2 overflow-auto bg-white p-2 border">${mCode}</pre>
+                    </div>`;
+                }
             }
 
             // ★★★ 7. 迷思概念 (最強力標籤清除) ★★★
