@@ -327,7 +327,8 @@
 (C) 粗調節輪、細調節輪
 (D) 載玻片、蓋玻片`;
             const t = translations[currentLang];
-            showToast(t.msg_analysis_done || "範例載入完成", "success");
+            // 改成顯示正確的提示
+showToast("範例已載入，請按「開始 AI 檢測」", "success");
         }
 
         async function runAnalysis() {
