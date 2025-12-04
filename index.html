@@ -412,100 +412,97 @@
             "OTHER": [ {key: "grade_intl_G", range: [1,12]} ]
         };
 
-/* 貼上這一段 */
-/* 貼上這一段 */
-/* 貼上這一段 */
-const translations = {
-    "zh-TW": {
-        "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub", "welcome_prefix": "歡迎來到",
-        "logout": "登出", "btn_login": "登入", "back": "返回", 
-        "tab_login": "登入", "tab_register": "註冊新帳號", "btn_login_action": "登入系統", "btn_register_action": "註冊並登入",
-        "select_role": "請選擇您的身份以進入專屬學習空間",
-        "label_select_role": "註冊身分", "role_student": "學生", "role_teacher": "教師", "role_researcher": "研究員",
-        "reg_title_student": "學生帳號註冊", "reg_title_teacher": "教師帳號註冊", "reg_title_researcher": "研究員帳號註冊",
-        "desc_student": "探索科學文本、重點整理與測驗回饋", "desc_teacher": "備課資源、命題檢核與學習診斷", "desc_researcher": "高階文本分析與系統語言研究",
-        "label_name": "姓名", "label_gender": "性別", "gender_male": "男", "gender_female": "女", "gender_other": "其他",
-        "label_email": "Email", "label_email_account": "Email (帳號)", "label_password": "密碼", "label_confirm_password": "確認密碼",
-        "msg_loading": "正在連接資料庫...",
-        "label_school_student": "就讀學校 (縣市+校名)", "label_grade_student": "就讀年級",
-        "label_school_teacher": "服務學校 (縣市+校名)", "label_position": "職稱", "label_teaching_grade": "教學年級", "label_subject": "教學科目", "label_seniority": "教學年資",
-        "label_unit": "服務單位", "label_research_title": "職稱", "label_field": "研究領域",
-        "forgot_password": "忘記密碼？", "forgot_password_title": "重設密碼", "forgot_password_desc": "請輸入您註冊時的 Email，系統將發送驗證信給您。",
-        "btn_send_verify": "發送驗證信", "back_to_login": "返回登入",
-        "msg_logout_confirm": "你確定要登出嗎？", "btn_confirm": "確定", "btn_cancel": "取消", "not_registered": "尚未註冊？",
-        "country_tw": "台灣", "country_cn": "中國", "country_hk": "香港", "country_mo": "澳門", "country_jp": "日本", "country_kr": "韓國", "country_us": "美國", "country_gb": "英國", "country_sg": "新加坡", "country_my": "馬來西亞", "country_vn": "越南", "country_id": "印尼", "country_th": "泰國", "country_in": "印度", "country_au": "澳洲", "country_ca": "加拿大", "country_nz": "紐西蘭", "country_other": "其他國家",
-        "grade_tw_E": "國小", "grade_tw_J": "國中", "grade_tw_S": "高中", "grade_cn_P": "小學", "grade_cn_J": "初中", "grade_cn_S": "高中", "grade_hk_P": "小學", "grade_hk_S": "中學", "grade_jp_E": "小學", "grade_jp_J": "中學", "grade_jp_H": "高校", "grade_kr_E": "初等學校", "grade_kr_M": "中學校", "grade_kr_H": "高等學校", "grade_us_K": "幼兒園", "grade_us_G": "年級", "grade_gb_Y": "年級", "grade_intl_G": "年級"
-    },
-    "en": {
-        "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub", "welcome_prefix": "Welcome to",
-        "logout": "Logout", "btn_login": "Login", "back": "Back", "tab_login": "Login", "tab_register": "Sign Up",
-        "btn_login_action": "Login", "btn_register_action": "Register & Login", "select_role": "Please select your role to continue",
-        "label_select_role": "Role", "role_student": "Student", "role_teacher": "Teacher", "role_researcher": "Researcher",
-        "reg_title_student": "Student Registration", "reg_title_teacher": "Teacher Registration", "reg_title_researcher": "Researcher Registration",
-        "desc_student": "Explore texts, summaries, and AI feedback", "desc_teacher": "Resources, terminology check, and diagnosis", "desc_researcher": "Advanced analysis and linguistics",
-        "label_name": "Name", "label_gender": "Gender", "gender_male": "Male", "gender_female": "Female", "gender_other": "Other",
-        "label_email": "Email", "label_email_account": "Email (Account)", "label_password": "Password", "label_confirm_password": "Confirm Password",
-        "msg_loading": "Connecting...",
-        "label_school_student": "School Name (City+Name)", "label_grade_student": "Grade",
-        "label_school_teacher": "School Name (City+Name)", "label_position": "Title", "label_teaching_grade": "Teaching Grade", "label_subject": "Subject", "label_seniority": "Seniority",
-        "label_unit": "Institution", "label_research_title": "Title", "label_field": "Research Field",
-        "forgot_password": "Forgot Password?", "forgot_password_title": "Reset Password", "forgot_password_desc": "Enter your email to receive verification.",
-        "btn_send_verify": "Send Email", "back_to_login": "Back to Login",
-        "msg_logout_confirm": "Are you sure you want to logout?", "btn_confirm": "Confirm", "btn_cancel": "Cancel", "not_registered": "Not registered?",
-        "country_tw": "Taiwan", "country_cn": "China", "country_hk": "Hong Kong", "country_mo": "Macau", "country_jp": "Japan", "country_kr": "Korea", "country_us": "USA", "country_gb": "UK", "country_sg": "Singapore", "country_my": "Malaysia", "country_vn": "Vietnam", "country_id": "Indonesia", "country_th": "Thailand", "country_in": "India", "country_au": "Australia", "country_ca": "Canada", "country_nz": "New Zealand", "country_other": "Other",
-        "grade_tw_E": "Elementary G", "grade_tw_J": "Junior High G", "grade_tw_S": "Senior High G", "grade_cn_P": "Primary G", "grade_cn_J": "Junior High G", "grade_cn_S": "Senior High G", "grade_hk_P": "Primary P", "grade_hk_S": "Secondary S", "grade_jp_E": "Elementary G", "grade_jp_J": "Junior High G", "grade_jp_H": "High School G", "grade_kr_E": "Elementary G", "grade_kr_M": "Middle School G", "grade_kr_H": "High School G", "grade_us_K": "Kindergarten", "grade_us_G": "Grade", "grade_gb_Y": "Year", "grade_intl_G": "Grade"
-    },
-    "ja": {
-        "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub", "welcome_prefix": "ようこそ",
-        "logout": "ログアウト", "btn_login": "ログイン", "back": "戻る", "tab_login": "ログイン", "tab_register": "新規登録",
-        "btn_login_action": "ログイン", "btn_register_action": "登録＆ログイン", "select_role": "役割を選択してください",
-        "label_select_role": "役割", "role_student": "学生", "role_teacher": "教師", "role_researcher": "研究者",
-        "reg_title_student": "学生登録", "reg_title_teacher": "教師登録", "reg_title_researcher": "研究者登録",
-        "desc_student": "テキスト、要約、AIフィードバックを探索", "desc_teacher": "リソース、用語チェック、診断", "desc_researcher": "高度な分析と研究",
-        "label_name": "氏名", "label_gender": "性別", "gender_male": "男性", "gender_female": "女性", "gender_other": "その他",
-        "label_email": "メールアドレス", "label_email_account": "メールアドレス (アカウント)", "label_password": "パスワード", "label_confirm_password": "確認用パスワード",
-        "msg_loading": "接続中...",
-        "label_school_student": "学校名", "label_grade_student": "学年",
-        "label_school_teacher": "勤務先学校名", "label_position": "役職", "label_teaching_grade": "担当学年", "label_subject": "担当科目", "label_seniority": "指導経験",
-        "label_unit": "所属機関", "label_research_title": "役職", "label_field": "研究分野",
-        "forgot_password": "パスワードを忘れた場合", "forgot_password_title": "パスワードをリセット", "forgot_password_desc": "登録したメールアドレスを入力してください。",
-        "btn_send_verify": "メール送信", "back_to_login": "ログインへ戻る",
-        "msg_logout_confirm": "ログアウトしますか？", "btn_confirm": "OK", "btn_cancel": "キャンセル", "not_registered": "未登録ですか？",
-        "country_tw": "台湾", "country_cn": "中国", "country_hk": "香港", "country_mo": "マカオ", "country_jp": "日本", "country_kr": "韓国", "country_us": "アメリカ", "country_gb": "イギリス", "country_sg": "シンガポール", "country_my": "マレーシア", "country_vn": "ベトナム", "country_id": "インドネシア", "country_th": "タイ", "country_in": "インド", "country_au": "オーストラリア", "country_ca": "カナダ", "country_nz": "ニュージーランド", "country_other": "その他",
-        "grade_tw_E": "小学校", "grade_tw_J": "中学校", "grade_tw_S": "高校", "grade_cn_P": "小学校", "grade_cn_J": "中学校", "grade_cn_S": "高校", "grade_hk_P": "Primary P", "grade_hk_S": "Secondary S", "grade_jp_E": "小学校", "grade_jp_J": "中学校", "grade_jp_H": "高校", "grade_kr_E": "初等学校", "grade_kr_M": "中学校", "grade_kr_H": "高等学校", "grade_us_K": "幼稚園", "grade_us_G": "学年", "grade_gb_Y": "年", "grade_intl_G": "学年"
-    },
-    "zh-CN": {
-        "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub", "welcome_prefix": "欢迎来到",
-        "logout": "退出", "btn_login": "登录", "back": "返回", "tab_login": "登录", "tab_register": "注册新账号",
-        "btn_login_action": "登录系统", "btn_register_action": "注册并登录", "select_role": "请选择您的身份以进入专属学习空间",
-        "label_select_role": "注册身份", "role_student": "学生", "role_teacher": "教师", "role_researcher": "研究员",
-        "reg_title_student": "学生账号注册", "reg_title_teacher": "教师账号注册", "reg_title_researcher": "研究员账号注册",
-        "desc_student": "探索科学文本、重点整理与测验反馈", "desc_teacher": "备课资源、命题核查与学习诊断", "desc_researcher": "高阶文本分析与系统语言研究",
-        "label_name": "姓名", "label_gender": "性别", "gender_male": "男", "gender_female": "女", "gender_other": "其他",
-        "label_email": "Email", "label_email_account": "Email (账号)", "label_password": "密码", "label_confirm_password": "确认密码",
-        "msg_loading": "正在连接数据库...",
-        "label_school_student": "就读学校 (省市+校名)", "label_grade_student": "就读年级",
-        "label_school_teacher": "服务学校 (省市+校名)", "label_position": "职称", "label_teaching_grade": "教学年级", "label_subject": "教学科目", "label_seniority": "教学年资",
-        "label_unit": "服务单位", "label_research_title": "职称", "label_field": "研究领域",
-        "forgot_password": "忘记密码？", "forgot_password_title": "重置密码", "forgot_password_desc": "请输入您注册时的 Email，系统将发送验证信给您。",
-        "btn_send_verify": "发送验证信", "back_to_login": "返回登录",
-        "msg_logout_confirm": "您确定要退出吗？", "btn_confirm": "确定", "btn_cancel": "取消", "not_registered": "尚未注册？",
-        "country_tw": "台湾", "country_cn": "中国", "country_hk": "香港", "country_mo": "澳门", "country_jp": "日本", "country_kr": "韩国", "country_us": "美国", "country_gb": "英国", "country_sg": "新加坡", "country_my": "马来西亚", "country_vn": "越南", "country_id": "印度尼西亚", "country_th": "泰国", "country_in": "印度", "country_au": "澳大利亚", "country_ca": "加拿大", "country_nz": "新西兰", "country_other": "其他国家",
-        "grade_tw_E": "小学", "grade_tw_J": "初中", "grade_tw_S": "高中", "grade_cn_P": "小学", "grade_cn_J": "初中", "grade_cn_S": "高中", "grade_hk_P": "小学", "grade_hk_S": "中学", "grade_jp_E": "小学", "grade_jp_J": "中学", "grade_jp_H": "高校", "grade_kr_E": "初等学校", "grade_kr_M": "中学校", "grade_kr_H": "高等学校", "grade_us_K": "幼儿园", "grade_us_G": "年级", "grade_gb_Y": "年级", "grade_intl_G": "年级"
-    }
-};
+        const translations = {
+            "zh-TW": {
+                "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub", "welcome_prefix": "歡迎來到",
+                "logout": "登出", "btn_login": "登入", "back": "返回", 
+                "tab_login": "登入", "tab_register": "註冊新帳號", "btn_login_action": "登入系統", "btn_register_action": "註冊並登入",
+                "select_role": "請選擇您的身份以進入專屬學習空間",
+                "label_select_role": "註冊身分", "role_student": "學生", "role_teacher": "教師", "role_researcher": "研究員",
+                "reg_title_student": "學生帳號註冊", "reg_title_teacher": "教師帳號註冊", "reg_title_researcher": "研究員帳號註冊",
+                "desc_student": "探索科學文本、重點整理與測驗回饋", "desc_teacher": "備課資源、命題檢核與學習診斷", "desc_researcher": "高階文本分析與系統語言研究",
+                "label_name": "姓名", "label_gender": "性別", "gender_male": "男", "gender_female": "女", "gender_other": "其他",
+                "label_email": "Email", "label_email_account": "Email (帳號)", "label_password": "密碼", "label_confirm_password": "確認密碼",
+                "msg_loading": "正在連接資料庫...",
+                "label_school_student": "就讀學校 (縣市+校名)", "label_grade_student": "就讀年級",
+                "label_school_teacher": "服務學校 (縣市+校名)", "label_position": "職稱", "label_teaching_grade": "教學年級", "label_subject": "教學科目", "label_seniority": "教學年資",
+                "label_unit": "服務單位", "label_research_title": "職稱", "label_field": "研究領域",
+                "forgot_password": "忘記密碼？", "forgot_password_title": "重設密碼", "forgot_password_desc": "請輸入您註冊時的 Email，系統將發送驗證信給您。",
+                "btn_send_verify": "發送驗證信", "back_to_login": "返回登入",
+                "msg_logout_confirm": "你確定要登出嗎？", "btn_confirm": "確定", "btn_cancel": "取消", "not_registered": "尚未註冊？",
+                "country_tw": "台灣", "country_cn": "中國", "country_hk": "香港", "country_mo": "澳門", "country_jp": "日本", "country_kr": "韓國", "country_us": "美國", "country_gb": "英國", "country_sg": "新加坡", "country_my": "馬來西亞", "country_vn": "越南", "country_id": "印尼", "country_th": "泰國", "country_in": "印度", "country_au": "澳洲", "country_ca": "加拿大", "country_nz": "紐西蘭", "country_other": "其他國家",
+                "grade_tw_E": "國小", "grade_tw_J": "國中", "grade_tw_S": "高中", "grade_cn_P": "小學", "grade_cn_J": "初中", "grade_cn_S": "高中", "grade_hk_P": "小學", "grade_hk_S": "中學", "grade_jp_E": "小學", "grade_jp_J": "中學", "grade_jp_H": "高校", "grade_kr_E": "初等學校", "grade_kr_M": "中學校", "grade_kr_H": "高等學校", "grade_us_K": "幼兒園", "grade_us_G": "年級", "grade_gb_Y": "年級", "grade_intl_G": "年級"
+            },
+            "en": {
+                "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub", "welcome_prefix": "Welcome to",
+                "logout": "Logout", "btn_login": "Login", "back": "Back", "tab_login": "Login", "tab_register": "Sign Up",
+                "btn_login_action": "Login", "btn_register_action": "Register & Login", "select_role": "Please select your role to continue",
+                "label_select_role": "Role", "role_student": "Student", "role_teacher": "Teacher", "role_researcher": "Researcher",
+                "reg_title_student": "Student Registration", "reg_title_teacher": "Teacher Registration", "reg_title_researcher": "Researcher Registration",
+                "desc_student": "Explore texts, summaries, and AI feedback", "desc_teacher": "Resources, terminology check, and diagnosis", "desc_researcher": "Advanced analysis and linguistics",
+                "label_name": "Name", "label_gender": "Gender", "gender_male": "Male", "gender_female": "Female", "gender_other": "Other",
+                "label_email": "Email", "label_email_account": "Email (Account)", "label_password": "Password", "label_confirm_password": "Confirm Password",
+                "msg_loading": "Connecting...",
+                "label_school_student": "School Name (City+Name)", "label_grade_student": "Grade",
+                "label_school_teacher": "School Name (City+Name)", "label_position": "Title", "label_teaching_grade": "Teaching Grade", "label_subject": "Subject", "label_seniority": "Seniority",
+                "label_unit": "Institution", "label_research_title": "Title", "label_field": "Research Field",
+                "forgot_password": "Forgot Password?", "forgot_password_title": "Reset Password", "forgot_password_desc": "Enter your email to receive verification.",
+                "btn_send_verify": "Send Email", "back_to_login": "Back to Login",
+                "msg_logout_confirm": "Are you sure you want to logout?", "btn_confirm": "Confirm", "btn_cancel": "Cancel", "not_registered": "Not registered?",
+                "country_tw": "Taiwan", "country_cn": "China", "country_hk": "Hong Kong", "country_mo": "Macau", "country_jp": "Japan", "country_kr": "Korea", "country_us": "USA", "country_gb": "UK", "country_sg": "Singapore", "country_my": "Malaysia", "country_vn": "Vietnam", "country_id": "Indonesia", "country_th": "Thailand", "country_in": "India", "country_au": "Australia", "country_ca": "Canada", "country_nz": "New Zealand", "country_other": "Other",
+                "grade_tw_E": "Elementary G", "grade_tw_J": "Junior High G", "grade_tw_S": "Senior High G", "grade_cn_P": "Primary G", "grade_cn_J": "Junior High G", "grade_cn_S": "Senior High G", "grade_hk_P": "Primary P", "grade_hk_S": "Secondary S", "grade_jp_E": "Elementary G", "grade_jp_J": "Junior High G", "grade_jp_H": "High School G", "grade_kr_E": "Elementary G", "grade_kr_M": "Middle School G", "grade_kr_H": "High School G", "grade_us_K": "Kindergarten", "grade_us_G": "Grade", "grade_gb_Y": "Year", "grade_intl_G": "Grade"
+            },
+            "ja": {
+                "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub", "welcome_prefix": "ようこそ",
+                "logout": "ログアウト", "btn_login": "ログイン", "back": "戻る", "tab_login": "ログイン", "tab_register": "新規登録",
+                "btn_login_action": "ログイン", "btn_register_action": "登録＆ログイン", "select_role": "役割を選択してください",
+                "label_select_role": "役割", "role_student": "学生", "role_teacher": "教師", "role_researcher": "研究者",
+                "reg_title_student": "学生登録", "reg_title_teacher": "教師登録", "reg_title_researcher": "研究者登録",
+                "desc_student": "テキスト、要約、AIフィードバックを探索", "desc_teacher": "リソース、用語チェック、診断", "desc_researcher": "高度な分析と研究",
+                "label_name": "氏名", "label_gender": "性別", "gender_male": "男性", "gender_female": "女性", "gender_other": "その他",
+                "label_email": "メールアドレス", "label_email_account": "メールアドレス (アカウント)", "label_password": "パスワード", "label_confirm_password": "確認用パスワード",
+                "msg_loading": "接続中...",
+                "label_school_student": "学校名", "label_grade_student": "学年",
+                "label_school_teacher": "勤務先学校名", "label_position": "役職", "label_teaching_grade": "担当学年", "label_subject": "担当科目", "label_seniority": "指導経験",
+                "label_unit": "所属機関", "label_research_title": "役職", "label_field": "研究分野",
+                "forgot_password": "パスワードを忘れた場合", "forgot_password_title": "パスワードをリセット", "forgot_password_desc": "登録したメールアドレスを入力してください。",
+                "btn_send_verify": "メール送信", "back_to_login": "ログインへ戻る",
+                "msg_logout_confirm": "ログアウトしますか？", "btn_confirm": "OK", "btn_cancel": "キャンセル", "not_registered": "未登録ですか？",
+                "country_tw": "台湾", "country_cn": "中国", "country_hk": "香港", "country_mo": "マカオ", "country_jp": "日本", "country_kr": "韓国", "country_us": "アメリカ", "country_gb": "イギリス", "country_sg": "シンガポール", "country_my": "マレーシア", "country_vn": "ベトナム", "country_id": "インドネシア", "country_th": "タイ", "country_in": "インド", "country_au": "オーストラリア", "country_ca": "カナダ", "country_nz": "ニュージーランド", "country_other": "その他",
+                "grade_tw_E": "小学校", "grade_tw_J": "中学校", "grade_tw_S": "高校", "grade_cn_P": "小学校", "grade_cn_J": "中学校", "grade_cn_S": "高校", "grade_hk_P": "Primary P", "grade_hk_S": "Secondary S", "grade_jp_E": "小学校", "grade_jp_J": "中学校", "grade_jp_H": "高校", "grade_kr_E": "初等学校", "grade_kr_M": "中学校", "grade_kr_H": "高等学校", "grade_us_K": "幼稚園", "grade_us_G": "学年", "grade_gb_Y": "年", "grade_intl_G": "学年"
+            },
+            "zh-CN": {
+                "site_title_nav": "Science Learning Hub", "site_title_hero": "Science Learning Hub", "welcome_prefix": "欢迎来到",
+                "logout": "退出", "btn_login": "登录", "back": "返回", "tab_login": "登录", "tab_register": "注册新账号",
+                "btn_login_action": "登录系统", "btn_register_action": "注册并登录", "select_role": "请选择您的身份以进入专属学习空间",
+                "label_select_role": "注册身份", "role_student": "学生", "role_teacher": "教师", "role_researcher": "研究员",
+                "reg_title_student": "学生账号注册", "reg_title_teacher": "教师账号注册", "reg_title_researcher": "研究员账号注册",
+                "desc_student": "探索科学文本、重点整理与测验反馈", "desc_teacher": "备课资源、命题核查与学习诊断", "desc_researcher": "高阶文本分析与系统语言研究",
+                "label_name": "姓名", "label_gender": "性别", "gender_male": "男", "gender_female": "女", "gender_other": "其他",
+                "label_email": "Email", "label_email_account": "Email (账号)", "label_password": "密码", "label_confirm_password": "确认密码",
+                "msg_loading": "正在连接数据库...",
+                "label_school_student": "就读学校 (省市+校名)", "label_grade_student": "就读年级",
+                "label_school_teacher": "服务学校 (省市+校名)", "label_position": "职称", "label_teaching_grade": "教学年级", "label_subject": "教学科目", "label_seniority": "教学年资",
+                "label_unit": "服务单位", "label_research_title": "职称", "label_field": "研究领域",
+                "forgot_password": "忘记密码？", "forgot_password_title": "重置密码", "forgot_password_desc": "请输入您注册时的 Email，系统将发送验证信给您。",
+                "btn_send_verify": "发送验证信", "back_to_login": "返回登录",
+                "msg_logout_confirm": "您确定要退出吗？", "btn_confirm": "确定", "btn_cancel": "取消", "not_registered": "尚未注册？",
+                "country_tw": "台湾", "country_cn": "中国", "country_hk": "香港", "country_mo": "澳门", "country_jp": "日本", "country_kr": "韩国", "country_us": "美国", "country_gb": "英国", "country_sg": "新加坡", "country_my": "马来西亚", "country_vn": "越南", "country_id": "印度尼西亚", "country_th": "泰国", "country_in": "印度", "country_au": "澳大利亚", "country_ca": "加拿大", "country_nz": "新西兰", "country_other": "其他国家",
+                "grade_tw_E": "小学", "grade_tw_J": "初中", "grade_tw_S": "高中", "grade_cn_P": "小学", "grade_cn_J": "初中", "grade_cn_S": "高中", "grade_hk_P": "小学", "grade_hk_S": "中学", "grade_jp_E": "小学", "grade_jp_J": "中学", "grade_jp_H": "高校", "grade_kr_E": "初等学校", "grade_kr_M": "中学校", "grade_kr_H": "高等学校", "grade_us_K": "幼儿园", "grade_us_G": "年级", "grade_gb_Y": "年级", "grade_intl_G": "年级"
+            }
+        };
 
-// 由於只保留了 zh-TW, en, ja, zh-CN，其他語言的 Fallback 邏輯需要簡化，只確保使用 zh-TW 或 en。
-// 我們可以移除複雜的 Fallback 迴圈，以符合「一字不動，嚴禁任何更改」的精神，僅修改資料內容。
-// 保留原始邏輯的骨架，但只處理已存在的語言。
-["ja", "zh-CN"].forEach(lang => {
-    if(!translations[lang]) translations[lang] = JSON.parse(JSON.stringify(translations['en']));
-    else {
-        const base = JSON.parse(JSON.stringify(translations['en']));
-        Object.assign(base, translations[lang]);
-        translations[lang] = base;
-    }
-});
+        // 由於只保留了 zh-TW, en, ja, zh-CN，其他語言的 Fallback 邏輯需要簡化，只確保使用 zh-TW 或 en。
+        // 我們可以移除複雜的 Fallback 迴圈，以符合「一字不動，嚴禁任何更改」的精神，僅修改資料內容。
+        // 保留原始邏輯的骨架，但只處理已存在的語言。
+        ["ja", "zh-CN"].forEach(lang => {
+            if(!translations[lang]) translations[lang] = JSON.parse(JSON.stringify(translations['en']));
+            else {
+                const base = JSON.parse(JSON.stringify(translations['en']));
+                Object.assign(base, translations[lang]);
+                translations[lang] = base;
+            }
+        });
 
         let currentLang = 'zh-TW';
 
@@ -678,229 +675,181 @@ const translations = {
             else { input.type = "password"; icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); } 
         }
 
-        // --- ★★★ 修正部分開始：handleLogin 與 handleRegister 實作頁面跳轉 ★★★ ---
-        
-// --- ★★★ 修正部分開始：handleLogin 替換為真實 API 呼叫 ★★★ ---
+        // --- ★★★ 修正部分開始：handleLogin 替換為真實 API 呼叫 ★★★ ---
 
-async function handleLogin(e) {
-    e.preventDefault();
-    
-    const email = document.getElementById('login-email').value.trim();
-    const password = document.getElementById('login-password').value;
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
 
-    if (!email || !password) {
-        alert("請輸入 Email/帳號 和密碼");
-        return;
-    }
+            if (!email || !password) {
+                alert("請輸入 Email/帳號 和密碼");
+                return;
+            }
 
-    const btn = document.getElementById('btn-do-login');
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> 驗證中...';
-    btn.disabled = true;
+            const btn = document.getElementById('btn-do-login');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> 驗證中...';
+            btn.disabled = true;
 
-    try {
-        const payload = {
-            type: 'login',
-            email: email,
-            password: password,
-            targetRole: targetRole || null
-        };
+            try {
+                const payload = {
+                    type: 'login',
+                    email: email,
+                    password: password,
+                    targetRole: targetRole || null
+                };
 
-        // ★★★ 關鍵：拿掉 headers，避免 CORS preflight 失敗 ★★★
-        const response = await fetch(GAS_URL, {
-            method: 'POST',
-            body: JSON.stringify(payload)
-        });
+                // ★ 關鍵修正：移除 headers，解決 CORS Preflight 錯誤
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
 
-        const text = await response.text();
-        const result = JSON.parse(text);
+                const text = await response.text();
+                const result = JSON.parse(text);
 
-        if (result.result === 'success') {
-            const user = result.user;
+                if (result.result === 'success') {
+                    const user = result.user;
+                    
+                    const userInfo = {
+                        email: user.email,
+                        name: user.name,
+                        role: user.role
+                    };
+                    sessionStorage.setItem("currentUser", JSON.stringify(userInfo));
+                    
+                    let targetPage = 'student.html';
+                    if (user.role === 'teacher') targetPage = 'teacher.html';
+                    if (user.role === 'researcher') targetPage = 'researcher.html';
+                    if (user.role === 'admin') targetPage = 'admin.html'; // 管理員跳轉
 
-            const userInfo = {
-                email: user.email,
-                name: user.name,
-                role: user.role
-            };
-            sessionStorage.setItem("currentUser", JSON.stringify(userInfo));
+                    alert(result.message);
+                    window.location.href = targetPage;
+                    
+                } else {
+                    alert(result.message);
+                }
 
-            let targetPage = 'student.html';
-            if (user.role === 'teacher') targetPage = 'teacher.html';
-            if (user.role === 'researcher') targetPage = 'researcher.html';
-            if (user.role === 'admin') targetPage = 'admin.html';
-
-            alert(result.message);
-            window.location.href = targetPage;
-        } else {
-            alert(result.message);
+            } catch (error) {
+                alert("登入處理錯誤，請檢查 GAS 連結或連線問題: " + error.toString());
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
         }
-    } catch (error) {
-        alert("登入處理錯誤，請檢查 GAS 連結或連線問題: " + error.toString());
-    } finally {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-    }
-}
-
-// --- ★★★ 修正部分結束 ★★★ ---
-        
         // --- ★★★ 修正部分結束 ★★★ ---
-
-async function handleRegister(e) { 
-    e.preventDefault(); 
-    
-    const role = document.getElementById('input-role').value || 'student';
-    const email = document.getElementById('reg-email').value.trim();
-    const password = document.getElementById('reg-password').value;
-    const confirmPassword = document.getElementById('reg-password-confirm').value;
-    
-    if (password !== confirmPassword) {
-        alert('密碼和確認密碼不一致！');
-        return;
-    }
-    
-    let registrationData = {
-        type: 'register',
-        role: role,
-        email: email,
-        password: password,
-        name: document.getElementById('input-name').value.trim(),
-        gender: document.getElementById('input-gender').value,
-        language: currentLang,
-        countryCode: ''
-    };
-    
-    if (role === 'student') {
-        registrationData.countryCode = document.getElementById('input-country-student').value;
-        registrationData.schoolName = document.getElementById('input-school-student').value.trim();
-        registrationData.gradeLevel = document.getElementById('input-grade-student').value;
-        registrationData.class = document.getElementById('input-class').value.trim();
-        registrationData.studentID = document.getElementById('input-student-id').value.trim();
-    } else if (role === 'teacher') {
-        registrationData.countryCode = document.getElementById('input-country-teacher').value;
-        registrationData.orgName = document.getElementById('input-school-teacher').value.trim();
-        registrationData.position = document.getElementById('input-position').value;
-        registrationData.gradeLevel = document.getElementById('input-teaching-grade').value;
-        registrationData.subject = document.getElementById('input-subject').value.trim();
-        registrationData.seniority = document.getElementById('input-seniority').value;
-    } else if (role === 'researcher') {
-        registrationData.countryCode = document.getElementById('input-country-researcher').value;
-        registrationData.orgName = document.getElementById('input-unit').value.trim();
-        registrationData.position = document.getElementById('input-research-title').value.trim();
-        registrationData.researchField = document.getElementById('input-field').value.trim();
-    }
-    
-    if (!registrationData.name || !registrationData.email || !registrationData.password || !registrationData.countryCode) {
-        alert('請填寫所有基礎必填欄位 (Email, 密碼, 姓名, 國家/地區)。');
-        return;
-    }
-    
-    const btn = document.getElementById('btn-do-register');
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> 註冊中...';
-    btn.disabled = true;
-
-    try {
-        // ★ 關鍵：不要加 headers，讓瀏覽器用 simple request
-        const response = await fetch(GAS_URL, {
-            method: 'POST',
-            body: JSON.stringify(registrationData)
-        });
-
-        const text = await response.text();
-        const result = JSON.parse(text);
-
-        if (result.result === 'success') {
-            const user = result.user;
+        
+        async function handleRegister(e) { 
+            e.preventDefault(); 
             
-            const userInfo = {
-                email: user.email,
-                name: user.name,
-                role: user.role
+            // 獲取所有通用欄位
+            const role = document.getElementById('input-role').value || 'student';
+            const email = document.getElementById('reg-email').value.trim();
+            const password = document.getElementById('reg-password').value;
+            const confirmPassword = document.getElementById('reg-password-confirm').value;
+            
+            if (password !== confirmPassword) {
+                alert('密碼和確認密碼不一致！');
+                return;
+            }
+            
+            // 統一組裝通用資料
+            let registrationData = {
+                type: 'register',
+                role: role,
+                email: email,
+                password: password,
+                name: document.getElementById('input-name').value.trim(),
+                gender: document.getElementById('input-gender').value,
+                language: currentLang,
+                countryCode: '' 
             };
-            sessionStorage.setItem("currentUser", JSON.stringify(userInfo));
             
-            let targetPage = 'student.html';
-            if (user.role === 'teacher') targetPage = 'teacher.html';
-            if (user.role === 'researcher') targetPage = 'researcher.html';
+            if (role === 'student') {
+                registrationData.countryCode = document.getElementById('input-country-student').value;
+                registrationData.schoolName = document.getElementById('input-school-student').value.trim();
+                registrationData.gradeLevel = document.getElementById('input-grade-student').value;
+                registrationData.class = document.getElementById('input-class').value.trim();
+                registrationData.studentID = document.getElementById('input-student-id').value.trim();
+            } else if (role === 'teacher') {
+                registrationData.countryCode = document.getElementById('input-country-teacher').value;
+                registrationData.orgName = document.getElementById('input-school-teacher').value.trim();
+                registrationData.position = document.getElementById('input-position').value;
+                registrationData.gradeLevel = document.getElementById('input-teaching-grade').value;
+                registrationData.subject = document.getElementById('input-subject').value.trim();
+                registrationData.seniority = document.getElementById('input-seniority').value;
+            } else if (role === 'researcher') {
+                registrationData.countryCode = document.getElementById('input-country-researcher').value;
+                registrationData.orgName = document.getElementById('input-unit').value.trim();
+                registrationData.position = document.getElementById('input-research-title').value.trim();
+                registrationData.researchField = document.getElementById('input-field').value.trim();
+            }
+            
+            if (!registrationData.name || !registrationData.email || !registrationData.password || !registrationData.countryCode) {
+                alert('請填寫所有基礎必填欄位 (Email, 密碼, 姓名, 國家/地區)。');
+                return;
+            }
+            
+            const btn = document.getElementById('btn-do-register');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> 註冊中...';
+            btn.disabled = true;
 
-            alert(result.message + "\n即將跳轉至您的專屬頁面。");
-            window.location.href = targetPage;
-        } else {
-            alert("註冊失敗: " + result.message);
+            try {
+                // ★ 關鍵：註冊也不要加 headers
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(registrationData)
+                });
+
+                const text = await response.text();
+                const result = JSON.parse(text);
+
+                if (result.result === 'success') {
+                    const user = result.user;
+                    
+                    const userInfo = {
+                        email: user.email,
+                        name: user.name,
+                        role: user.role
+                    };
+                    sessionStorage.setItem("currentUser", JSON.stringify(userInfo));
+                    
+                    let targetPage = 'student.html';
+                    if (user.role === 'teacher') targetPage = 'teacher.html';
+                    if (user.role === 'researcher') targetPage = 'researcher.html';
+
+                    alert(result.message + "\n即將跳轉至您的專屬頁面。");
+                    window.location.href = targetPage;
+                } else {
+                    alert("註冊失敗: " + result.message);
+                }
+            } catch (error) {
+                alert("註冊處理錯誤，請檢查 GAS 連結或連線問題: " + error.toString());
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
         }
-    } catch (error) {
-        alert("註冊處理錯誤，請檢查 GAS 連結或連線問題: " + error.toString());
-    } finally {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-    }
-}
 
-/* ===== 下面開始是新增補上的函式，原本程式碼一律不改 ===== */
-
-// 顯示登入／註冊區塊（導覽列「登入」按鈕 & 忘記密碼返回登入 都會叫這個）
-function showLoginModal() {
-    const home = document.getElementById('section-home');
-    const auth = document.getElementById('section-auth');
-    if (home) home.classList.add('hidden-section');
-    if (auth) auth.classList.remove('hidden-section');
-    // 預設登入 tab
-    switchAuthMode('login');
-
-    // 若尚未預選角色，預設學生
-    const roleSelect = document.getElementById('input-role-select');
-    if (roleSelect && !targetRole) {
-        targetRole = 'student';
-        roleSelect.value = 'student';
-        document.getElementById('input-role').value = 'student';
-        syncRoleFromSelector();
-    }
-}
-
-// 點導覽列「登出」→ 開啟 modal
-function logout() {
-    const modal = document.getElementById('logout-modal');
-    if (modal) modal.classList.remove('hidden');
-}
-
-// 關閉登出 modal
-function closeLogoutModal() {
-    const modal = document.getElementById('logout-modal');
-    if (modal) modal.classList.add('hidden');
-}
-
-// 確認登出：清掉 sessionStorage，回到首頁
-function confirmLogout() {
-    sessionStorage.removeItem('currentUser');
-    closeLogoutModal();
-    // 回到首頁畫面
-    goHome();
-}
-
-// 顯示忘記密碼表單
-function showForgotPassword() {
-    const formLogin = document.getElementById('form-login');
-    const formRegister = document.getElementById('form-register');
-    const formForgot = document.getElementById('form-forgot-password');
-    if (formLogin) formLogin.classList.add('hidden-section');
-    if (formRegister) formRegister.classList.add('hidden-section');
-    if (formForgot) formForgot.classList.remove('hidden-section');
-}
-
-// 處理忘記密碼送出（目前只是前端提示，真正寄信邏輯可之後接 GAS）
-function handleForgotPassword(e) {
-    e.preventDefault();
-    const emailInput = document.getElementById('forgot-email');
-    const email = emailInput ? emailInput.value.trim() : '';
-    if (!email) {
-        alert('請輸入 Email');
-        return;
-    }
-    alert('目前尚未實作真正的重設機制，請稍後再試或聯繫系統管理者。');
-}
-
+        function showForgotPassword() { alert("Please contact admin."); }
+        function showLoginModal() { 
+            document.getElementById('section-home').classList.add('hidden-section'); 
+            document.getElementById('section-auth').classList.remove('hidden-section'); 
+            switchAuthMode('login'); 
+        }
+        function logout() { 
+            document.getElementById('logout-modal').classList.remove('hidden');
+        }
+        function closeLogoutModal() {
+            document.getElementById('logout-modal').classList.add('hidden');
+        }
+        function confirmLogout() {
+            sessionStorage.removeItem("currentUser");
+            location.reload();
+        }
     </script>
 </body>
 </html>
