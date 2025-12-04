@@ -168,7 +168,9 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start"> <div id="summary-panel" class="md:col-span-2 glass-panel p-6 rounded-2xl bg-white border-l-4 border-blue-500 shadow-sm">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start"> 
+                
+                <div id="summary-panel" class="md:col-span-2 glass-panel p-6 rounded-2xl bg-white border-l-4 border-blue-500 shadow-sm">
                     <h3 class="font-bold text-blue-800 mb-4 text-xl"><i class="fa-solid fa-star text-yellow-400"></i> <span data-i18n="title_summary">核心概念摘要</span></h3>
                     <div id="summary-text" class="prose max-w-none text-slate-600 leading-relaxed"></div>
                 </div>
@@ -391,32 +393,44 @@
         }
     }
 
-    // ★ 這裡是您之前遺失的關鍵函式，我幫您補回來了 ★
+    // ★ 修正重點：自動判斷是文字還是物件，解決 [object Object] 問題 ★
     function renderResult(data) {
         console.log("渲染數據:", data); 
 
         // 1. 填入標題與 TAG
         const resultTitle = document.getElementById('result-title');
-        if (resultTitle) resultTitle.innerText = data.topic || data.unitName || '無標題';
+        if (resultTitle) resultTitle.innerText = data.topic || data.unitName || filters.unitName || '無標題';
         
         const resultTag = document.getElementById('result-tag');
         if (resultTag) {
-            // 解決 undefined 的問題：優先使用回傳資料，沒有的話用篩選條件
             const g = data.grade || filters.grade || '';
             const s = data.semester || filters.semester || '';
             resultTag.innerText = g + '年級 ' + s;
         }
 
-        // 2. 填入摘要
+        // 2. 填入摘要 (修正 object Object 問題)
         const summaryBox = document.getElementById('summary-text');
-        if (summaryBox) summaryBox.innerHTML = data.summary || '生成摘要失敗...';
+        if (summaryBox) {
+            let summaryContent = data.summary;
+            // 如果回傳的是物件，嘗試抓取裡面的 content 或 text 屬性
+            if (typeof summaryContent === 'object' && summaryContent !== null) {
+                summaryContent = summaryContent.content || summaryContent.text || summaryContent.summary || "摘要生成中...";
+            }
+            summaryBox.innerHTML = summaryContent || '生成摘要失敗...';
+        }
 
         // 3. 填入關鍵詞
         const keywordList = document.getElementById('keywords-list');
         if (keywordList) {
             keywordList.innerHTML = '';
-            if (data.keywords && Array.isArray(data.keywords)) {
-                data.keywords.forEach(k => {
+            // 相容性處理：有時候關鍵詞會包在 keywords 裡，有時候在 summary.keywords
+            let kList = data.keywords;
+            if (!kList && data.summary && data.summary.keywords) {
+                kList = data.summary.keywords;
+            }
+
+            if (kList && Array.isArray(kList)) {
+                kList.forEach(k => {
                     const term = typeof k === 'object' ? k.term : k;
                     const def = typeof k === 'object' ? k.def : '';
                     
@@ -425,14 +439,22 @@
                     div.innerHTML = `<span class="font-bold text-blue-700 text-lg block mb-1">${term}</span><span class="text-sm text-slate-600 leading-relaxed block">${def}</span>`;
                     keywordList.appendChild(div);
                 });
+            } else {
+                keywordList.innerHTML = '<div class="text-slate-400 p-2">無詞彙資料</div>';
             }
         }
 
         // 4. 繪製 Mermaid 架構圖
         const chartDiv = document.getElementById('mermaid-chart');
         if (chartDiv) {
-            if (data.mindMap) {
-                chartDiv.innerHTML = `<div class="mermaid">${data.mindMap}</div>`;
+            let mapData = data.mindMap;
+            // 相容性處理：有時候架構圖會包在 summary.mindMap
+            if (!mapData && data.summary && data.summary.mindMap) {
+                mapData = data.summary.mindMap;
+            }
+
+            if (mapData) {
+                chartDiv.innerHTML = `<div class="mermaid">${mapData}</div>`;
                 try {
                     mermaid.init(undefined, document.querySelectorAll('.mermaid'));
                 } catch (e) {
@@ -448,8 +470,14 @@
         const mythList = document.getElementById('myth-list');
         if (mythList) {
             mythList.innerHTML = '';
-            if (data.myths && Array.isArray(data.myths)) {
-                data.myths.forEach((m, index) => {
+            let mList = data.myths;
+            // 相容性處理
+            if (!mList && data.summary && data.summary.myths) {
+                mList = data.summary.myths;
+            }
+
+            if (mList && Array.isArray(mList)) {
+                mList.forEach((m, index) => {
                     const div = document.createElement('div');
                     div.className = 'bg-white p-4 rounded-xl border-l-4 border-red-400 shadow-sm';
                     div.innerHTML = `
@@ -461,6 +489,8 @@
                         </div>`;
                     mythList.appendChild(div);
                 });
+            } else {
+                 mythList.innerHTML = '<div class="text-slate-400 p-2">無迷思資料</div>';
             }
         }
 
@@ -471,11 +501,9 @@
         
         document.getElementById('btn-generate').disabled = false;
 
-        // ★ 執行您原本想要的版面高度調整 ★
         setTimeout(adjustVocabLayout, 100); 
     }
 
-    // ★ 這就是原本寫壞導致當機的程式碼，我幫您修好了 ★
     function adjustVocabLayout() {
         try {
             const mq = window.matchMedia("(min-width: 768px)");
@@ -512,19 +540,26 @@
             alert("請先生成內容後再下載！"); 
             return; 
         }
-        let content = `========================================\n  單元重點整理：${currentResultData.raw_content.unitName}\n========================================\n\n`;
+        let content = `========================================\n  單元重點整理：${currentResultData.raw_content ? currentResultData.raw_content.unitName : filters.unitName}\n========================================\n\n`;
         const summaryEl = document.getElementById("summary-text");
         let summary = summaryEl ? summaryEl.innerText.replace(/\n\s*\n/g, '\n\n').trim() : "";
         content += `【 核心概念摘要 】\n----------------------------------------\n${summary}\n\n\n`;
         content += `【 科學詞彙與定義 】\n----------------------------------------\n`;
-        if (Array.isArray(currentResultData.summary.vocab_list)) {
-            currentResultData.summary.vocab_list.forEach((v, i) => {
-                content += `${i+1}. ${v.term}\n   說明：${v.def}\n\n`;
+        
+        // 修正下載邏輯，確保能抓到資料
+        let vList = currentResultData.keywords || (currentResultData.summary ? currentResultData.summary.keywords : []) || [];
+        if (Array.isArray(vList)) {
+            vList.forEach((v, i) => {
+                const term = v.term || v;
+                const def = v.def || "";
+                content += `${i+1}. ${term}\n   說明：${def}\n\n`;
             });
         }
+        
         content += `\n【 常見迷思診斷 】\n----------------------------------------\n`;
-        if (Array.isArray(currentResultData.summary.myths)) {
-            currentResultData.summary.myths.forEach((m, i) => {
+        let mList = currentResultData.myths || (currentResultData.summary ? currentResultData.summary.myths : []) || [];
+        if (Array.isArray(mList)) {
+            mList.forEach((m, i) => {
                 content += `● 迷思 ${i+1}：${m.myth}\n   正確：${m.correct}\n\n`;
             });
         }
@@ -534,7 +569,7 @@
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.href = url;
-            link.download = `${currentResultData.raw_content.unitName}_重點整理.txt`;
+            link.download = `${filters.unitName || 'unit'}_重點整理.txt`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -589,7 +624,7 @@
 
         const opt = {
             margin:       10,
-            filename:     currentResultData.raw_content.unitName + "_重點整理.pdf",
+            filename:     (filters.unitName || 'unit') + "_重點整理.pdf",
             image:        { type: 'jpeg', quality: 0.98 },
             html2canvas:  { scale: 2, useCORS: true },
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
@@ -624,8 +659,8 @@
 
         try {
             const currentUser = JSON.parse(sessionStorage.getItem("currentUser") || '{"name":"訪客"}');
-            const contextText = currentResultData ? currentResultData.raw_content.text : "";
-            const contextVocab = currentResultData ? currentResultData.raw_content.vocab_str : "";
+            const contextText = currentResultData ? (currentResultData.raw_content ? currentResultData.raw_content.text : "") : "";
+            const contextVocab = currentResultData ? (currentResultData.raw_content ? currentResultData.raw_content.vocab_str : "") : "";
             const res = await fetch(GAS_API_URL, { 
                 method: 'POST', 
                 body: JSON.stringify({ 
