@@ -19,7 +19,6 @@
                 } 
             } 
         }
-        // 初始化 Mermaid，允許寬鬆語法
         mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'loose' });
     </script>
     
@@ -29,11 +28,10 @@
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        /* 聊天視窗動畫 */
         .chat-window { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform-origin: bottom right; }
         .chat-window.closed { transform: scale(0); opacity: 0; pointer-events: none; }
 
-        /* --- 摘要排版優化 --- */
+        /* --- 摘要排版 --- */
         #summary-text h3 { 
             font-size: 1.3rem; font-weight: 800; color: #1e3a8a; 
             margin-top: 1.5rem; margin-bottom: 0.75rem; 
@@ -45,36 +43,55 @@
         #summary-text li { position: relative; padding-left: 1.5rem; margin-bottom: 0.5rem; color: #374151; font-size: 1.05rem; }
         #summary-text li::before { content: "•"; color: #3b82f6; font-weight: bold; font-size: 1.2em; position: absolute; left: 0.25rem; top: -2px; }
         
-        /* 詞彙卡片懸浮效果 */
         .vocab-item { transition: transform 0.2s; }
         .vocab-item:hover { transform: translateY(-2px); }
 
-        /* --- Mermaid 圖表樣式 (修正：自動適應框框大小) --- */
+        /* --- Mermaid 圖表樣式 (一般顯示) --- */
         #mermaid-chart {
             width: 100%;
+            overflow-x: auto;       
+            padding: 20px 0;
             display: flex;
-            justify-content: center; /* 置中 */
-            overflow: hidden;        /* 隱藏溢出 */
-            cursor: pointer;         /* 手指游標 */
+            justify-content: center;
+            cursor: pointer;        
         }
         #mermaid-chart .mermaid svg {
-            /* 強制寬度 100% 以適應框框，高度自動 */
+            /* 讓圖表適應框框，但保持清晰 */
             width: 100% !important;      
             max-width: 100% !important;  
             height: auto !important;
             font-family: "Microsoft JhengHei", sans-serif !important; 
         }
 
-        /* --- PDF 下載專用樣式 --- */
-        /* 強制分頁 */
+        /* --- 手機全螢幕燈箱樣式修正 (解決手機看圖問題) --- */
+        #image-modal {
+            /* 確保層級最高，且允許捲動 */
+            z-index: 9999; 
+            overflow: auto; 
+            -webkit-overflow-scrolling: touch; /* iOS 順暢捲動 */
+        }
+        
+        #modal-content {
+            /* 在手機上佔滿版面，在電腦上留邊 */
+            width: 95vw; 
+            height: 90vh;
+            max-width: none !important; /* 解除最大寬度限制 */
+            overflow: auto; /* 內部捲動 */
+            background: white;
+            border-radius: 12px;
+            padding: 10px;
+            display: flex;
+            align-items: flex-start; /* 靠左上對齊，方便捲動 */
+            justify-content: center;
+        }
+
+        /* --- PDF 下載專用 --- */
         .pdf-page-break { 
             page-break-before: always; 
             break-before: page; 
             margin-top: 20px; 
             display: block; 
         }
-        
-        /* 圖表旋轉 (僅在 PDF 生成時生效) */
         .pdf-rotate-map {
             transform: rotate(90deg);
             transform-origin: top left;
@@ -83,8 +100,6 @@
             margin-top: -20px; 
             overflow: visible !important;
         }
-        
-        /* 隱藏不列印的元素 */
         .no-pdf { display: none !important; }
     </style>
 </head>
@@ -149,17 +164,17 @@
         </div>
 
         <div id="content-view" class="hidden animate-fade-in-up">
-            <div class="mb-6 flex justify-between items-end">
+            <div class="mb-6 flex flex-col md:flex-row justify-between md:items-end gap-4">
                 <div>
                     <span id="result-tag" class="text-xs font-bold bg-blue-100 text-blue-600 px-3 py-1 rounded-full">TAG</span>
                     <h1 id="result-title" class="text-3xl font-black text-slate-800 mt-2">Title</h1>
                 </div>
                 <div class="flex gap-2 no-print relative z-10">
-                    <button onclick="downloadTXT()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded-lg font-bold text-sm transition cursor-pointer border border-slate-200 shadow-sm">
-                        <i class="fa-solid fa-file-lines"></i> <span data-i18n="btn_txt">下載 TXT</span>
+                    <button onclick="downloadTXT()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded-lg font-bold text-sm transition cursor-pointer border border-slate-200 shadow-sm flex-1 md:flex-none justify-center flex">
+                        <i class="fa-solid fa-file-lines mr-2 mt-1"></i> <span data-i18n="btn_txt">下載 TXT</span>
                     </button>
-                    <button onclick="downloadPDF()" class="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-lg font-bold text-sm transition cursor-pointer border border-red-100 shadow-sm">
-                        <i class="fa-solid fa-file-pdf"></i> <span data-i18n="btn_pdf">下載 PDF</span>
+                    <button onclick="downloadPDF()" class="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-lg font-bold text-sm transition cursor-pointer border border-red-100 shadow-sm flex-1 md:flex-none justify-center flex">
+                        <i class="fa-solid fa-file-pdf mr-2 mt-1"></i> <span data-i18n="btn_pdf">下載 PDF</span>
                     </button>
                 </div>
             </div>
@@ -173,7 +188,6 @@
                 
                 <div id="vocab-panel" class="glass-panel p-6 rounded-2xl bg-gradient-to-br from-white to-blue-50 border-l-4 border-blue-500 h-full flex flex-col shadow-sm pdf-page-break">
                     <h3 class="font-bold text-slate-700 mb-4 text-xl"><span data-i18n="title_vocab">科學詞彙與定義</span></h3>
-                    
                     <div class="flex-1 overflow-y-auto custom-scrollbar min-h-0 pr-1">
                         <div id="keywords-list" class="space-y-3 pb-2"></div>
                     </div>
@@ -220,9 +234,9 @@
         </button>
     </div>
 
-    <div id="image-modal" class="fixed inset-0 z-[200] bg-black/90 hidden flex-col items-center justify-center p-4 transition-opacity duration-300" onclick="closeModal()">
-        <button class="absolute top-4 right-4 text-white/70 hover:text-white text-4xl font-bold">&times;</button>
-        <div id="modal-content" class="bg-white p-4 rounded-lg overflow-auto max-w-full max-h-full" onclick="event.stopPropagation()"></div>
+    <div id="image-modal" class="fixed inset-0 z-[200] bg-black/95 hidden flex-col items-center justify-center p-2 transition-opacity duration-300" onclick="closeModal()">
+        <button class="absolute top-4 right-4 text-white/80 hover:text-white text-5xl font-bold p-2 z-[201]">&times;</button>
+        <div id="modal-content" class="bg-white rounded-lg shadow-2xl" onclick="event.stopPropagation()"></div>
     </div>
 
     <script>
@@ -471,13 +485,28 @@
             } catch(e) { console.error(e); }
         }
 
+        // ★★★ 全螢幕燈箱 (手機/電腦通用版) ★★★
         function openModal() {
             const chartHtml = document.getElementById("mermaid-chart").innerHTML;
             if (!chartHtml) return;
+            
             const modal = document.getElementById("image-modal");
             const content = document.getElementById("modal-content");
+            
+            // 複製內容
             content.innerHTML = chartHtml;
-            content.firstElementChild.style.minWidth = "auto"; 
+            
+            // 強制放大內容以利閱讀 (重要！)
+            const svg = content.querySelector('svg');
+            if (svg) {
+                // 移除所有寬度限制，讓它恢復原始巨大尺寸，這樣才清楚
+                svg.style.width = 'auto';
+                svg.style.maxWidth = 'none';
+                svg.style.height = 'auto';
+                // 稍微放大一點字體
+                svg.style.fontSize = '120%';
+            }
+            
             modal.classList.remove("hidden");
             modal.classList.add("flex");
         }
