@@ -679,106 +679,81 @@ const translations = {
         // --- ★★★ 修正部分開始：handleLogin 與 handleRegister 實作頁面跳轉 ★★★ ---
         
 /* 找到並替換從 function handleLogin(e) { ... } 開始到下一個函式結束 */
-function handleLogin(e) { 
+// --- ★★★ 修正部分開始：handleLogin 替換為真實 API 呼叫 ★★★ ---
+
+async function handleLogin(e) { 
     e.preventDefault(); 
-    const email = document.getElementById('login-email').value.toLowerCase(); // 轉換為小寫以便比較
+    
+    // 獲取登入資訊
+    const email = document.getElementById('login-email').value.trim(); 
     const password = document.getElementById('login-password').value;
 
-    // 1. 簡單驗證
     if (!email || !password) {
-        alert("請輸入 Email 和密碼");
+        alert("請輸入 Email/帳號 和密碼");
         return;
     }
-    
-    // ⚠️ 修正開始：定義模擬帳號和其對應的**正確角色**
-    // 這裡假設我們有幾個預設的模擬帳號用於測試
-    const mockAccounts = {
-        "student@gmail.com": { role: 'student', name: '模擬學生' },
-        "teacher@gmail.com": { role: 'teacher', name: '模擬教師' },
-        "researcher@gmail.com": { role: 'researcher', name: '模擬研究員' },
-        "test@example.com": { role: 'student', name: '測試用戶' } // 預設角色
-    };
-    
-    const correctAccount = mockAccounts[email];
 
     const btn = document.getElementById('btn-do-login');
     const originalText = btn.innerHTML;
-    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> 處理中...';
+    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> 驗證中...';
     btn.disabled = true;
 
-    // 2. 模擬 API 驗證延遲
-    setTimeout(() => {
-        // A. 模擬帳號不存在
-        if (!correctAccount) {
-            alert("登入失敗：帳號或密碼錯誤。");
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-            return;
-        }
-
-        // B. 假設密碼驗證通過 (因為這裡沒有寫死密碼，所以所有登入都視為密碼正確)
-        
-        // C. 檢查使用者請求登入的角色是否符合其真實角色 (Target Role Check)
-        // targetRole 是使用者在首頁點擊的角色卡片，如果沒有點擊，則為 null
-        let roleToRedirect = correctAccount.role;
-
-        if (targetRole && targetRole !== correctAccount.role) {
-            // 情況：使用者點了「教師」卡片，但輸入了 "researcher@gmail.com"
-            // 修正：不允許登入到錯誤的角色頁面，並給出提示
-            alert(`登入失敗：您的帳號是 [${correctAccount.role}] 身份，無法以 [${targetRole}] 身份登入。`);
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-            return;
-        }
-        
-        // D. 模擬 Session 儲存
-        const userInfo = {
+    try {
+        // 準備傳輸給 GAS 的資料
+        const payload = {
+            type: 'login', // 告訴 GAS 這是登入操作
             email: email,
-            name: correctAccount.name,
-            role: roleToRedirect
+            password: password,
+            // 傳遞 targetRole，用於後端檢查用戶是否嘗試以錯誤角色登入 (例如: research@gmail.com 點了學生卡)
+            targetRole: targetRole || null 
         };
-        sessionStorage.setItem("currentUser", JSON.stringify(userInfo));
 
-        // E. 執行跳轉 (跳轉到其 **真正** 的角色頁面)
-        let targetPage = 'student.html';
-        if (roleToRedirect === 'teacher') targetPage = 'teacher.html';
-        if (roleToRedirect === 'researcher') targetPage = 'researcher.html';
+        const response = await fetch(GAS_URL, {
+            method: 'POST',
+            body: JSON.stringify(payload),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
 
-        // 恢復按鈕狀態 (雖然即將跳轉，但為了安全起見)
+        // 處理 GAS 返回的資料
+        const text = await response.text();
+        const result = JSON.parse(text);
+
+        if (result.result === 'success') {
+            const user = result.user;
+            
+            // 登入成功，儲存 Session 並跳轉
+            const userInfo = {
+                email: user.email,
+                name: user.name,
+                role: user.role
+            };
+            sessionStorage.setItem("currentUser", JSON.stringify(userInfo));
+            
+            // 根據後端返回的實際角色 (user.role) 執行跳轉
+            let targetPage = 'student.html';
+            if (user.role === 'teacher') targetPage = 'teacher.html';
+            if (user.role === 'researcher') targetPage = 'researcher.html';
+            if (user.role === 'admin') targetPage = 'admin.html'; // 管理員跳轉
+
+            alert(result.message);
+            window.location.href = targetPage;
+            
+        } else {
+            // 登入失敗 (由後端返回錯誤訊息)
+            alert(result.message);
+        }
+
+    } catch (error) {
+        alert("登入處理錯誤，請檢查 GAS 連結或連線問題: " + error.toString());
+    } finally {
+        // 恢復按鈕狀態
         btn.innerHTML = originalText;
         btn.disabled = false;
-
-        // 跳轉
-        window.location.href = targetPage;
-    }, 800);
+    }
 }
-
-        function handleRegister(e) { 
-            e.preventDefault(); 
-            const role = document.getElementById('input-role').value || 'student';
-            const email = document.getElementById('reg-email').value;
-            
-            const btn = document.getElementById('btn-do-register');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> 處理中...';
-            btn.disabled = true;
-
-            setTimeout(() => {
-                // 模擬註冊成功並自動登入
-                const userInfo = {
-                    email: email,
-                    name: document.getElementById('input-name').value,
-                    role: role
-                };
-                sessionStorage.setItem("currentUser", JSON.stringify(userInfo));
-                
-                let targetPage = 'student.html';
-                if (role === 'teacher') targetPage = 'teacher.html';
-                if (role === 'researcher') targetPage = 'researcher.html';
-
-                window.location.href = targetPage;
-            }, 800);
-        }
+// --- ★★★ 修正部分結束 ★★★ ---
         
         // --- ★★★ 修正部分結束 ★★★ ---
 
