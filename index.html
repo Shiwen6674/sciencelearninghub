@@ -675,56 +675,80 @@ const translations = {
 
         // --- ★★★ 修正部分開始：handleLogin 與 handleRegister 實作頁面跳轉 ★★★ ---
         
-        function handleLogin(e) { 
-            e.preventDefault(); 
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
+/* 找到並替換從 function handleLogin(e) { ... } 開始到下一個函式結束 */
+function handleLogin(e) { 
+    e.preventDefault(); 
+    const email = document.getElementById('login-email').value.toLowerCase(); // 轉換為小寫以便比較
+    const password = document.getElementById('login-password').value;
 
-            // 簡單驗證
-            if (!email || !password) {
-                alert("請輸入 Email 和密碼");
-                return;
-            }
+    // 1. 簡單驗證
+    if (!email || !password) {
+        alert("請輸入 Email 和密碼");
+        return;
+    }
+    
+    // ⚠️ 修正開始：定義模擬帳號和其對應的**正確角色**
+    // 這裡假設我們有幾個預設的模擬帳號用於測試
+    const mockAccounts = {
+        "student@gmail.com": { role: 'student', name: '模擬學生' },
+        "teacher@gmail.com": { role: 'teacher', name: '模擬教師' },
+        "researcher@gmail.com": { role: 'researcher', name: '模擬研究員' },
+        "test@example.com": { role: 'student', name: '測試用戶' } // 預設角色
+    };
+    
+    const correctAccount = mockAccounts[email];
 
-            const btn = document.getElementById('btn-do-login');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> 處理中...';
-            btn.disabled = true;
+    const btn = document.getElementById('btn-do-login');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> 處理中...';
+    btn.disabled = true;
 
-            // 模擬 API 延遲
-            setTimeout(() => {
-                // 決定要跳轉去哪裡
-                // 優先使用使用者在首頁選的 targetRole
-                // 如果是直接點右上角登入 (targetRole 為 null)，則根據 Email 關鍵字猜測，或預設為 student
-                let roleToRedirect = targetRole;
-
-                if (!roleToRedirect) {
-                    if (email.includes('teacher')) roleToRedirect = 'teacher';
-                    else if (email.includes('researcher')) roleToRedirect = 'researcher';
-                    else roleToRedirect = 'student';
-                }
-
-                // 模擬 Session 儲存
-                const userInfo = {
-                    email: email,
-                    name: email.split('@')[0],
-                    role: roleToRedirect
-                };
-                sessionStorage.setItem("currentUser", JSON.stringify(userInfo));
-
-                // 執行跳轉
-                let targetPage = 'student.html';
-                if (roleToRedirect === 'teacher') targetPage = 'teacher.html';
-                if (roleToRedirect === 'researcher') targetPage = 'researcher.html';
-
-                // 恢復按鈕狀態 (雖然即將跳轉，但為了安全起見)
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-
-                // 跳轉
-                window.location.href = targetPage;
-            }, 800);
+    // 2. 模擬 API 驗證延遲
+    setTimeout(() => {
+        // A. 模擬帳號不存在
+        if (!correctAccount) {
+            alert("登入失敗：帳號或密碼錯誤。");
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            return;
         }
+
+        // B. 假設密碼驗證通過 (因為這裡沒有寫死密碼，所以所有登入都視為密碼正確)
+        
+        // C. 檢查使用者請求登入的角色是否符合其真實角色 (Target Role Check)
+        // targetRole 是使用者在首頁點擊的角色卡片，如果沒有點擊，則為 null
+        let roleToRedirect = correctAccount.role;
+
+        if (targetRole && targetRole !== correctAccount.role) {
+            // 情況：使用者點了「教師」卡片，但輸入了 "researcher@gmail.com"
+            // 修正：不允許登入到錯誤的角色頁面，並給出提示
+            alert(`登入失敗：您的帳號是 [${correctAccount.role}] 身份，無法以 [${targetRole}] 身份登入。`);
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            return;
+        }
+        
+        // D. 模擬 Session 儲存
+        const userInfo = {
+            email: email,
+            name: correctAccount.name,
+            role: roleToRedirect
+        };
+        sessionStorage.setItem("currentUser", JSON.stringify(userInfo));
+
+        // E. 執行跳轉 (跳轉到其 **真正** 的角色頁面)
+        let targetPage = 'student.html';
+        if (roleToRedirect === 'teacher') targetPage = 'teacher.html';
+        if (roleToRedirect === 'researcher') targetPage = 'researcher.html';
+
+        // 恢復按鈕狀態 (雖然即將跳轉，但為了安全起見)
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+
+        // 跳轉
+        window.location.href = targetPage;
+    }, 800);
+}
 
         function handleRegister(e) { 
             e.preventDefault(); 
