@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generate Word Cloud | Science Learning Hub</title>
+    <title> AI文字雲生成器 | Science Learning Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- 替換原本那一行，使用 cdnjs 的穩定版本 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/wordcloud2.js/1.2.2/wordcloud2.min.js"></script>
@@ -523,111 +523,120 @@
                 `).join('');
             },
 
-            async downloadReport(type) {
-                if(this.state.words.length === 0) {
-                    this.showToast("請先產生分析結果", "error");
-                    return;
-                }
+            /* 貼上這一段 */
+async downloadReport(type) {
+    if(this.state.words.length === 0) {
+        this.showToast("請先產生分析結果", "error");
+        return;
+    }
 
-                if (type === 'txt') {
-                    let content = "AI 智能文字雲 - 分析報告\n\n";
-                    content += "=== AI 洞察 ===\n";
-                    content += document.getElementById('panel-ai').innerText + "\n\n";
-                    content += "=== 數據列表 (前 100 筆) ===\n";
-                    content += "排名\t詞彙\t詞性\t權重\n";
-                    this.state.words.slice(0, 100).forEach((w, i) => {
-                        content += `${i+1}\t${w.word}\t${w.pos}\t${w.weight.toFixed(2)}\n`;
-                    });
-                    const blob = new Blob([content], { type: 'text/plain' });
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    link.download = `report_${Date.now()}.txt`;
-                    link.click();
+    if (type === 'txt') {
+        let content = "AI 智能文字雲 - 分析報告\n\n";
+        content += "=== AI 洞察 ===\n";
+        content += document.getElementById('panel-ai').innerText + "\n\n";
+        content += "=== 數據列表 (前 100 筆) ===\n";
+        content += "排名\t詞彙\t詞性\t權重\n";
+        this.state.words.slice(0, 100).forEach((w, i) => {
+            content += `${i+1}\t${w.word}\t${w.pos}\t${w.weight.toFixed(2)}\n`;
+        });
+        const blob = new Blob([content], { type: 'text/plain' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `report_${Date.now()}.txt`;
+        link.click();
 
-                } else if (type === 'pdf') {
-                    this.showToast("正在生成 PDF，請稍候...", "info");
-                    
-                    const container = document.getElementById('pdf-generator-container');
-                    
-                    let pdfContent = `
-                        <div style="font-family: 'Noto Sans TC', sans-serif; color: #333;">
-                            <h1 style="font-size: 24px; font-weight: bold; color: #BB50E0; margin-bottom: 10px;">AI 智能文字雲分析報告</h1>
-                            <p style="font-size: 12px; color: #666; margin-bottom: 20px;">生成時間: ${new Date().toLocaleString()}</p>
-                            
-                            <h2 style="font-size: 18px; font-weight: bold; border-bottom: 2px solid #eee; padding-bottom: 5px; margin-bottom: 10px;">1. AI 深度洞察</h2>
-                            <div style="font-size: 14px; line-height: 1.6; margin-bottom: 30px;">
-                                ${document.getElementById('panel-ai').innerHTML}
-                            </div>
+    } else if (type === 'pdf') {
+        this.showToast("正在生成 PDF，請稍候...", "info");
+        
+        const container = document.getElementById('pdf-generator-container');
+        
+        // 1. 生成 AI 洞察部分的 HTML 內容
+        let pdfContent = `
+            <div style="font-family: 'Noto Sans TC', sans-serif; color: #333; width: 100%;">
+                <h1 style="font-size: 24px; font-weight: bold; color: #BB50E0; margin-bottom: 10px;">AI 智能文字雲分析報告</h1>
+                <p style="font-size: 12px; color: #666; margin-bottom: 30px;">生成時間: ${new Date().toLocaleString()}</p>
+                
+                <h2 style="font-size: 18px; font-weight: bold; border-bottom: 2px solid #eee; padding-bottom: 5px; margin-bottom: 10px;">1. AI 深度洞察</h2>
+                <div style="font-size: 14px; line-height: 1.6; margin-bottom: 30px;">
+                    ${document.getElementById('panel-ai').innerHTML}
+                </div>
 
-                            <h2 style="font-size: 18px; font-weight: bold; border-bottom: 2px solid #eee; padding-bottom: 5px; margin-bottom: 10px;">2. 數據列表 (前 15 筆)</h2>
-                            <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-                                <thead>
-                                    <tr style="background-color: #f5f5f5;">
-                                        <th style="padding: 8px; text-align: left;">排名</th>
-                                        <th style="padding: 8px; text-align: left;">詞彙</th>
-                                        <th style="padding: 8px; text-align: left;">詞性</th>
-                                        <th style="padding: 8px; text-align: right;">權重</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                    `;
-
-                    this.state.words.slice(0, 15).forEach((w, i) => {
-                        const bg = i % 2 === 0 ? '#fff' : '#fafafa';
-                        pdfContent += `
-                            <tr style="background-color: ${bg};">
-                                <td style="padding: 8px; border-bottom: 1px solid #eee;">${i+1}</td>
-                                <td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">${w.word}</td>
-                                <td style="padding: 8px; border-bottom: 1px solid #eee;">${w.pos}</td>
-                                <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">${w.weight.toFixed(2)}</td>
+                <div style="page-break-before: always; margin-top: 50px;">
+                    <h2 style="font-size: 18px; font-weight: bold; border-bottom: 2px solid #eee; padding-bottom: 5px; margin-bottom: 10px;">2. 數據列表 (前 15 筆)</h2>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                        <thead>
+                            <tr style="background-color: #f5f5f5;">
+                                <th style="padding: 8px; text-align: left;">排名</th>
+                                <th style="padding: 8px; text-align: left;">詞彙</th>
+                                <th style="padding: 8px; text-align: left;">詞性</th>
+                                <th style="padding: 8px; text-align: right;">權重</th>
                             </tr>
-                        `;
-                    });
+                        </thead>
+                        <tbody>
+        `;
 
-                    pdfContent += `</tbody></table></div>`;
-                    container.innerHTML = pdfContent;
+        // 填充數據表格
+        this.state.words.slice(0, 15).forEach((w, i) => {
+            const bg = i % 2 === 0 ? '#fff' : '#fafafa';
+            pdfContent += `
+                <tr style="background-color: ${bg};">
+                    <td style="padding: 8px; border-bottom: 1px solid #eee;">${i+1}</td>
+                    <td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">${w.word}</td>
+                    <td style="padding: 8px; border-bottom: 1px solid #eee;">${w.pos}</td>
+                    <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">${w.weight.toFixed(2)}</td>
+                </tr>
+            `;
+        });
 
-                    try {
-                        const canvas = await html2canvas(container, { scale: 2 });
-                        const imgData = canvas.toDataURL('image/png');
-                        
-                        const { jsPDF } = window.jspdf;
-                        const doc = new jsPDF('p', 'mm', 'a4');
-                        const pdfWidth = doc.internal.pageSize.getWidth();
-                        const pdfHeight = doc.internal.pageSize.getHeight();
+        pdfContent += `
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+        container.innerHTML = pdfContent;
 
-                        // ✅ 新增頁面邊界，避免文字貼邊
-                        const margin = 10;
-                        const pageWidth = pdfWidth - margin * 2;
-                        const pageHeight = pdfHeight - margin * 2;
+        try {
+            // 使用 html2canvas 將整個隱藏容器轉為單一長圖
+            const canvas = await html2canvas(container, { scale: 2 });
+            const imgData = canvas.toDataURL('image/png');
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = doc.internal.pageSize.getWidth();
+            const pdfHeight = doc.internal.pageSize.getHeight();
 
-                        const imgProps = doc.getImageProperties(imgData);
-const imgHeight = (imgProps.height * pageWidth) / imgProps.width;
+            const margin = 10;
+            const pageWidth = pdfWidth - margin * 2;
+            const pageHeight = pdfHeight - margin * 2;
 
-let heightLeft = imgHeight;
-let position = margin;
+            const imgProps = doc.getImageProperties(imgData);
+            const imgHeight = (imgProps.height * pageWidth) / imgProps.width;
 
-// 第一頁
-doc.addImage(imgData, 'PNG', margin, position, pageWidth, imgHeight);
-heightLeft -= pageHeight;
+            let heightLeft = imgHeight;
+            let position = margin;
+            
+            // 第一頁
+            doc.addImage(imgData, 'PNG', margin, position, pageWidth, imgHeight);
+            heightLeft -= pageHeight;
 
-// 後續頁：每一頁都「剛好往上移一個 pageHeight」
-while (heightLeft > 0) {
-    doc.addPage();
-    position -= pageHeight;   // ⭐ 只用固定 pageHeight 來位移，不再重新算
-    doc.addImage(imgData, 'PNG', margin, position, pageWidth, imgHeight);
-    heightLeft -= pageHeight;
+            // 後續頁：每一頁都「剛好往上移一個 pageHeight」
+            while (heightLeft > 0) {
+                doc.addPage();
+                position -= pageHeight;
+                doc.addImage(imgData, 'PNG', margin, position, pageWidth, imgHeight);
+                heightLeft -= pageHeight;
+            }
+
+
+            doc.save(`report_${Date.now()}.pdf`);
+            this.showToast("PDF 下載成功", "success");
+        } catch (err) {
+            console.error(err);
+            this.showToast("PDF 生成失敗", "error");
+        }
+    }
 }
-
-
-                        doc.save(`report_${Date.now()}.pdf`);
-                        this.showToast("PDF 下載成功", "success");
-                    } catch (err) {
-                        console.error(err);
-                        this.showToast("PDF 生成失敗", "error");
-                    }
-                }
-            },
 
             downloadImage() {
                 const canvas = document.getElementById('word-cloud-canvas');
