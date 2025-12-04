@@ -10,7 +10,15 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <script>
-        tailwind.config = { theme: { extend: { colors: { student: '#3b82f6' }, animation: { "fade-in-up": "fadeInUp 0.5s ease-out forwards" }, keyframes: { fadeInUp: { "0%": { opacity: "0", transform: "translateY(20px)" }, "100%": { opacity: "1", transform: "translateY(0)" } } } } } }
+        tailwind.config = { 
+            theme: { 
+                extend: { 
+                    colors: { student: '#3b82f6' }, 
+                    animation: { "fade-in-up": "fadeInUp 0.5s ease-out forwards" }, 
+                    keyframes: { fadeInUp: { "0%": { opacity: "0", transform: "translateY(20px)" }, "100%": { opacity: "1", transform: "translateY(0)" } } } 
+                } 
+            } 
+        }
         mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'loose' });
     </script>
     
@@ -45,7 +53,7 @@
             padding: 20px 0;
             display: flex;
             justify-content: center;
-            /* 讓圖表本身不阻擋點擊 */
+            /* 讓內容不阻擋點擊 */
             pointer-events: none; 
         }
         #mermaid-chart .mermaid svg {
@@ -59,12 +67,12 @@
         #image-modal { z-index: 99999; overflow: auto; -webkit-overflow-scrolling: touch; }
         #modal-content {
             width: 95vw; height: auto; min-height: 50vh;
-            max-width: none !important; overflow: visible; /* 允許溢出 */
+            max-width: none !important; overflow: visible;
             background: white; border-radius: 12px; padding: 15px;
             display: flex; align-items: flex-start; justify-content: center;
         }
 
-        /* PDF 下載專用 */
+        /* PDF 下載 */
         .pdf-page-break { page-break-before: always; break-before: page; margin-top: 20px; display: block; }
         .pdf-rotate-map {
             transform: rotate(90deg); transform-origin: top left;
@@ -72,6 +80,18 @@
             overflow: visible !important;
         }
         .no-pdf { display: none !important; }
+        
+        /* iPhone 強制點擊優化 */
+        .cursor-pointer { cursor: pointer !important; }
+        
+        /* 隱形點擊遮罩 */
+        .click-mask {
+            position: absolute;
+            inset: 0;
+            z-index: 50; /* 確保在最上層 */
+            background-color: transparent; /* 完全透明 */
+            cursor: pointer;
+        }
     </style>
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col">
@@ -141,11 +161,11 @@
                     <h1 id="result-title" class="text-3xl font-black text-slate-800 mt-2">Title</h1>
                 </div>
                 
-                <div class="flex gap-2 no-print relative" style="z-index: 9999;">
-                    <button onclick="downloadTXT()" ontouchend="downloadTXT()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-6 py-3 rounded-xl font-bold text-sm transition cursor-pointer border border-slate-200 shadow-sm flex-1 md:flex-none justify-center flex items-center active:scale-95">
+                <div class="flex gap-2 no-print relative" style="z-index: 500;">
+                    <button onclick="downloadTXT()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-6 py-3 rounded-xl font-bold text-sm transition cursor-pointer border border-slate-200 shadow-sm flex-1 md:flex-none justify-center flex items-center active:scale-95 touch-manipulation">
                         <i class="fa-solid fa-file-lines mr-2"></i> <span data-i18n="btn_txt">下載 TXT</span>
                     </button>
-                    <button onclick="downloadPDF()" ontouchend="downloadPDF()" class="bg-red-50 hover:bg-red-100 text-red-600 px-6 py-3 rounded-xl font-bold text-sm transition cursor-pointer border border-red-100 shadow-sm flex-1 md:flex-none justify-center flex items-center active:scale-95">
+                    <button onclick="downloadPDF()" class="bg-red-50 hover:bg-red-100 text-red-600 px-6 py-3 rounded-xl font-bold text-sm transition cursor-pointer border border-red-100 shadow-sm flex-1 md:flex-none justify-center flex items-center active:scale-95 touch-manipulation">
                         <i class="fa-solid fa-file-pdf mr-2"></i> <span data-i18n="btn_pdf">下載 PDF</span>
                     </button>
                 </div>
@@ -168,19 +188,13 @@
                 <div class="md:col-span-3 glass-panel p-6 rounded-2xl bg-white pdf-page-break shadow-sm">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="font-bold text-purple-700 text-xl"><i class="fa-solid fa-project-diagram"></i> <span data-i18n="title_map">知識架構圖</span></h3>
-                        <button onclick="openModal()" ontouchend="openModal()" class="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg text-sm font-bold border border-blue-200 hover:bg-blue-100 transition no-pdf">
+                        <button onclick="openModal()" class="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg text-sm font-bold border border-blue-200 hover:bg-blue-100 transition no-pdf">
                             <i class="fa-solid fa-expand mr-1"></i> 全螢幕
                         </button>
                     </div>
                     
-                    <div class="bg-slate-50 rounded-xl p-4 md:p-6 border border-slate-100 overflow-hidden w-full cursor-pointer hover:border-blue-300 transition relative" 
-                         onclick="openModal()" 
-                         ontouchend="openModal()" 
-                         title="點擊放大" 
-                         id="chart-container">
-                        <div class="absolute inset-0 z-10 bg-transparent flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                            <span class="bg-black/50 text-white px-3 py-1 rounded text-sm">👆 點擊放大</span>
-                        </div>
+                    <div class="bg-slate-50 rounded-xl p-4 md:p-6 border border-slate-100 overflow-hidden w-full relative h-auto min-h-[200px]" id="chart-container">
+                        <div class="click-mask" onclick="openModal()"></div>
                         <div id="mermaid-chart" class="w-full flex justify-center"></div>
                     </div>
                 </div>
@@ -380,17 +394,12 @@
             }
         }
 
-        // ★★★ 下載 TXT 函數 (防止雙重觸發) ★★★
-        let isDownloading = false;
+        // 下載函數：移除所有延遲，加入 Alert 提示
         function downloadTXT() {
-            if (isDownloading) return;
-            isDownloading = true;
-            setTimeout(() => isDownloading = false, 1000); // 1秒冷卻
-
             if(!currentResultData) { alert("請先生成內容後再下載！"); return; }
             
-            // 提示用戶開始下載 (Debug 用)
-            // alert('開始製作 TXT...'); 
+            // ★★★ iPhone 除錯提示：如果您看到這個視窗，代表按鈕可以按了！ ★★★
+            alert("✅ 正在製作 TXT 檔案，請稍候...");
 
             let content = `========================================\n  單元重點整理：${currentResultData.raw_content.unitName}\n========================================\n\n`;
             let summary = document.getElementById("summary-text").innerText.replace(/\n\s*\n/g, '\n\n').trim();
@@ -406,15 +415,11 @@
             link.click();
         }
 
-        // ★★★ 下載 PDF 函數 ★★★
         function downloadPDF() {
-            if (isDownloading) return;
-            isDownloading = true;
-            setTimeout(() => isDownloading = false, 2000); 
-
             if (!currentResultData) { alert("請先生成內容後再下載！"); return; }
             
-            // alert('開始製作 PDF，請稍候...'); // 手機端回饋
+            // ★★★ iPhone 除錯提示 ★★★
+            alert("✅ 正在製作 PDF，請稍候...");
 
             const element = document.getElementById("content-view").cloneNode(true);
             element.querySelectorAll(".no-pdf, button").forEach(e => e.remove());
@@ -448,7 +453,8 @@
                 margin:       10,
                 filename:     currentResultData.raw_content.unitName + "_重點整理.pdf",
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
+                // 手機上降低一點解析度，避免記憶體不足崩潰
+                html2canvas:  { scale: 1.5, useCORS: true },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
                 pagebreak:    { mode: ['css', 'legacy'] }
             };
@@ -476,30 +482,27 @@
             } catch(e) { console.error(e); }
         }
 
-        // ★★★ 全螢幕燈箱 (強制修復版：手機點擊必中) ★★★
+        // 全螢幕燈箱
         function openModal() {
             const chartDiv = document.getElementById("mermaid-chart");
             
-            // 雙重檢查：確保有內容且內容不為空
             if (!chartDiv || !chartDiv.innerHTML.trim() || chartDiv.innerHTML.includes("錯誤")) {
-                return; // 如果圖表沒生成或有錯誤，就不開燈箱
+                return;
             }
             
             const modal = document.getElementById("image-modal");
             const content = document.getElementById("modal-content");
             
-            // 複製內容
             content.innerHTML = chartDiv.innerHTML;
             
-            // 強制放大 SVG，解除 RWD 限制
             const svg = content.querySelector('svg');
             if (svg) {
-                svg.removeAttribute('style'); // 清除舊樣式
+                svg.removeAttribute('style');
                 svg.style.width = 'auto';     
                 svg.style.height = 'auto';    
                 svg.style.minWidth = '100%';  
                 svg.style.maxWidth = 'none';  
-                svg.style.pointerEvents = 'auto'; // 恢復互動
+                svg.style.pointerEvents = 'auto';
             }
             
             modal.classList.remove("hidden");
