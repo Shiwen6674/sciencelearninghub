@@ -21,10 +21,9 @@
         }
     </script>
     <style>
-        /* 教師風格基礎樣式 */
         body {
             font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); /* 綠色漸層背景 */
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
             min-height: 100vh;
         }
         .glass-panel {
@@ -37,14 +36,10 @@
         .input-field:focus { box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.3); border-color: #22c55e; outline: none; }
         .loader { border: 3px solid rgba(34, 197, 94, 0.2); border-radius: 50%; border-top: 3px solid #22c55e; width: 20px; height: 20px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* 顏色標籤定義 */
-        .bg-safe-deep { background-color: #166534; color: white; } /* +2 up */
-        .bg-safe-light { background-color: #22c55e; color: white; } /* 0 to +1.5 */
-        .bg-warn { background-color: #f97316; color: white; } /* -0.5 */
-        .bg-danger { background-color: #dc2626; color: white; } /* -1 down & unseen */
-        
-        /* 滾動條樣式 */
+        .bg-safe-deep { background-color: #166534; color: white; } 
+        .bg-safe-light { background-color: #22c55e; color: white; } 
+        .bg-warn { background-color: #f97316; color: white; } 
+        .bg-danger { background-color: #dc2626; color: white; } 
         .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
         .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
         .scrollbar-thin::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 3px; }
@@ -86,7 +81,6 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            
             <div class="lg:col-span-4 space-y-6">
                 <div class="glass-panel p-6 rounded-3xl">
                     <h2 class="text-xl font-bold text-slate-700 mb-5 border-b border-green-100 pb-3 flex items-center">
@@ -108,7 +102,7 @@
                                 <label class="block text-sm font-bold text-slate-700 mb-2" data-i18n="label_grade">目標年級</label>
                                 <select id="grades" class="w-full p-3 rounded-xl bg-white/70 input-field">
                                     <option value="" selected data-i18n="opt_any">不限</option>
-                                    </select>
+                                </select>
                             </div>
                             <div>
                                 <label class="block text-sm font-bold text-slate-700 mb-2" data-i18n="label_semester">目標學期</label>
@@ -164,7 +158,6 @@
                 </div>
 
                 <div id="result-area" class="hidden space-y-8 animate-fade-in-up">
-                    
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div class="glass-panel p-5 rounded-2xl text-center border-b-4 border-green-500">
                             <div class="text-sm text-slate-500 mb-2 font-medium" data-i18n="kpi_score">適切性評分</div>
@@ -200,7 +193,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="result-table-body" class="text-slate-700 text-sm font-medium bg-white/50 divide-y divide-green-50">
-                                    </tbody>
+                                </tbody>
                             </table>
                         </div>
                     </div>
@@ -212,10 +205,8 @@
                         <div id="ai-feedback-loader" class="hidden flex items-center text-green-700">
                             <div class="loader mr-3"></div> <span data-i18n="status_analyzing">正在生成深度分析報告，請稍候...</span>
                         </div>
-                        <div id="ai-feedback-content" class="text-slate-700 leading-relaxed space-y-6 text-base">
-                            </div>
+                        <div id="ai-feedback-content" class="text-slate-700 leading-relaxed space-y-6 text-base"></div>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -227,22 +218,15 @@
     </div>
 
     <script>
-        // =========================================
-        // 前端邏輯
-        // =========================================
-        
-        // ★★★ 關鍵修正：將 GAS_URL 替換為您的 Apps Script 部署網址 ★★★
-        // 請確保這個 URL 以 /exec 結尾，且對應到「命題用語檢核」的 GAS 專案
+        // ★★★ 這裡一定要換成您步驟 2 部署後的新網址 ★★★
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxbZPCCWFwFel6KjEzga-P_YJJccBevBMMCmgq_qVt1PfQEl2Som7z-DD2rU8kexrnGtA/exec";
         
-        // 1. 多語系字典
         const translations = {
             "zh-TW": {
                 "back_btn": "返回教學中心", "page_title": "中小學自然科命題用詞 AI 檢核", "page_subtitle": "結合大數據資料庫與生成式 AI，精準診斷命題適切性",
                 "settings_title": "參數設定", "label_stage": "學習階段", "opt_select": "請選擇", "opt_elem": "國小", "opt_junior": "國中",
                 "label_grade": "目標年級", "opt_any": "不限", "label_semester": "目標學期", "opt_sem1": "上學期", "opt_sem2": "下學期",
-                "label_version": "教科書版本", 
-                "label_pos": "檢測詞性 (多選)", "pos_n": "名詞", "pos_v": "動詞", "pos_a": "形容詞", "pos_d": "副詞",
+                "label_version": "教科書版本", "label_pos": "檢測詞性 (多選)", "pos_n": "名詞", "pos_v": "動詞", "pos_a": "形容詞", "pos_d": "副詞",
                 "btn_start": "開始 AI 檢測", "label_text_input": "試題文本", "btn_example": "載入範例", "placeholder_text": "請在此貼上包含題幹與選項的完整試題內容...",
                 "kpi_score": "適切性評分", "kpi_total": "分析詞彙數", "kpi_safe": "符合目標年級", "kpi_risk": "超前/未見風險",
                 "table_title": "詞彙年級分佈分析", "th_term": "詞彙", "th_pos": "詞性", "th_first": "資料庫首次出現", "th_diff": "年級差", "th_status": "判定",
@@ -254,8 +238,7 @@
                 "back_btn": "Back to Hub", "page_title": "Science Exam Vocabulary Checker", "page_subtitle": "AI-powered analysis for vocabulary suitability.",
                 "settings_title": "Settings", "label_stage": "Stage", "opt_select": "Select...", "opt_elem": "Elementary", "opt_junior": "Junior High",
                 "label_grade": "Target Grade", "opt_any": "Any", "label_semester": "Semester", "opt_sem1": "1st Sem", "opt_sem2": "2nd Sem",
-                "label_version": "Textbook Edition", 
-                "label_pos": "Part of Speech", "pos_n": "Noun", "pos_v": "Verb", "pos_a": "Adj", "pos_d": "Adv",
+                "label_version": "Textbook Edition", "label_pos": "Part of Speech", "pos_n": "Noun", "pos_v": "Verb", "pos_a": "Adj", "pos_d": "Adv",
                 "btn_start": "Analyze", "label_text_input": "Exam Text", "btn_example": "Load Example", "placeholder_text": "Paste text here...",
                 "kpi_score": "Suitability", "kpi_total": "Total Terms", "kpi_safe": "Safe", "kpi_risk": "Risk",
                 "table_title": "Vocabulary Analysis", "th_term": "Term", "th_pos": "POS", "th_first": "First Seen", "th_diff": "Year Gap", "th_status": "Status",
@@ -267,8 +250,7 @@
                 "back_btn": "戻る", "page_title": "科学試験用語AIチェッカー", "page_subtitle": "ビッグデータとAIを活用した試験問題の適切性診断",
                 "settings_title": "設定", "label_stage": "学習段階", "opt_select": "選択...", "opt_elem": "小学校", "opt_junior": "中学校",
                 "label_grade": "目標学年", "opt_any": "指定なし", "label_semester": "学期", "opt_sem1": "前期", "opt_sem2": "後期",
-                "label_version": "教科書版", 
-                "label_pos": "品詞", "pos_n": "名詞", "pos_v": "動詞", "pos_a": "形容詞", "pos_d": "副詞",
+                "label_version": "教科書版", "label_pos": "品詞", "pos_n": "名詞", "pos_v": "動詞", "pos_a": "形容詞", "pos_d": "副詞",
                 "btn_start": "分析開始", "label_text_input": "問題文", "btn_example": "例文をロード", "placeholder_text": "ここに貼り付けてください...",
                 "kpi_score": "適合スコア", "kpi_total": "分析単語数", "kpi_safe": "学年適合", "kpi_risk": "未習リスク",
                 "table_title": "単語分布分析", "th_term": "単語", "th_pos": "品詞", "th_first": "初出", "th_diff": "学年差", "th_status": "判定",
@@ -280,8 +262,7 @@
                 "back_btn": "返回教学中心", "page_title": "中小学自然科命题用词 AI 检核", "page_subtitle": "结合大数据与生成式 AI，精准诊断命题适切性",
                 "settings_title": "参数设置", "label_stage": "学习阶段", "opt_select": "请选择", "opt_elem": "国小", "opt_junior": "国中",
                 "label_grade": "目标年级", "opt_any": "不限", "label_semester": "目标学期", "opt_sem1": "上学期", "opt_sem2": "下学期",
-                "label_version": "教科书版本", 
-                "label_pos": "检测词性", "pos_n": "名词", "pos_v": "动词", "pos_a": "形容词", "pos_d": "副词",
+                "label_version": "教科书版本", "label_pos": "检测词性", "pos_n": "名词", "pos_v": "动词", "pos_a": "形容词", "pos_d": "副词",
                 "btn_start": "开始检测", "label_text_input": "试题文本", "btn_example": "载入范例", "placeholder_text": "请在此粘贴试题内容...",
                 "kpi_score": "适切性评分", "kpi_total": "分析词汇数", "kpi_safe": "符合目标年级", "kpi_risk": "超前/未见风险",
                 "table_title": "词汇年级分布分析", "th_term": "词汇", "th_pos": "词性", "th_first": "数据库首次出现", "th_diff": "年级差", "th_status": "判定",
@@ -293,7 +274,6 @@
 
         let currentLang = 'zh-TW';
 
-        // 2. 初始化與選單連動
         document.addEventListener('DOMContentLoaded', () => {
             updateGrades(); 
         });
@@ -309,7 +289,6 @@
                 const key = el.getAttribute("data-i18n-placeholder");
                 if (t[key]) el.placeholder = t[key];
             });
-            // 重新生成年級選單以更新語言
             updateGrades(true);
         }
 
@@ -323,7 +302,7 @@
             
             if (stage === '國小' || stage === 'opt_elem') {
                 const grades = [{v:'三年級',l:t.grade_3},{v:'四年級',l:t.grade_4},{v:'五年級',l:t.grade_5},{v:'六年級',l:t.grade_6}];
-                grades.forEach(g => { gradeSelect.add(new Option(g.l, g.v)); }); // value 保持中文以便後端處理
+                grades.forEach(g => { gradeSelect.add(new Option(g.l, g.v)); });
                 gradeSelect.disabled = false;
             } else if (stage === '國中' || stage === 'opt_junior') {
                 const grades = [{v:'七年級',l:t.grade_7},{v:'八年級',l:t.grade_8},{v:'九年級',l:t.grade_9}];
@@ -335,11 +314,10 @@
             if(isLangChange && currentVal) gradeSelect.value = currentVal;
         }
 
-        // 3. 載入範例
         function loadExample() {
             document.getElementById('stage').value = "國中";
             updateGrades();
-            document.getElementById('grades').value = "七年級"; // 使用後端識別的中文值
+            document.getElementById('grades').value = "七年級";
             document.getElementById('semester').value = "上";
             document.getElementById('version').value = "";
             document.getElementById('text').value = 
@@ -348,12 +326,10 @@
 (B) 反光鏡、光圈
 (C) 粗調節輪、細調節輪
 (D) 載玻片、蓋玻片`;
-            // 觸發一次語言更新以確保 placeholder 等狀態正確
             const t = translations[currentLang];
             showToast(t.msg_analysis_done || "範例載入完成", "success");
         }
 
-        // 4. 執行分析 (呼叫後端 - 改用 fetch)
         async function runAnalysis() {
             const stage = document.getElementById('stage').value;
             const text = document.getElementById('text').value.trim();
@@ -373,9 +349,8 @@
             document.getElementById('result-table-body').innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-500 italic">${t.status_analyzing}</td></tr>`;
             document.getElementById('result-area').scrollIntoView({ behavior: 'smooth' });
             
-            // 收集資料
             const requestBody = {
-                action: "analyze", // 告訴後端這是分析請求
+                action: "analyze",
                 payload: {
                     text: text,
                     stage: stage,
@@ -387,11 +362,10 @@
             };
 
             try {
-                // ★★★ 改用 fetch 發送 POST 請求 ★★★
                 const response = await fetch(GAS_URL, {
                     method: "POST",
-                    // 不加 headers 以避免 CORS preflight
                     body: JSON.stringify(requestBody)
+                    // 注意：這裡不能加 headers，否則會觸發 CORS Preflight 失敗
                 });
 
                 const jsonResponse = await response.json();
@@ -408,14 +382,12 @@
                 showToast(t.msg_analysis_fail + error.message, "error");
                 document.getElementById('ai-feedback-content').innerHTML = `<p class="text-red-500">連線失敗，請檢查網路或後端 URL。</p>`;
             } finally {
-                // 恢復按鈕狀態
                 btn.disabled = false;
                 btn.innerHTML = originalBtnContent;
                 document.getElementById('ai-feedback-loader').classList.add('hidden');
             }
         }
 
-        // 5. 渲染結果
         function renderResults(data) {
             document.getElementById('res-score').innerText = data.summary.score;
             document.getElementById('res-total').innerText = data.summary.total;
@@ -466,7 +438,6 @@
             }).join('');
         }
 
-        // 6. Toast
         function showToast(msg, type = "info") {
             const toast = document.getElementById('toast');
             const icon = document.getElementById('toast-icon');
@@ -494,17 +465,58 @@
             setTimeout(() => { toast.classList.add('opacity-0', 'translate-y-10'); }, 3000);
         }
 
-        // Canvas Background
-        (function() {
+        // Canvas Background (確保 window.load 後執行)
+        window.addEventListener('load', function() {
             const canvas = document.getElementById('network-canvas');
+            if (!canvas) return; // 防止報錯
+
             const ctx = canvas.getContext('2d');
             let width, height, orbits = [], centerX, centerY;
-            function resize() { width=window.innerWidth; height=window.innerHeight; canvas.width=width; canvas.height=height; centerX=width/2; centerY=height/2; initOrbits(); }
-            class Orbit { constructor(rx, ry, a, c, s) { this.rx=rx; this.ry=ry; this.a=a; this.c=c; this.s=s; this.r=0; this.ea=Math.random()*Math.PI*2; } update(){ this.r+=this.s; this.ea+=0.002; } draw(){ ctx.save(); ctx.translate(centerX, centerY); ctx.rotate(this.a); ctx.beginPath(); ctx.ellipse(0,0,this.rx,this.ry,this.r,0,Math.PI*2); ctx.strokeStyle=this.c; ctx.lineWidth=1; ctx.stroke(); ctx.beginPath(); ctx.arc(this.rx*Math.cos(this.ea), this.ry*Math.sin(this.ea), 3, 0, Math.PI*2); ctx.fillStyle=this.c; ctx.fill(); ctx.restore(); } }
-            function initOrbits() { orbits=[]; const br=width<height?width*0.25:height*0.3; orbits.push(new Orbit(br, br*0.4, Math.PI/4, 'rgba(34,197,94,0.3)', 0.001)); orbits.push(new Orbit(br, br*0.4, -Math.PI/4, 'rgba(16,185,129,0.3)', -0.001)); orbits.push(new Orbit(br*1.2, br*1.2, 0, 'rgba(6,95,70,0.1)', 0.0005)); }
-            function animate() { ctx.clearRect(0,0,width,height); orbits.forEach(o=>{o.update();o.draw()}); ctx.beginPath(); ctx.arc(centerX, centerY, 5, 0, Math.PI*2); ctx.fillStyle='rgba(34,197,94,0.8)'; ctx.shadowBlur=15; ctx.shadowColor='#22c55e'; ctx.fill(); requestAnimationFrame(animate); }
-            window.addEventListener('resize', resize); resize(); animate();
-        })();
+
+            function resize() { 
+                width = window.innerWidth; 
+                height = window.innerHeight; 
+                canvas.width = width; 
+                canvas.height = height; 
+                centerX = width / 2; 
+                centerY = height / 2; 
+                initOrbits(); 
+            }
+
+            class Orbit { 
+                constructor(rx, ry, a, c, s) { 
+                    this.rx = rx; this.ry = ry; this.a = a; this.c = c; this.s = s; this.r = 0; this.ea = Math.random() * Math.PI * 2; 
+                } 
+                update() { this.r += this.s; this.ea += 0.002; } 
+                draw() { 
+                    ctx.save(); ctx.translate(centerX, centerY); ctx.rotate(this.a); 
+                    ctx.beginPath(); ctx.ellipse(0, 0, this.rx, this.ry, this.r, 0, Math.PI * 2); 
+                    ctx.strokeStyle = this.c; ctx.lineWidth = 1; ctx.stroke(); 
+                    ctx.beginPath(); ctx.arc(this.rx * Math.cos(this.ea), this.ry * Math.sin(this.ea), 3, 0, Math.PI * 2); 
+                    ctx.fillStyle = this.c; ctx.fill(); ctx.restore(); 
+                } 
+            }
+
+            function initOrbits() { 
+                orbits = []; 
+                const br = width < height ? width * 0.25 : height * 0.3; 
+                orbits.push(new Orbit(br, br * 0.4, Math.PI / 4, 'rgba(34,197,94,0.3)', 0.001)); 
+                orbits.push(new Orbit(br, br * 0.4, -Math.PI / 4, 'rgba(16,185,129,0.3)', -0.001)); 
+                orbits.push(new Orbit(br * 1.2, br * 1.2, 0, 'rgba(6,95,70,0.1)', 0.0005)); 
+            }
+
+            function animate() { 
+                ctx.clearRect(0, 0, width, height); 
+                orbits.forEach(o => { o.update(); o.draw() }); 
+                ctx.beginPath(); ctx.arc(centerX, centerY, 5, 0, Math.PI * 2); 
+                ctx.fillStyle = 'rgba(34,197,94,0.8)'; ctx.shadowBlur = 15; ctx.shadowColor = '#22c55e'; ctx.fill(); 
+                requestAnimationFrame(animate); 
+            }
+
+            window.addEventListener('resize', resize); 
+            resize(); 
+            animate();
+        });
     </script>
 </body>
 </html>
