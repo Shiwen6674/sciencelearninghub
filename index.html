@@ -682,78 +682,67 @@ const translations = {
         
 // --- ★★★ 修正部分開始：handleLogin 替換為真實 API 呼叫 ★★★ ---
 
-async function handleLogin(e) { 
-    e.preventDefault(); 
-    
-    // 獲取登入資訊
-    const email = document.getElementById('login-email').value.trim(); 
-    const password = document.getElementById('login-password').value;
+async function handleLogin(e) {
+    e.preventDefault();
+    
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
 
-    if (!email || !password) {
-        alert("請輸入 Email/帳號 和密碼");
-        return;
-    }
+    if (!email || !password) {
+        alert("請輸入 Email/帳號 和密碼");
+        return;
+    }
 
-    const btn = document.getElementById('btn-do-login');
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> 驗證中...';
-    btn.disabled = true;
+    const btn = document.getElementById('btn-do-login');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> 驗證中...';
+    btn.disabled = true;
 
-    try {
-        // 準備傳輸給 GAS 的資料
-        const payload = {
-            type: 'login', // 告訴 GAS 這是登入操作
-            email: email,
-            password: password,
-            // 傳遞 targetRole，用於後端檢查用戶是否嘗試以錯誤角色登入 (例如: research@gmail.com 點了學生卡)
-            targetRole: targetRole || null 
-        };
+    try {
+        const payload = {
+            type: 'login',
+            email: email,
+            password: password,
+            targetRole: targetRole || null
+        };
 
-        const response = await fetch(GAS_URL, {
-            method: 'POST',
-            body: JSON.stringify(payload),
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
+        // ★★★ 關鍵：拿掉 headers，避免 CORS preflight 失敗 ★★★
+        const response = await fetch(GAS_URL, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
 
-        // 處理 GAS 返回的資料
-        const text = await response.text();
-        const result = JSON.parse(text);
+        const text = await response.text();
+        const result = JSON.parse(text);
 
-        if (result.result === 'success') {
-            const user = result.user;
-            
-            // 登入成功，儲存 Session 並跳轉
-            const userInfo = {
-                email: user.email,
-                name: user.name,
-                role: user.role
-            };
-            sessionStorage.setItem("currentUser", JSON.stringify(userInfo));
-            
-            // 根據後端返回的實際角色 (user.role) 執行跳轉
-            let targetPage = 'student.html';
-            if (user.role === 'teacher') targetPage = 'teacher.html';
-            if (user.role === 'researcher') targetPage = 'researcher.html';
-            if (user.role === 'admin') targetPage = 'admin.html'; // 管理員跳轉
+        if (result.result === 'success') {
+            const user = result.user;
 
-            alert(result.message);
-            window.location.href = targetPage;
-            
-        } else {
-            // 登入失敗 (由後端返回錯誤訊息)
-            alert(result.message);
-        }
+            const userInfo = {
+                email: user.email,
+                name: user.name,
+                role: user.role
+            };
+            sessionStorage.setItem("currentUser", JSON.stringify(userInfo));
 
-    } catch (error) {
-        alert("登入處理錯誤，請檢查 GAS 連結或連線問題: " + error.toString());
-    } finally {
-        // 恢復按鈕狀態
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-    }
+            let targetPage = 'student.html';
+            if (user.role === 'teacher') targetPage = 'teacher.html';
+            if (user.role === 'researcher') targetPage = 'researcher.html';
+            if (user.role === 'admin') targetPage = 'admin.html';
+
+            alert(result.message);
+            window.location.href = targetPage;
+        } else {
+            alert(result.message);
+        }
+    } catch (error) {
+        alert("登入處理錯誤，請檢查 GAS 連結或連線問題: " + error.toString());
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
 }
+
 // --- ★★★ 修正部分結束 ★★★ ---
         
         // --- ★★★ 修正部分結束 ★★★ ---
