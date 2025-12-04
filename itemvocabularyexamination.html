@@ -221,7 +221,7 @@
                             <div class="text-3xl font-bold text-green-600" id="res-safe">0</div>
                         </div>
                         <div class="glass-panel p-5 rounded-2xl text-center border-b-4 border-red-400">
-                            <div class="text-sm text-slate-500 mb-2 font-medium" data-i18n="kpi_risk">超前/未見風險</div>
+                            <div class="text-sm text-slate-500 mb-2 font-medium" data-i18n="kpi_risk">超前/未見</div>
                             <div class="text-3xl font-bold text-red-500" id="res-risk">0</div>
                         </div>
                     </div>
@@ -275,9 +275,10 @@
                 "back_btn": "返回教學中心", "page_title": "中小學自然科命題用詞 AI 檢核", "page_subtitle": "結合大數據資料庫與生成式 AI，精準診斷命題適切性",
                 "settings_title": "參數設定", "label_stage": "學習階段", "opt_select": "請選擇", "opt_elem": "國小", "opt_junior": "國中",
                 "label_grade": "目標年級", "opt_any": "不限", "label_semester": "目標學期", "opt_sem1": "上學期", "opt_sem2": "下學期",
-                "label_version": "教科書版本", "label_pos": "檢測詞性 (多選)", "pos_n": "名詞 (Na/Nb/Nc/Nf)", "pos_v": "動詞", "pos_a": "形容詞", "pos_d": "副詞", "pos_c": "連接詞", "pos_o": "其他",
+                "label_version": "教科書版本", "label_pos": "檢測詞性 (多選)", 
+                "pos_n": "名詞 (Na/Nb/Nc/Nf)", "pos_v": "動詞", "pos_a": "形容詞", "pos_d": "副詞", "pos_c": "連接詞", "pos_o": "其他",
                 "btn_start": "開始 AI 檢測", "label_text_input": "試題文本", "btn_example": "載入範例", "placeholder_text": "請在此貼上包含題幹與選項的完整試題內容...",
-                "kpi_score": "適切性評分", "kpi_total": "分析詞彙數", "kpi_safe": "符合目標年級", "kpi_risk": "超前/未見風險",
+                "kpi_score": "適切性評分", "kpi_total": "分析詞彙數", "kpi_safe": "符合目標年級", "kpi_risk": "超前/未見",
                 "table_title": "詞彙年級分佈分析", "th_term": "詞彙", "th_pos": "詞性", "th_first": "資料庫首次出現", "th_diff": "學期差", "th_status": "判定",
                 "ai_feedback_title": "AI 深度命題回饋", "status_analyzing": "正在進行 AI 分析與資料比對...",
                 "msg_select_stage": "請先選擇學習階段！", "msg_input_text": "請輸入試題文本！", "msg_analysis_done": "分析完成！", "msg_analysis_fail": "分析失敗：",
@@ -287,13 +288,40 @@
                 "back_btn": "Back to Hub", "page_title": "Science Exam Vocabulary Checker", "page_subtitle": "AI-powered analysis for vocabulary suitability.",
                 "settings_title": "Settings", "label_stage": "Stage", "opt_select": "Select...", "opt_elem": "Elementary", "opt_junior": "Junior High",
                 "label_grade": "Target Grade", "opt_any": "Any", "label_semester": "Semester", "opt_sem1": "1st Sem", "opt_sem2": "2nd Sem",
-                "label_version": "Textbook Edition", "label_pos": "Part of Speech", "pos_n": "Noun", "pos_v": "Verb", "pos_a": "Adj", "pos_d": "Adv", "pos_c": "Conj", "pos_o": "Other",
+                "label_version": "Textbook Edition", "label_pos": "Part of Speech", 
+                "pos_n": "Noun (Na/Nb/Nc/Nf)", "pos_v": "Verb", "pos_a": "Adj", "pos_d": "Adv", "pos_c": "Conj", "pos_o": "Other",
                 "btn_start": "Analyze", "label_text_input": "Exam Text", "btn_example": "Load Example", "placeholder_text": "Paste text here...",
                 "kpi_score": "Suitability", "kpi_total": "Total Terms", "kpi_safe": "Safe", "kpi_risk": "Risk",
                 "table_title": "Vocabulary Analysis", "th_term": "Term", "th_pos": "POS", "th_first": "First Seen", "th_diff": "Sem Gap", "th_status": "Status",
                 "ai_feedback_title": "AI Feedback", "status_analyzing": "Analyzing...",
                 "msg_select_stage": "Select stage first!", "msg_input_text": "Input text!", "msg_analysis_done": "Done!", "msg_analysis_fail": "Failed: ",
                 "grade_3": "G3", "grade_4": "G4", "grade_5": "G5", "grade_6": "G6", "grade_7": "G7", "grade_8": "G8", "grade_9": "G9"
+            },
+            "ja": {
+                "back_btn": "戻る", "page_title": "科学試験用語AIチェッカー", "page_subtitle": "ビッグデータとAIを活用した試験問題の適切性診断",
+                "settings_title": "設定", "label_stage": "学習段階", "opt_select": "選択...", "opt_elem": "小学校", "opt_junior": "中学校",
+                "label_grade": "目標学年", "opt_any": "指定なし", "label_semester": "学期", "opt_sem1": "前期", "opt_sem2": "後期",
+                "label_version": "教科書版", "label_pos": "品詞 (複数選択)", 
+                "pos_n": "名詞 (Na/Nb/Nc/Nf)", "pos_v": "動詞", "pos_a": "形容詞", "pos_d": "副詞", "pos_c": "接続詞", "pos_o": "その他",
+                "btn_start": "分析開始", "label_text_input": "問題文", "btn_example": "例文をロード", "placeholder_text": "ここに貼り付けてください...",
+                "kpi_score": "適合スコア", "kpi_total": "分析単語数", "kpi_safe": "学年適合", "kpi_risk": "未習リスク",
+                "table_title": "単語分布分析", "th_term": "単語", "th_pos": "品詞", "th_first": "初出", "th_diff": "学期差", "th_status": "判定",
+                "ai_feedback_title": "AI フィードバック", "status_analyzing": "分析中...",
+                "msg_select_stage": "学習段階を選択してください！", "msg_input_text": "テキストを入力してください！", "msg_analysis_done": "完了！", "msg_analysis_fail": "失敗：",
+                "grade_3": "小3", "grade_4": "小4", "grade_5": "小5", "grade_6": "小6", "grade_7": "中1", "grade_8": "中2", "grade_9": "中3"
+            },
+            "zh-CN": {
+                "back_btn": "返回教学中心", "page_title": "中小学自然科命题用词 AI 检核", "page_subtitle": "结合大数据与生成式 AI，精准诊断命题适切性",
+                "settings_title": "参数设置", "label_stage": "学习阶段", "opt_select": "请选择", "opt_elem": "国小", "opt_junior": "国中",
+                "label_grade": "目标年级", "opt_any": "不限", "label_semester": "目标学期", "opt_sem1": "上学期", "opt_sem2": "下学期",
+                "label_version": "教科书版本", "label_pos": "检测词性", 
+                "pos_n": "名词 (Na/Nb/Nc/Nf)", "pos_v": "动词", "pos_a": "形容词", "pos_d": "副词", "pos_c": "连接词", "pos_o": "其他",
+                "btn_start": "开始检测", "label_text_input": "试题文本", "btn_example": "载入范例", "placeholder_text": "请在此粘贴试题内容...",
+                "kpi_score": "适切性评分", "kpi_total": "分析词汇数", "kpi_safe": "符合目标年级", "kpi_risk": "超前/未见",
+                "table_title": "词汇年级分布分析", "th_term": "词汇", "th_pos": "词性", "th_first": "数据库首次出现", "th_diff": "学期差", "th_status": "判定",
+                "ai_feedback_title": "AI 深度命题反馈", "status_analyzing": "正在进行 AI 分析与资料比对...",
+                "msg_select_stage": "请先选择学习阶段！", "msg_input_text": "请输入试题文本！", "msg_analysis_done": "分析完成！", "msg_analysis_fail": "分析失败：",
+                "grade_3": "三年级", "grade_4": "四年级", "grade_5": "五年级", "grade_6": "六年级", "grade_7": "七年级", "grade_8": "八年级", "grade_9": "九年级"
             }
         };
 
