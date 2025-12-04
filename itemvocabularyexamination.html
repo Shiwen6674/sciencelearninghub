@@ -43,6 +43,42 @@
         .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
         .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
         .scrollbar-thin::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 3px; }
+    /* 在原本的 <style> 內加入 */
+.tooltip-container { position: relative; display: inline-block; cursor: help; }
+.tooltip-content {
+    visibility: hidden;
+    width: 280px;
+    background-color: #1e293b;
+    color: #fff;
+    text-align: left;
+    border-radius: 8px;
+    padding: 12px;
+    position: absolute;
+    z-index: 100;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    pointer-events: none; /* 防止滑鼠蓋住 */
+}
+.tooltip-content::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #1e293b transparent transparent transparent;
+}
+.tooltip-container:hover .tooltip-content {
+    visibility: visible;
+    opacity: 1;
+}
     </style>
 </head>
 <body class="p-4 md:p-8 relative overflow-x-hidden text-slate-800">
@@ -176,14 +212,22 @@
 
             <div id="result-area" class="hidden space-y-8 animate-fade-in-up">
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="glass-panel p-5 rounded-2xl text-center border-b-4 border-green-500">
-                        <div class="text-sm text-slate-500 mb-2 font-medium" data-i18n="kpi_score">適切性評分</div>
-                        <div class="text-4xl font-black text-green-600" id="res-score">--</div>
-                    </div>
-                    <div class="glass-panel p-5 rounded-2xl text-center">
-                        <div class="text-sm text-slate-500 mb-2 font-medium" data-i18n="kpi_total">分析詞彙數</div>
-                        <div class="text-3xl font-bold text-slate-700" id="res-total">0</div>
-                    </div>
+                    
+                    <div class="glass-panel p-5 rounded-2xl text-center border-b-4 border-green-500 tooltip-container group">
+    <div class="text-sm text-slate-500 mb-2 font-medium flex items-center justify-center gap-2">
+        <span data-i18n="kpi_score">適切性評分</span>
+        <i class="fa-regular fa-circle-question text-slate-400 group-hover:text-green-600 transition-colors"></i>
+    </div>
+    
+    <div class="text-4xl font-black text-green-600" id="res-score">--</div>
+
+    <div class="tooltip-content">
+        <div class="font-bold text-green-400 mb-1 border-b border-slate-600 pb-1">計算公式</div>
+        <div class="mb-2">100 - Σ (學期差 × 2)</div>
+        <div class="font-bold text-green-400 mb-1 border-b border-slate-600 pb-1">本次算式</div>
+        <div id="res-score-detail" class="text-slate-300">請先進行分析...</div>
+    </div>
+</div>
                     <div class="glass-panel p-5 rounded-2xl text-center">
                         <div class="text-sm text-slate-500 mb-2 font-medium" data-i18n="kpi_safe">符合目標年級</div>
                         <div class="text-3xl font-bold text-green-600" id="res-safe">0</div>
