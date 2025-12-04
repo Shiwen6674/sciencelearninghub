@@ -412,12 +412,19 @@ function renderResult(data) {
             '無標題';
     }
 
-    const resultTag = document.getElementById('result-tag');
-    if (resultTag) {
-        const g = data.grade || raw.grade || filters.grade || '';
-        const s = data.semester || raw.semester || filters.semester || '';
-        resultTag.innerText = (g ? g + '年級 ' : '') + s;
-    }
+const resultTag = document.getElementById('result-tag');
+if (resultTag) {
+    const p = data.publisher || filters.publisher || '';      // 例如：南一
+    const g = data.grade || filters.grade || '';              // 例如：3
+    const rawS = data.semester || filters.semester || '';     // 例如：上 或 下
+
+    let s = rawS;
+    if (rawS === '上') s = '上學期';
+    else if (rawS === '下') s = '下學期';
+
+    resultTag.innerText = `${p} ${g}年級 ${s}`;                // 南一 3年級 上學期
+}
+
 
     // 2. 摘要（避免 [object Object]，並優先使用 summary_html）
     const summaryBox = document.getElementById('summary-text');
@@ -472,6 +479,7 @@ function renderResult(data) {
     }
 
     // 4. Mermaid 架構圖（支援 summary.mermaid / summary.mindMap / data.mindMap）
+    // 4. Mermaid 架構圖（修正縮放問題）
     const chartDiv = document.getElementById('mermaid-chart');
     if (chartDiv) {
         let mapData =
@@ -488,9 +496,27 @@ function renderResult(data) {
         }
 
         if (mapData) {
+            // 先清空並放入 div
             chartDiv.innerHTML = `<div class="mermaid">${mapData}</div>`;
+            
             try {
-                mermaid.init(undefined, document.querySelectorAll('.mermaid'));
+                // 初始化並渲染
+                mermaid.init(undefined, document.querySelectorAll('.mermaid')).then(() => {
+                    // ★★★ 關鍵修正：渲染完成後，強制調整 SVG 大小 ★★★
+                    const svg = chartDiv.querySelector('svg');
+                    if (svg) {
+                        // 移除 mermaid 可能加上的固定寬度 style
+                        svg.removeAttribute('style');
+                        svg.removeAttribute('width');
+                        
+                        // 強制設定為 100% 寬度，高度自動，並允許最大寬度無限制
+                        svg.style.width = "100%";
+                        svg.style.height = "auto";
+                        svg.style.maxWidth = "none";
+                        // 確保中文字體
+                        svg.style.fontFamily = '"Microsoft JhengHei", sans-serif';
+                    }
+                });
             } catch (e) {
                 console.error('Mermaid 繪圖失敗', e);
                 chartDiv.innerText = '架構圖繪製失敗，請重試。';
