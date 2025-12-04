@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>單元重點整理</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -10,20 +10,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <script>
-        tailwind.config = { 
-            theme: { 
-                extend: { 
-                    colors: { student: '#3b82f6' }, 
-                    animation: { "fade-in-up": "fadeInUp 0.5s ease-out forwards" }, 
-                    keyframes: { fadeInUp: { "0%": { opacity: "0", transform: "translateY(20px)" }, "100%": { opacity: "1", transform: "translateY(0)" } } } 
-                } 
-            } 
-        }
+        tailwind.config = { theme: { extend: { colors: { student: '#3b82f6' }, animation: { "fade-in-up": "fadeInUp 0.5s ease-out forwards" }, keyframes: { fadeInUp: { "0%": { opacity: "0", transform: "translateY(20px)" }, "100%": { opacity: "1", transform: "translateY(0)" } } } } } }
         mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'loose' });
     </script>
     
     <style>
-        body { background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); font-family: "Microsoft JhengHei", sans-serif; }
+        body { background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); font-family: "Microsoft JhengHei", sans-serif; -webkit-tap-highlight-color: transparent; }
         .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.7); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -46,45 +38,37 @@
         .vocab-item { transition: transform 0.2s; }
         .vocab-item:hover { transform: translateY(-2px); }
 
-        /* Mermaid 圖表樣式 (平常顯示) */
+        /* Mermaid 圖表樣式 */
         #mermaid-chart {
             width: 100%;
             overflow-x: auto;       
             padding: 20px 0;
             display: flex;
             justify-content: center;
-            cursor: pointer;
+            /* 讓圖表本身不阻擋點擊 */
+            pointer-events: none; 
         }
         #mermaid-chart .mermaid svg {
             width: 100% !important;      
             max-width: 100% !important;  
             height: auto !important;
             font-family: "Microsoft JhengHei", sans-serif !important; 
-            /* 關鍵修正：讓 SVG 不阻擋點擊事件，確保外層 div 能接收點擊 */
-            pointer-events: none; 
         }
 
-        /* 手機全螢幕燈箱 (關鍵修正：允許捲動，不切邊) */
-        #image-modal { z-index: 9999; overflow: auto; -webkit-overflow-scrolling: touch; }
+        /* 手機全螢幕燈箱 (允許捲動) */
+        #image-modal { z-index: 99999; overflow: auto; -webkit-overflow-scrolling: touch; }
         #modal-content {
-            width: 95vw; 
-            height: auto; 
-            min-height: 50vh;
-            max-width: none !important; 
-            overflow: auto;
-            background: white; 
-            border-radius: 12px; 
-            padding: 15px;
-            display: flex; 
-            align-items: flex-start; 
-            justify-content: center;
+            width: 95vw; height: auto; min-height: 50vh;
+            max-width: none !important; overflow: visible; /* 允許溢出 */
+            background: white; border-radius: 12px; padding: 15px;
+            display: flex; align-items: flex-start; justify-content: center;
         }
 
-        /* PDF 下載 */
+        /* PDF 下載專用 */
         .pdf-page-break { page-break-before: always; break-before: page; margin-top: 20px; display: block; }
         .pdf-rotate-map {
             transform: rotate(90deg); transform-origin: top left;
-            width: 140% !important; margin-left: 20px; margin-top: -20px; 
+            width: 130% !important; margin-left: 40px; margin-top: -40px; 
             overflow: visible !important;
         }
         .no-pdf { display: none !important; }
@@ -156,11 +140,12 @@
                     <span id="result-tag" class="text-xs font-bold bg-blue-100 text-blue-600 px-3 py-1 rounded-full">TAG</span>
                     <h1 id="result-title" class="text-3xl font-black text-slate-800 mt-2">Title</h1>
                 </div>
-                <div class="flex gap-2 no-print relative" style="z-index: 50;">
-                    <button onclick="downloadTXT()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-6 py-3 rounded-xl font-bold text-sm transition cursor-pointer border border-slate-200 shadow-sm flex-1 md:flex-none justify-center flex items-center active:scale-95">
+                
+                <div class="flex gap-2 no-print relative" style="z-index: 9999;">
+                    <button onclick="downloadTXT()" ontouchend="downloadTXT()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-6 py-3 rounded-xl font-bold text-sm transition cursor-pointer border border-slate-200 shadow-sm flex-1 md:flex-none justify-center flex items-center active:scale-95">
                         <i class="fa-solid fa-file-lines mr-2"></i> <span data-i18n="btn_txt">下載 TXT</span>
                     </button>
-                    <button onclick="downloadPDF()" class="bg-red-50 hover:bg-red-100 text-red-600 px-6 py-3 rounded-xl font-bold text-sm transition cursor-pointer border border-red-100 shadow-sm flex-1 md:flex-none justify-center flex items-center active:scale-95">
+                    <button onclick="downloadPDF()" ontouchend="downloadPDF()" class="bg-red-50 hover:bg-red-100 text-red-600 px-6 py-3 rounded-xl font-bold text-sm transition cursor-pointer border border-red-100 shadow-sm flex-1 md:flex-none justify-center flex items-center active:scale-95">
                         <i class="fa-solid fa-file-pdf mr-2"></i> <span data-i18n="btn_pdf">下載 PDF</span>
                     </button>
                 </div>
@@ -183,13 +168,20 @@
                 <div class="md:col-span-3 glass-panel p-6 rounded-2xl bg-white pdf-page-break shadow-sm">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="font-bold text-purple-700 text-xl"><i class="fa-solid fa-project-diagram"></i> <span data-i18n="title_map">知識架構圖</span></h3>
-                        <button onclick="openModal()" class="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg text-sm font-bold border border-blue-200 hover:bg-blue-100 transition no-pdf">
+                        <button onclick="openModal()" ontouchend="openModal()" class="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg text-sm font-bold border border-blue-200 hover:bg-blue-100 transition no-pdf">
                             <i class="fa-solid fa-expand mr-1"></i> 全螢幕
                         </button>
                     </div>
                     
-                    <div class="bg-slate-50 rounded-xl p-4 md:p-6 border border-slate-100 overflow-hidden w-full cursor-pointer hover:border-blue-300 transition relative" onclick="openModal()" title="點擊放大" id="chart-container">
-                        <div class="absolute inset-0 z-10 bg-transparent"></div> <div id="mermaid-chart" class="w-full flex justify-center"></div>
+                    <div class="bg-slate-50 rounded-xl p-4 md:p-6 border border-slate-100 overflow-hidden w-full cursor-pointer hover:border-blue-300 transition relative" 
+                         onclick="openModal()" 
+                         ontouchend="openModal()" 
+                         title="點擊放大" 
+                         id="chart-container">
+                        <div class="absolute inset-0 z-10 bg-transparent flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                            <span class="bg-black/50 text-white px-3 py-1 rounded text-sm">👆 點擊放大</span>
+                        </div>
+                        <div id="mermaid-chart" class="w-full flex justify-center"></div>
                     </div>
                 </div>
                 
@@ -227,7 +219,6 @@
     </div>
 
     <script>
-        // ★★★ 確認您的後端網址 (與您提供的一致) ★★★
         const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxBWrZCp-xLckDGZnhe64K0IUa_8CJZRzqZbrgL8lQdNn3S1WgaEzbdOtpo4mGwN6_H/exec";
         
         let allData = [];
@@ -389,8 +380,18 @@
             }
         }
 
+        // ★★★ 下載 TXT 函數 (防止雙重觸發) ★★★
+        let isDownloading = false;
         function downloadTXT() {
+            if (isDownloading) return;
+            isDownloading = true;
+            setTimeout(() => isDownloading = false, 1000); // 1秒冷卻
+
             if(!currentResultData) { alert("請先生成內容後再下載！"); return; }
+            
+            // 提示用戶開始下載 (Debug 用)
+            // alert('開始製作 TXT...'); 
+
             let content = `========================================\n  單元重點整理：${currentResultData.raw_content.unitName}\n========================================\n\n`;
             let summary = document.getElementById("summary-text").innerText.replace(/\n\s*\n/g, '\n\n').trim();
             content += `【 核心概念摘要 】\n----------------------------------------\n${summary}\n\n\n`;
@@ -405,9 +406,16 @@
             link.click();
         }
 
+        // ★★★ 下載 PDF 函數 ★★★
         function downloadPDF() {
+            if (isDownloading) return;
+            isDownloading = true;
+            setTimeout(() => isDownloading = false, 2000); 
+
             if (!currentResultData) { alert("請先生成內容後再下載！"); return; }
             
+            // alert('開始製作 PDF，請稍候...'); // 手機端回饋
+
             const element = document.getElementById("content-view").cloneNode(true);
             element.querySelectorAll(".no-pdf, button").forEach(e => e.remove());
             
