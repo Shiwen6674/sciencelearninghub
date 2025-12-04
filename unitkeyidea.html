@@ -444,38 +444,39 @@
             }
 
             // ★★★ 7. 迷思概念 (最強力標籤清除) ★★★
-const mythDiv = document.getElementById("myth-list");
+// ★★★ 7. 迷思概念 (修正對齊版) ★★★
+            const mythDiv = document.getElementById("myth-list");
             mythDiv.innerHTML = "";
-            
-            // 處理標籤清除的輔助函式 (移除開頭的 "迷思:", "正確:")
-            const cleanLabel = (text) => {
-                if (!text) return "";
-                // 移除任何開頭是 "迷思", "正確觀念", "正確", "Misconception", "Correction" 加上冒號或空格的文字
-                let cleaned = text.replace(/\*\*/g, "").trim(); // 先移除 markdown 粗體
-                cleaned = cleaned.replace(/^(迷思|正確觀念|正確|Misconception|Correction)\s*[:：]\s*/i, "").trim();
-                return cleaned;
-            };
+            mythDiv.className = "grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch";
 
             if(data.summary.myths) {
                 data.summary.myths.forEach(m => {
-                    // ★★★ 關鍵修改：從 m.title / m.desc 改為 m.myth / m.correct ★★★
-                    // 確保即使 AI 加上了標籤，也只取內容。
-                    const cleanedMyth = cleanLabel(m.myth); 
-                    const cleanedCorrect = cleanLabel(m.correct);
+                    let title = m.myth || m.title || "迷思概念";
+                    let desc = m.correct || m.correct_concept || m.desc || "正確觀念說明";
+
+                    const cleanLabel = (text) => {
+                        if (!text) return "";
+                        let cleaned = text.replace(/\*\*/g, "").trim();
+                        cleaned = cleaned.replace(/^(迷思|正確觀念|正確|Misconception|Correction)\s*[:：]\s*/i, "").trim();
+                        return cleaned;
+                    };
+
+                    const cleanedMyth = cleanLabel(title); 
+                    const cleanedCorrect = cleanLabel(desc);
 
                     mythDiv.innerHTML += `
                         <div class="bg-white p-5 rounded-xl border border-red-100 shadow-sm hover:shadow-md transition h-full flex flex-col">
-                            <div class="flex items-start gap-3 mb-3">
-                                <div class="bg-red-100 text-red-600 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1"><i class="fa-solid fa-xmark font-bold"></i></div>
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="bg-red-100 text-red-600 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <i class="fa-solid fa-xmark font-bold"></i>
+                                </div>
                                 <div>
                                     <div class="text-slate-800 font-bold"><span class="text-red-600 font-black text-base">迷思：</span>${cleanedMyth}</div> 
                                 </div>
                             </div>
-                            <div class="flex items-start gap-3 pl-2 border-l-2 border-green-100 ml-4">
-                                <div>
-                                    <span class="text-green-600 font-black text-sm block mb-1">正確觀念：</span>
-                                    <div class="text-sm text-slate-600 leading-relaxed text-justify">${cleanedCorrect}</div> 
-                                </div>
+                            <div class="mt-auto pt-3 border-t border-slate-100 pl-11">
+                                <div class="text-green-600 font-bold text-sm mb-1"><i class="fa-solid fa-check mr-1"></i> 正確觀念</div>
+                                <div class="text-sm text-slate-600 leading-relaxed text-justify">${cleanedCorrect}</div> 
                             </div>
                         </div>`;
                 });
