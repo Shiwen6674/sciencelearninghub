@@ -70,170 +70,161 @@
         </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto animate-fade-in-up">
-        <div class="text-center mb-10">
-            <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 to-emerald-600 mb-3" data-i18n="page_title">
-                中小學自然科命題用詞 AI 檢核
-            </h1>
-            <p class="text-slate-600 text-lg" data-i18n="page_subtitle">
-                結合大數據資料庫與生成式 AI，精準診斷命題適切性
-            </p>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div class="lg:col-span-4 space-y-6">
-                <div class="glass-panel p-6 rounded-3xl">
-                    <h2 class="text-xl font-bold text-slate-700 mb-5 border-b border-green-100 pb-3 flex items-center">
-                        <i class="fa-solid fa-sliders mr-3 text-green-600"></i> <span data-i18n="settings_title">參數設定</span>
-                    </h2>
-                    <div class="space-y-5">
-                        <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">
-                                <span data-i18n="label_stage">學習階段</span> <span class="text-red-500">*</span>
-                            </label>
-                            <select id="stage" class="w-full p-3 rounded-xl bg-white/70 input-field" onchange="updateGrades()">
-                                <option value="" disabled selected data-i18n="opt_select">請選擇學習階段</option>
-                                <option value="國小" data-i18n="opt_elem">國小</option>
-                                <option value="國中" data-i18n="opt_junior">國中</option>
-                            </select>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2" data-i18n="label_grade">目標年級</label>
-                                <select id="grades" class="w-full p-3 rounded-xl bg-white/70 input-field">
-                                    <option value="" selected data-i18n="opt_any">不限</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2" data-i18n="label_semester">目標學期</label>
-                                <select id="semester" class="w-full p-3 rounded-xl bg-white/70 input-field">
-                                    <option value="" selected data-i18n="opt_any">不限</option>
-                                    <option value="上" data-i18n="opt_sem1">上學期</option>
-                                    <option value="下" data-i18n="opt_sem2">下學期</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2" data-i18n="label_version">教科書版本</label>
-                            <select id="version" class="w-full p-3 rounded-xl bg-white/70 input-field">
-                                <option value="" selected data-i18n="opt_any">不限</option>
-                                <option value="南一">南一</option>
-                                <option value="康軒">康軒</option>
-                                <option value="翰林">翰林</option>
-                            </select>
-                        </div>
-                        <div class="pt-2">
-    <label class="block text-sm font-bold text-slate-700 mb-3" data-i18n="label_pos">檢測詞性 (多選)</label>
-    <div class="flex flex-wrap gap-2">
-        <label class="bg-white/70 px-3 py-2 rounded-xl border border-green-100 flex items-center hover:bg-green-50 cursor-pointer transition shadow-sm text-sm">
-            <input type="checkbox" name="pos" value="N" checked class="mr-2 accent-green-600 w-4 h-4">
-            <span data-i18n="pos_n">名詞 (Na/Nb/Nc/Nf)</span>
-        </label>
-        
-        <label class="bg-white/70 px-3 py-2 rounded-xl border border-green-100 flex items-center hover:bg-green-50 cursor-pointer transition shadow-sm text-sm">
-            <input type="checkbox" name="pos" value="V" checked class="mr-2 accent-green-600 w-4 h-4">
-            <span data-i18n="pos_v">動詞</span>
-        </label>
-        
-        <label class="bg-white/70 px-3 py-2 rounded-xl border border-green-100 flex items-center hover:bg-green-50 cursor-pointer transition shadow-sm text-sm">
-            <input type="checkbox" name="pos" value="A" class="mr-2 accent-green-600 w-4 h-4">
-            <span data-i18n="pos_a">形容詞</span>
-        </label>
-        
-        <label class="bg-white/70 px-3 py-2 rounded-xl border border-green-100 flex items-center hover:bg-green-50 cursor-pointer transition shadow-sm text-sm">
-            <input type="checkbox" name="pos" value="D" class="mr-2 accent-green-600 w-4 h-4">
-            <span data-i18n="pos_d">副詞</span>
-        </label>
-
-        <label class="bg-white/70 px-3 py-2 rounded-xl border border-green-100 flex items-center hover:bg-green-50 cursor-pointer transition shadow-sm text-sm">
-            <input type="checkbox" name="pos" value="C" class="mr-2 accent-green-600 w-4 h-4">
-            <span data-i18n="pos_c">連接詞</span>
-        </label>
-
-        <label class="bg-white/70 px-3 py-2 rounded-xl border border-green-100 flex items-center hover:bg-green-50 cursor-pointer transition shadow-sm text-sm">
-            <input type="checkbox" name="pos" value="O" class="mr-2 accent-green-600 w-4 h-4">
-            <span data-i18n="pos_o">其他</span>
-        </label>
+    <<main class="max-w-7xl mx-auto animate-fade-in-up">
+    <div class="text-center mb-10">
+        <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 to-emerald-600 mb-3" data-i18n="page_title">
+            中小學自然科命題用詞 AI 檢核
+        </h1>
+        <p class="text-slate-600 text-lg" data-i18n="page_subtitle">
+            結合大數據資料庫與生成式 AI，精準診斷命題適切性
+        </p>
     </div>
-</div>
-                
-                <button id="runBtn" onclick="runAnalysis()" class="w-full bg-gradient-to-r from-green-600 to-teal-600 text-white py-4 rounded-2xl hover:shadow-lg hover:shadow-green-500/30 transition-all font-bold text-xl tracking-wide transform active:scale-[0.98] flex items-center justify-center gap-3">
-                    <i class="fa-solid fa-magnifying-glass-chart"></i> <span data-i18n="btn_start">開始 AI 檢測</span>
-                </button>
-            </div>
 
-            <div class="lg:col-span-8 space-y-8">
-                <div class="glass-panel p-6 rounded-3xl relative">
-                    <div class="flex justify-between items-center mb-4">
-                        <label class="block font-bold text-slate-700 text-xl">
-                            <i class="fa-regular fa-file-lines mr-2 text-green-600"></i> <span data-i18n="label_text_input">試題文本</span>
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <div class="lg:col-span-4 space-y-6">
+            <div class="glass-panel p-6 rounded-3xl">
+                <h2 class="text-xl font-bold text-slate-700 mb-5 border-b border-green-100 pb-3 flex items-center">
+                    <i class="fa-solid fa-sliders mr-3 text-green-600"></i> <span data-i18n="settings_title">參數設定</span>
+                </h2>
+                <div class="space-y-5">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">
+                            <span data-i18n="label_stage">學習階段</span> <span class="text-red-500">*</span>
                         </label>
-                        <div class="flex gap-2">
-                            <button onclick="loadExample()" class="text-sm bg-green-50 text-green-700 px-4 py-2 rounded-xl hover:bg-green-100 transition font-medium border border-green-200 flex items-center">
-                                <i class="fa-solid fa-wand-magic-sparkles mr-2"></i> <span data-i18n="btn_example">載入範例</span>
-                            </button>
-                            <button onclick="document.getElementById('text').value=''" class="text-sm bg-slate-50 text-slate-500 px-4 py-2 rounded-xl hover:bg-red-50 hover:text-red-500 transition border border-slate-200" title="清空">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
+                        <select id="stage" class="w-full p-3 rounded-xl bg-white/70 input-field" onchange="updateGrades()">
+                            <option value="" disabled selected data-i18n="opt_select">請選擇學習階段</option>
+                            <option value="國小" data-i18n="opt_elem">國小</option>
+                            <option value="國中" data-i18n="opt_junior">國中</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2" data-i18n="label_grade">目標年級</label>
+                            <select id="grades" class="w-full p-3 rounded-xl bg-white/70 input-field">
+                                <option value="" selected data-i18n="opt_any">不限</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2" data-i18n="label_semester">目標學期</label>
+                            <select id="semester" class="w-full p-3 rounded-xl bg-white/70 input-field">
+                                <option value="" selected data-i18n="opt_any">不限</option>
+                                <option value="上" data-i18n="opt_sem1">上學期</option>
+                                <option value="下" data-i18n="opt_sem2">下學期</option>
+                            </select>
                         </div>
                     </div>
-                    <textarea id="text" class="w-full h-64 p-5 rounded-2xl bg-white/70 text-slate-700 text-base leading-relaxed resize-none input-field scrollbar-thin font-mono" placeholder="請在此貼上包含題幹與選項的完整試題內容..." data-i18n-placeholder="placeholder_text"></textarea>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2" data-i18n="label_version">教科書版本</label>
+                        <select id="version" class="w-full p-3 rounded-xl bg-white/70 input-field">
+                            <option value="" selected data-i18n="opt_any">不限</option>
+                            <option value="南一">南一</option>
+                            <option value="康軒">康軒</option>
+                            <option value="翰林">翰林</option>
+                        </select>
+                    </div>
+
+                    <div class="pt-2">
+                        <label class="block text-sm font-bold text-slate-700 mb-3" data-i18n="label_pos">檢測詞性 (多選)</label>
+                        <div class="flex flex-wrap gap-2">
+                            <label class="bg-white/70 px-3 py-2 rounded-xl border border-green-100 flex items-center hover:bg-green-50 cursor-pointer transition shadow-sm text-sm">
+                                <input type="checkbox" name="pos" value="N" checked class="mr-2 accent-green-600 w-4 h-4">
+                                <span data-i18n="pos_n">名詞 (Na/Nb/Nc/Nf)</span>
+                            </label>
+                            <label class="bg-white/70 px-3 py-2 rounded-xl border border-green-100 flex items-center hover:bg-green-50 cursor-pointer transition shadow-sm text-sm">
+                                <input type="checkbox" name="pos" value="V" checked class="mr-2 accent-green-600 w-4 h-4">
+                                <span data-i18n="pos_v">動詞</span>
+                            </label>
+                            <label class="bg-white/70 px-3 py-2 rounded-xl border border-green-100 flex items-center hover:bg-green-50 cursor-pointer transition shadow-sm text-sm">
+                                <input type="checkbox" name="pos" value="A" class="mr-2 accent-green-600 w-4 h-4">
+                                <span data-i18n="pos_a">形容詞</span>
+                            </label>
+                            <label class="bg-white/70 px-3 py-2 rounded-xl border border-green-100 flex items-center hover:bg-green-50 cursor-pointer transition shadow-sm text-sm">
+                                <input type="checkbox" name="pos" value="D" class="mr-2 accent-green-600 w-4 h-4">
+                                <span data-i18n="pos_d">副詞</span>
+                            </label>
+                            <label class="bg-white/70 px-3 py-2 rounded-xl border border-green-100 flex items-center hover:bg-green-50 cursor-pointer transition shadow-sm text-sm">
+                                <input type="checkbox" name="pos" value="C" class="mr-2 accent-green-600 w-4 h-4">
+                                <span data-i18n="pos_c">連接詞</span>
+                            </label>
+                            <label class="bg-white/70 px-3 py-2 rounded-xl border border-green-100 flex items-center hover:bg-green-50 cursor-pointer transition shadow-sm text-sm">
+                                <input type="checkbox" name="pos" value="O" class="mr-2 accent-green-600 w-4 h-4">
+                                <span data-i18n="pos_o">其他</span>
+                            </label>
+                        </div>
+                    </div>
+                </div> </div> <button id="runBtn" onclick="runAnalysis()" class="w-full bg-gradient-to-r from-green-600 to-teal-600 text-white py-4 rounded-2xl hover:shadow-lg hover:shadow-green-500/30 transition-all font-bold text-xl tracking-wide transform active:scale-[0.98] flex items-center justify-center gap-3">
+                <i class="fa-solid fa-magnifying-glass-chart"></i> <span data-i18n="btn_start">開始 AI 檢測</span>
+            </button>
+        </div> <div class="lg:col-span-8 space-y-8">
+            <div class="glass-panel p-6 rounded-3xl relative">
+                <div class="flex justify-between items-center mb-4">
+                    <label class="block font-bold text-slate-700 text-xl">
+                        <i class="fa-regular fa-file-lines mr-2 text-green-600"></i> <span data-i18n="label_text_input">試題文本</span>
+                    </label>
+                    <div class="flex gap-2">
+                        <button onclick="loadExample()" class="text-sm bg-green-50 text-green-700 px-4 py-2 rounded-xl hover:bg-green-100 transition font-medium border border-green-200 flex items-center">
+                            <i class="fa-solid fa-wand-magic-sparkles mr-2"></i> <span data-i18n="btn_example">載入範例</span>
+                        </button>
+                        <button onclick="document.getElementById('text').value=''" class="text-sm bg-slate-50 text-slate-500 px-4 py-2 rounded-xl hover:bg-red-50 hover:text-red-500 transition border border-slate-200" title="清空">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
                 </div>
-
-                <div id="result-area" class="hidden space-y-8 animate-fade-in-up">
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div class="glass-panel p-5 rounded-2xl text-center border-b-4 border-green-500">
-                            <div class="text-sm text-slate-500 mb-2 font-medium" data-i18n="kpi_score">適切性評分</div>
-                            <div class="text-4xl font-black text-green-600" id="res-score">--</div>
-                        </div>
-                         <div class="glass-panel p-5 rounded-2xl text-center">
-                            <div class="text-sm text-slate-500 mb-2 font-medium" data-i18n="kpi_total">分析詞彙數</div>
-                            <div class="text-3xl font-bold text-slate-700" id="res-total">0</div>
-                        </div>
-                        <div class="glass-panel p-5 rounded-2xl text-center">
-                            <div class="text-sm text-slate-500 mb-2 font-medium" data-i18n="kpi_safe">符合目標年級</div>
-                            <div class="text-3xl font-bold text-green-600" id="res-safe">0</div>
-                        </div>
-                        <div class="glass-panel p-5 rounded-2xl text-center border-b-4 border-red-400">
-                            <div class="text-sm text-slate-500 mb-2 font-medium" data-i18n="kpi_risk">超前/未見風險</div>
-                            <div class="text-3xl font-bold text-red-500" id="res-risk">0</div>
-                        </div>
-                    </div>
-
-                    <div class="glass-panel p-6 rounded-3xl overflow-hidden">
-                        <h3 class="font-bold text-slate-700 text-xl mb-5 flex items-center justify-between">
-                            <span><i class="fa-solid fa-table-list mr-2 text-green-600"></i> <span data-i18n="table_title">詞彙年級分佈分析</span></span>
-                        </h3>
-                        <div class="overflow-x-auto max-h-[500px] scrollbar-thin rounded-xl border border-green-100">
-                            <table class="w-full text-left border-collapse">
-                                <thead class="sticky top-0 bg-green-50/90 backdrop-blur z-10">
-                                    <tr class="text-slate-600 text-sm font-bold border-b border-green-200">
-                                        <th class="pb-4 pt-4 pl-4" data-i18n="th_term">詞彙</th>
-                                        <th class="pb-4 pt-4" data-i18n="th_pos">詞性</th>
-                                        <th class="pb-4 pt-4" data-i18n="th_first">資料庫首次出現</th>
-                                        <th class="pb-4 pt-4 text-center" data-i18n="th_diff">年級差</th>
-                                        <th class="pb-4 pt-4 text-center" data-i18n="th_status">判定</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="result-table-body" class="text-slate-700 text-sm font-medium bg-white/50 divide-y divide-green-50">
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="glass-panel p-8 rounded-3xl border-l-8 border-green-600 bg-white/80">
-                        <h3 class="font-bold text-green-800 text-2xl mb-6 flex items-center">
-                            <i class="fa-solid fa-robot fa-bounce mr-3 text-green-600" style="--fa-animation-duration: 3s;"></i> <span data-i18n="ai_feedback_title">AI 深度命題回饋</span>
-                        </h3>
-                        <div id="ai-feedback-loader" class="hidden flex items-center text-green-700">
-                            <div class="loader mr-3"></div> <span data-i18n="status_analyzing">正在生成深度分析報告，請稍候...</span>
-                        </div>
-                        <div id="ai-feedback-content" class="text-slate-700 leading-relaxed space-y-6 text-base"></div>
-                    </div>
-                </div>
+                <textarea id="text" class="w-full h-64 p-5 rounded-2xl bg-white/70 text-slate-700 text-base leading-relaxed resize-none input-field scrollbar-thin font-mono" placeholder="請在此貼上包含題幹與選項的完整試題內容..." data-i18n-placeholder="placeholder_text"></textarea>
             </div>
-        </div>
-    </main>
+
+            <div id="result-area" class="hidden space-y-8 animate-fade-in-up">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="glass-panel p-5 rounded-2xl text-center border-b-4 border-green-500">
+                        <div class="text-sm text-slate-500 mb-2 font-medium" data-i18n="kpi_score">適切性評分</div>
+                        <div class="text-4xl font-black text-green-600" id="res-score">--</div>
+                    </div>
+                    <div class="glass-panel p-5 rounded-2xl text-center">
+                        <div class="text-sm text-slate-500 mb-2 font-medium" data-i18n="kpi_total">分析詞彙數</div>
+                        <div class="text-3xl font-bold text-slate-700" id="res-total">0</div>
+                    </div>
+                    <div class="glass-panel p-5 rounded-2xl text-center">
+                        <div class="text-sm text-slate-500 mb-2 font-medium" data-i18n="kpi_safe">符合目標年級</div>
+                        <div class="text-3xl font-bold text-green-600" id="res-safe">0</div>
+                    </div>
+                    <div class="glass-panel p-5 rounded-2xl text-center border-b-4 border-red-400">
+                        <div class="text-sm text-slate-500 mb-2 font-medium" data-i18n="kpi_risk">超前/未見風險</div>
+                        <div class="text-3xl font-bold text-red-500" id="res-risk">0</div>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-6 rounded-3xl overflow-hidden">
+                    <h3 class="font-bold text-slate-700 text-xl mb-5 flex items-center justify-between">
+                        <span><i class="fa-solid fa-table-list mr-2 text-green-600"></i> <span data-i18n="table_title">詞彙年級分佈分析</span></span>
+                    </h3>
+                    <div class="overflow-x-auto max-h-[500px] scrollbar-thin rounded-xl border border-green-100">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="sticky top-0 bg-green-50/90 backdrop-blur z-10">
+                                <tr class="text-slate-600 text-sm font-bold border-b border-green-200">
+                                    <th class="pb-4 pt-4 pl-4" data-i18n="th_term">詞彙</th>
+                                    <th class="pb-4 pt-4" data-i18n="th_pos">詞性</th>
+                                    <th class="pb-4 pt-4" data-i18n="th_first">資料庫首次出現</th>
+                                    <th class="pb-4 pt-4 text-center" data-i18n="th_diff">年級差</th>
+                                    <th class="pb-4 pt-4 text-center" data-i18n="th_status">判定</th>
+                                </tr>
+                            </thead>
+                            <tbody id="result-table-body" class="text-slate-700 text-sm font-medium bg-white/50 divide-y divide-green-50">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-8 rounded-3xl border-l-8 border-green-600 bg-white/80">
+                    <h3 class="font-bold text-green-800 text-2xl mb-6 flex items-center">
+                        <i class="fa-solid fa-robot fa-bounce mr-3 text-green-600" style="--fa-animation-duration: 3s;"></i> <span data-i18n="ai_feedback_title">AI 深度命題回饋</span>
+                    </h3>
+                    <div id="ai-feedback-loader" class="hidden flex items-center text-green-700">
+                        <div class="loader mr-3"></div> <span data-i18n="status_analyzing">正在生成深度分析報告，請稍候...</span>
+                    </div>
+                    <div id="ai-feedback-content" class="text-slate-700 leading-relaxed space-y-6 text-base"></div>
+                </div>
+            </div> </div> </div> </main>
 
     <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-slate-800/90 backdrop-blur text-white px-6 py-3 rounded-full shadow-xl transition-all duration-300 opacity-0 translate-y-10 z-50 flex items-center gap-3 pointer-events-none border border-slate-700">
         <i id="toast-icon" class="fa-solid fa-circle-info text-yellow-400"></i>
