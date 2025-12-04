@@ -151,35 +151,28 @@
 
         <div id="content-view" class="hidden animate-fade-in-up">
             <div class="mb-6 flex flex-col md:flex-row justify-between md:items-end gap-4 relative z-20">
-                <div>
-                    <span id="result-tag" class="text-xs font-bold bg-blue-100 text-blue-600 px-3 py-1 rounded-full">TAG</span>
-                    <h1 id="result-title" class="text-3xl font-black text-slate-800 mt-2">Title</h1>
-                </div>
-                
-                <div class="hidden md:flex gap-2 no-print relative" style="z-index: 500;">
-                    <button onclick="downloadTXT()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-6 py-3 rounded-xl font-bold text-sm transition cursor-pointer border border-slate-200 shadow-sm flex items-center active:scale-95">
-                        <i class="fa-solid fa-file-lines mr-2"></i> <span data-i18n="btn_txt">下載 TXT</span>
-                    </button>
-                    <button onclick="downloadPDF()" class="bg-red-50 hover:bg-red-100 text-red-600 px-6 py-3 rounded-xl font-bold text-sm transition cursor-pointer border border-red-100 shadow-sm flex items-center active:scale-95">
-                        <i class="fa-solid fa-file-pdf mr-2"></i> <span data-i18n="btn_pdf">下載 PDF</span>
-                    </button>
-                </div>
+    <div>
+        <span id="result-tag" class="text-xs font-bold bg-blue-100 text-blue-600 px-3 py-1 rounded-full">TAG</span>
+        <h1 id="result-title" class="text-3xl font-black text-slate-800 mt-2">Title</h1>
+    </div>
+    
+    <!-- ✅ 不分桌機 / 手機，統一用兩顆按鈕 -->
+    <div class="flex flex-wrap gap-2 no-print relative w-full md:w-auto justify-start md:justify-end" style="z-index: 500;">
+        <button onclick="downloadTXT()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-6 py-3 rounded-xl font-bold text-sm transition cursor-pointer border border-slate-200 shadow-sm flex items-center active:scale-95">
+            <i class="fa-solid fa-file-lines mr-2"></i> 
+            <span data-i18n="btn_txt">下載 TXT</span>
+        </button>
+        <button onclick="downloadPDF()" class="bg-red-50 hover:bg-red-100 text-red-600 px-6 py-3 rounded-xl font-bold text-sm transition cursor-pointer border border-red-100 shadow-sm flex items-center active:scale-95">
+            <i class="fa-solid fa-file-pdf mr-2"></i> 
+            <span data-i18n="btn_pdf">下載 PDF</span>
+        </button>
+    </div>
+</div>
 
-                <div class="md:hidden no-print relative w-full" style="z-index: 9999;">
-                    <select onchange="handleDownload(this)" class="bg-blue-50 border border-blue-200 text-blue-700 text-base rounded-xl focus:ring-blue-500 focus:border-blue-500 block w-full p-4 shadow-sm font-bold appearance-none outline-none">
-                        <option value="" disabled selected>📥 點此選擇下載檔案格式...</option>
-                        <option value="txt">📄 下載 TXT 純文字檔</option>
-                        <option value="pdf">📕 下載 PDF 文件檔</option>
-                    </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-blue-600">
-                        <i class="fa-solid fa-chevron-down"></i>
-                    </div>
-                </div>
-            </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
                 
-                <div id="summary-panel" class="md:col-span-2 glass-panel p-6 rounded-2xl bg-white border-l-4 border-blue-500 h-auto md:h-full flex flex-col shadow-sm">
+                <div id="summary-panel" class="md:col-span-2 glass-panel p-6 rounded-2xl bg-white border-l-4 border-blue-500 h-full flex flex-col shadow-sm">
                     <h3 class="font-bold text-blue-800 mb-4 text-xl"><i class="fa-solid fa-star text-yellow-400"></i> <span data-i18n="title_summary">核心概念摘要</span></h3>
                     <div id="summary-text" class="prose max-w-none text-slate-600 leading-relaxed flex-1"></div>
                 </div>
@@ -535,15 +528,13 @@
     }
 
     // 手機下載選單
-    function handleDownload(select) {
-        const val = select.value;
-        if(val === 'txt') downloadTXT();
-        if(val === 'pdf') downloadPDF();
-        setTimeout(() => select.value = "", 500);
-    }
+
 
     function downloadTXT() {
-        if(!currentResultData) { alert("請先生成內容後再下載！"); return; }
+        if(!currentResultData) { 
+            alert("請先生成內容後再下載！"); 
+            return; 
+        }
         let content = `========================================\n  單元重點整理：${currentResultData.raw_content.unitName}\n========================================\n\n`;
         const summaryEl = document.getElementById("summary-text");
         let summary = summaryEl ? summaryEl.innerText.replace(/\n\s*\n/g, '\n\n').trim() : "";
@@ -560,15 +551,33 @@
                 content += `● 迷思 ${i+1}：${m.myth}\n   正確：${m.correct}\n\n`;
             });
         }
-        const blob = new Blob([content], { type: "text/plain" });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = `${currentResultData.raw_content.unitName}_重點整理.txt`;
-        link.click();
+
+        try {
+            const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `${currentResultData.raw_content.unitName}_重點整理.txt`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        } catch (e) {
+            console.error(e);
+            alert("TXT 下載失敗，請再試一次或換一個瀏覽器。");
+        }
     }
 
     function downloadPDF() {
-        if (!currentResultData) { alert("請先生成內容後再下載！"); return; }
+        if (!currentResultData) { 
+            alert("請先生成內容後再下載！"); 
+            return; 
+        }
+
+        if (typeof html2pdf === "undefined") {
+            alert("PDF 模組載入失敗，請檢查網路後重新整理頁面。");
+            return;
+        }
         
         const source = document.getElementById("content-view");
         if (!source) return;
@@ -610,7 +619,12 @@
             pagebreak:    { mode: ['css', 'legacy'] }
         };
 
-        html2pdf().set(opt).from(element).save();
+        try {
+            html2pdf().set(opt).from(element).save();
+        } catch (e) {
+            console.error(e);
+            alert("PDF 下載失敗，請再試一次或換一個瀏覽器。");
+        }
     }
 
     function toggleChat() { 
