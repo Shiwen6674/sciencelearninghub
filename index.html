@@ -499,187 +499,187 @@ const translations = {
 // 我們可以移除複雜的 Fallback 迴圈，以符合「一字不動，嚴禁任何更改」的精神，僅修改資料內容。
 // 保留原始邏輯的骨架，但只處理已存在的語言。
 ["ja", "zh-CN"].forEach(lang => {
-    if(!translations[lang]) translations[lang] = JSON.parse(JSON.stringify(translations['en']));
-    else {
-        const base = JSON.parse(JSON.stringify(translations['en']));
-        Object.assign(base, translations[lang]);
-        translations[lang] = base;
-    }
+    if(!translations[lang]) translations[lang] = JSON.parse(JSON.stringify(translations['en']));
+    else {
+        const base = JSON.parse(JSON.stringify(translations['en']));
+        Object.assign(base, translations[lang]);
+        translations[lang] = base;
+    }
 });
 
-        let currentLang = 'zh-TW';
+        let currentLang = 'zh-TW';
 
-        function changeLanguage() {
-            const langSelector = document.getElementById("language-selector");
-            if (!langSelector) return;
-            const lang = langSelector.value;
-            currentLang = lang;
-            const t = translations[lang] || translations['en'];
+        function changeLanguage() {
+            const langSelector = document.getElementById("language-selector");
+            if (!langSelector) return;
+            const lang = langSelector.value;
+            currentLang = lang;
+            const t = translations[lang] || translations['en'];
 
-            document.querySelectorAll("[data-i18n]").forEach(el => {
-                const key = el.getAttribute("data-i18n");
-                if (t[key]) {
-                    if(el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-                    } else {
-                        el.innerText = t[key];
-                    }
-                }
-            });
-            
-            syncRoleFromSelector(); 
-            
-            // ... (Placeholder logic and other updates) ...
-             populateCountries('student', lang);
-            populateCountries('teacher', lang);
-            populateCountries('researcher', lang);
-            updateGrades('student', true);
-            updateGrades('teacher', true);
-        }
-        
-        function populateCountries(role, lang) {
-            const selectId = `input-country-${role}`;
-            const select = document.getElementById(selectId);
-            if(!select) return;
-            const currentVal = select.value || 'TW'; 
-            const t = translations[lang] || translations['en'];
+            document.querySelectorAll("[data-i18n]").forEach(el => {
+                const key = el.getAttribute("data-i18n");
+                if (t[key]) {
+                    if(el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                    } else {
+                        el.innerText = t[key];
+                    }
+                }
+            });
+            
+            syncRoleFromSelector(); 
+            
+            // ... (Placeholder logic and other updates) ...
+             populateCountries('student', lang);
+            populateCountries('teacher', lang);
+            populateCountries('researcher', lang);
+            updateGrades('student', true);
+            updateGrades('teacher', true);
+        }
+        
+        function populateCountries(role, lang) {
+            const selectId = `input-country-${role}`;
+            const select = document.getElementById(selectId);
+            if(!select) return;
+            const currentVal = select.value || 'TW'; 
+            const t = translations[lang] || translations['en'];
 
-            select.innerHTML = "";
-            countryList.forEach(c => {
-                const opt = document.createElement('option');
-                opt.value = c.code;
-                opt.textContent = t[c.nameKey] || c.code;
-                select.appendChild(opt);
-            });
-            select.value = currentVal;
-        }
+            select.innerHTML = "";
+            countryList.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.code;
+                opt.textContent = t[c.nameKey] || c.code;
+                select.appendChild(opt);
+            });
+            select.value = currentVal;
+        }
 
-        function updateGrades(role, preserveValue = false) {
-            // ... (Same grade update logic) ...
-             const countryId = `input-country-${role}`;
-            const gradeId = role === 'student' ? `input-grade-student` : `input-teaching-grade`;
-            const countrySelect = document.getElementById(countryId);
-            const gradeSelect = document.getElementById(gradeId);
-            if (!countrySelect || !gradeSelect) return;
+        function updateGrades(role, preserveValue = false) {
+            // ... (Same grade update logic) ...
+             const countryId = `input-country-${role}`;
+            const gradeId = role === 'student' ? `input-grade-student` : `input-teaching-grade`;
+            const countrySelect = document.getElementById(countryId);
+            const gradeSelect = document.getElementById(gradeId);
+            if (!countrySelect || !gradeSelect) return;
 
-            const countryCode = countrySelect.value;
-            const lang = document.getElementById('language-selector').value;
-            const t = translations[lang] || translations['en'];
-            
-            const system = educationSystems[countryCode] || educationSystems["OTHER"];
-            const currentGrade = gradeSelect.value;
-            
-            gradeSelect.innerHTML = "";
+            const countryCode = countrySelect.value;
+            const lang = document.getElementById('language-selector').value;
+            const t = translations[lang] || translations['en'];
+            
+            const system = educationSystems[countryCode] || educationSystems["OTHER"];
+            const currentGrade = gradeSelect.value;
+            
+            gradeSelect.innerHTML = "";
 
-            system.forEach(sys => {
-                const prefixKey = sys.key; 
-                let prefix = t[prefixKey] || (sys.key.split('_')[2] || "Grade"); 
-                const start = sys.range[0];
-                const end = sys.range[1];
+            system.forEach(sys => {
+                const prefixKey = sys.key; 
+                let prefix = t[prefixKey] || (sys.key.split('_')[2] || "Grade"); 
+                const start = sys.range[0];
+                const end = sys.range[1];
 
-                if (start === 0 && end === 0) { 
-                      const opt = document.createElement('option');
-                      opt.value = sys.key;
-                      opt.textContent = prefix;
-                      gradeSelect.appendChild(opt);
-                } else {
-                    for (let i = start; i <= end; i++) {
-                        const opt = document.createElement('option');
-                        opt.value = `${countryCode}_${sys.key}_${i}`; 
-                        let displayText = prefix + " " + i; 
-                        // ... (CJK logic) ...
-                        opt.textContent = displayText;
-                        gradeSelect.appendChild(opt);
-                    }
-                }
-            });
-             if(preserveValue && currentGrade) {
-               for(let i=0; i<gradeSelect.options.length; i++) {
-                   if(gradeSelect.options[i].value === currentGrade) {
-                       gradeSelect.selectedIndex = i;
-                       break;
-                   }
-               }
-            }
-        }
+                if (start === 0 && end === 0) { 
+                      const opt = document.createElement('option');
+                      opt.value = sys.key;
+                      opt.textContent = prefix;
+                      gradeSelect.appendChild(opt);
+                } else {
+                    for (let i = start; i <= end; i++) {
+                        const opt = document.createElement('option');
+                        opt.value = `${countryCode}_${sys.key}_${i}`; 
+                        let displayText = prefix + " " + i; 
+                        // ... (CJK logic) ...
+                        opt.textContent = displayText;
+                        gradeSelect.appendChild(opt);
+                    }
+                }
+            });
+             if(preserveValue && currentGrade) {
+               for(let i=0; i<gradeSelect.options.length; i++) {
+                   if(gradeSelect.options[i].value === currentGrade) {
+                       gradeSelect.selectedIndex = i;
+                       break;
+                   }
+               }
+            }
+        }
 
-        // *** 頁面邏輯 ***
-        document.addEventListener('DOMContentLoaded', () => { 
-            changeLanguage(); 
-        });
+        // *** 頁面邏輯 ***
+        document.addEventListener('DOMContentLoaded', () => { 
+            changeLanguage(); 
+        });
 
-        function goHome() { 
-            document.getElementById('section-home').classList.remove('hidden-section'); 
-            document.getElementById('section-auth').classList.add('hidden-section'); 
-            document.getElementById('section-home').classList.add('fade-in'); 
-        }
-        
-        // ★ 修正：點選身份卡片後，先跳轉至登入 (Login)
-        function preSelectRole(role) { 
-            targetRole = role; 
-            document.getElementById('section-home').classList.add('hidden-section'); 
-            document.getElementById('section-auth').classList.remove('hidden-section'); 
-            
-            // 強制進入登入模式
-            switchAuthMode('login'); 
-            
-            // 同步選單（雖然現在在登入頁看不到，但為了註冊流程預備）
-            const roleSelect = document.getElementById('input-role-select'); 
-            roleSelect.value = role; 
-            syncRoleFromSelector(); 
-        }
-        
-        function syncRoleFromSelector() { 
-            const role = document.getElementById('input-role-select').value; 
-            targetRole = role; 
-            document.getElementById('input-role').value = role; 
-            const t = translations[document.getElementById('language-selector').value] || translations['en']; 
-            // Dynamic Title Update
-            const roleName = t[`role_${role}`] || role; 
-            const tabRegText = t['tab_register'] || "Register";
-            document.getElementById('reg-role-display-text').textContent = tabRegText + " - " + roleName; 
-            
-            document.querySelectorAll('.role-fields').forEach(el => el.classList.add('hidden-section')); 
-            document.getElementById(`fields-${role}`).classList.remove('hidden-section'); 
-        }
-        
-       function switchAuthMode(mode) { 
-    const tabLogin = document.getElementById('tab-login'); 
-    const tabRegister = document.getElementById('tab-register'); 
-    const formLogin = document.getElementById('form-login'); 
-    const formRegister = document.getElementById('form-register'); 
-    const roleDisplay = document.getElementById('role-display-block'); 
-    const roleSelect = document.getElementById('role-select-block'); 
-    
-    if (mode === 'login') { 
-        tabLogin.className = "w-1/2 py-4 text-xl font-bold text-blue-600 border-b-4 border-blue-600 focus:outline-none transition-colors"; 
-        tabRegister.className = "w-1/2 py-4 text-xl font-bold text-gray-400 hover:text-gray-600 focus:outline-none transition-colors"; 
-        formLogin.classList.remove('hidden-section'); 
-        formRegister.classList.add('hidden-section'); 
-        roleDisplay.classList.add('hidden'); 
-        roleSelect.classList.add('hidden'); // 這裡確保登入頁隱藏
-    } else { 
-        tabRegister.className = "w-1/2 py-4 text-xl font-bold text-green-600 border-b-4 border-green-600 focus:outline-none transition-colors"; 
-        tabLogin.className = "w-1/2 py-4 text-xl font-bold text-gray-400 hover:text-gray-600 focus:outline-none transition-colors"; 
-        formLogin.classList.add('hidden-section'); 
-        formRegister.classList.remove('hidden-section'); 
-        roleDisplay.classList.remove('hidden'); // 註冊頁顯示角色標題
-        
-        // 🚨 關鍵修改：始終隱藏角色選擇區塊
-        roleSelect.classList.add('hidden'); 
-        
-        // 如果沒有預選角色，預設為學生
-        if(!targetRole) preSelectRole('student'); else syncRoleFromSelector(); 
-    } 
+        function goHome() { 
+            document.getElementById('section-home').classList.remove('hidden-section'); 
+            document.getElementById('section-auth').classList.add('hidden-section'); 
+            document.getElementById('section-home').classList.add('fade-in'); 
+        }
+        
+        // ★ 修正：點選身份卡片後，先跳轉至登入 (Login)
+        function preSelectRole(role) { 
+            targetRole = role; 
+            document.getElementById('section-home').classList.add('hidden-section'); 
+            document.getElementById('section-auth').classList.remove('hidden-section'); 
+            
+            // 強制進入登入模式
+            switchAuthMode('login'); 
+            
+            // 同步選單（雖然現在在登入頁看不到，但為了註冊流程預備）
+            const roleSelect = document.getElementById('input-role-select'); 
+            roleSelect.value = role; 
+            syncRoleFromSelector(); 
+        }
+        
+        function syncRoleFromSelector() { 
+            const role = document.getElementById('input-role-select').value; 
+            targetRole = role; 
+            document.getElementById('input-role').value = role; 
+            const t = translations[document.getElementById('language-selector').value] || translations['en']; 
+            // Dynamic Title Update
+            const roleName = t[`role_${role}`] || role; 
+            const tabRegText = t['tab_register'] || "Register";
+            document.getElementById('reg-role-display-text').textContent = tabRegText + " - " + roleName; 
+            
+            document.querySelectorAll('.role-fields').forEach(el => el.classList.add('hidden-section')); 
+            document.getElementById(`fields-${role}`).classList.remove('hidden-section'); 
+        }
+        
+       function switchAuthMode(mode) { 
+    const tabLogin = document.getElementById('tab-login'); 
+    const tabRegister = document.getElementById('tab-register'); 
+    const formLogin = document.getElementById('form-login'); 
+    const formRegister = document.getElementById('form-register'); 
+    const roleDisplay = document.getElementById('role-display-block'); 
+    const roleSelect = document.getElementById('role-select-block'); 
+    
+    if (mode === 'login') { 
+        tabLogin.className = "w-1/2 py-4 text-xl font-bold text-blue-600 border-b-4 border-blue-600 focus:outline-none transition-colors"; 
+        tabRegister.className = "w-1/2 py-4 text-xl font-bold text-gray-400 hover:text-gray-600 focus:outline-none transition-colors"; 
+        formLogin.classList.remove('hidden-section'); 
+        formRegister.classList.add('hidden-section'); 
+        roleDisplay.classList.add('hidden'); 
+        roleSelect.classList.add('hidden'); // 這裡確保登入頁隱藏
+    } else { 
+        tabRegister.className = "w-1/2 py-4 text-xl font-bold text-green-600 border-b-4 border-green-600 focus:outline-none transition-colors"; 
+        tabLogin.className = "w-1/2 py-4 text-xl font-bold text-gray-400 hover:text-gray-600 focus:outline-none transition-colors"; 
+        formLogin.classList.add('hidden-section'); 
+        formRegister.classList.remove('hidden-section'); 
+        roleDisplay.classList.remove('hidden'); // 註冊頁顯示角色標題
+        
+        // 🚨 關鍵修改：始終隱藏角色選擇區塊
+        roleSelect.classList.add('hidden'); 
+        
+        // 如果沒有預選角色，預設為學生
+        if(!targetRole) preSelectRole('student'); else syncRoleFromSelector(); 
+    } 
 }
-        
-        function togglePassword(inputId, icon) { 
-            const input = document.getElementById(inputId); 
-            if (input.type === "password") { input.type = "text"; icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); } 
-            else { input.type = "password"; icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); } 
-        }
+        
+        function togglePassword(inputId, icon) { 
+            const input = document.getElementById(inputId); 
+            if (input.type === "password") { input.type = "text"; icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); } 
+            else { input.type = "password"; icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); } 
+        }
 
-        // --- ★★★ 修正部分開始：handleLogin 與 handleRegister 實作頁面跳轉 ★★★ ---
-        
+        // --- ★★★ 修正部分開始：handleLogin 與 handleRegister 實作頁面跳轉 ★★★ ---
+        
 // --- ★★★ 修正部分開始：handleLogin 替換為真實 API 呼叫 ★★★ ---
 
 async function handleLogin(e) {
@@ -744,8 +744,8 @@ async function handleLogin(e) {
 }
 
 // --- ★★★ 修正部分結束 ★★★ ---
-        
-        // --- ★★★ 修正部分結束 ★★★ ---
+        
+        // --- ★★★ 修正部分結束 ★★★ ---
 
 async function handleRegister(e) { 
     e.preventDefault(); 
@@ -838,6 +838,69 @@ async function handleRegister(e) {
     }
 }
 
-    </script>
+/* ===== 下面開始是新增補上的函式，原本程式碼一律不改 ===== */
+
+// 顯示登入／註冊區塊（導覽列「登入」按鈕 & 忘記密碼返回登入 都會叫這個）
+function showLoginModal() {
+    const home = document.getElementById('section-home');
+    const auth = document.getElementById('section-auth');
+    if (home) home.classList.add('hidden-section');
+    if (auth) auth.classList.remove('hidden-section');
+    // 預設登入 tab
+    switchAuthMode('login');
+
+    // 若尚未預選角色，預設學生
+    const roleSelect = document.getElementById('input-role-select');
+    if (roleSelect && !targetRole) {
+        targetRole = 'student';
+        roleSelect.value = 'student';
+        document.getElementById('input-role').value = 'student';
+        syncRoleFromSelector();
+    }
+}
+
+// 點導覽列「登出」→ 開啟 modal
+function logout() {
+    const modal = document.getElementById('logout-modal');
+    if (modal) modal.classList.remove('hidden');
+}
+
+// 關閉登出 modal
+function closeLogoutModal() {
+    const modal = document.getElementById('logout-modal');
+    if (modal) modal.classList.add('hidden');
+}
+
+// 確認登出：清掉 sessionStorage，回到首頁
+function confirmLogout() {
+    sessionStorage.removeItem('currentUser');
+    closeLogoutModal();
+    // 回到首頁畫面
+    goHome();
+}
+
+// 顯示忘記密碼表單
+function showForgotPassword() {
+    const formLogin = document.getElementById('form-login');
+    const formRegister = document.getElementById('form-register');
+    const formForgot = document.getElementById('form-forgot-password');
+    if (formLogin) formLogin.classList.add('hidden-section');
+    if (formRegister) formRegister.classList.add('hidden-section');
+    if (formForgot) formForgot.classList.remove('hidden-section');
+}
+
+// 處理忘記密碼送出（目前只是前端提示，真正寄信邏輯可之後接 GAS）
+function handleForgotPassword(e) {
+    e.preventDefault();
+    const emailInput = document.getElementById('forgot-email');
+    const email = emailInput ? emailInput.value.trim() : '';
+    if (!email) {
+        alert('請輸入 Email');
+        return;
+    }
+    alert('目前尚未實作真正的重設機制，請稍後再試或聯繫系統管理者。');
+}
+
+    </script>
 </body>
 </html>
