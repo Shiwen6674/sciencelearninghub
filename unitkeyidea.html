@@ -278,6 +278,9 @@
                 dbStatus.className = "text-xs font-bold text-red-500";
             }
         }
+
+        // 監聽視窗變動，隨時調整高度
+        window.addEventListener("resize", adjustVocabHeight);
     };
 
     function changeLanguage() {
@@ -386,7 +389,7 @@
             const json = await res.json();
             if(json.status === "success") { 
                 currentResultData = json.data; 
-                renderResult(json.data); 
+                renderResult(json.data); // 呼叫渲染函數
             } else {
                 throw new Error(json.message);
             }
@@ -396,61 +399,114 @@
         }
     }
 
-    function         // 讓「科學詞彙與定義」在桌機兩欄時：
-        // －外框高度與「核心概念摘要」一致
-        // －多出內容改成內部捲軸
-        try {
-            const mq = window.matchMedia("(min-width: 768px)");
+    // ★★★ 核心渲染函數 (您原本缺少的) ★★★
+    function renderResult(data) {
+        const loading = document.getElementById("loading-view");
+        const content = document.getElementById("content-view");
+        const chat = document.getElementById("floating-chat");
+        
+        if (loading) loading.classList.add("hidden");
+        if (content) content.classList.remove("hidden");
+        if (chat) chat.classList.remove("hidden");
 
-            const adjustVocabHeight = () => {
-                const summaryPanel = document.getElementById("summary-panel");
-                const vocabPanel   = document.getElementById("vocab-panel");
-                // 詞彙欄裡面那個有 flex-1 的內層（你原本就有）
-                const vocabInner   = vocabPanel ? vocabPanel.querySelector(".flex-1") : null;
+        // 填入標題
+        document.getElementById("result-tag").innerText = data.raw_content.grade + "年級 " + data.raw_content.publisher;
+        document.getElementById("result-title").innerText = data.raw_content.unitName;
 
-                if (!summaryPanel || !vocabPanel || !vocabInner) return;
+        // 1. 填入摘要 (支援 HTML 格式)
+        const summaryText = document.getElementById("summary-text");
+        // 將純文字的換行轉換為 HTML 分段，或直接使用 data.summary.summary_text 如果它是 HTML
+        let cleanSummary = data.summary.summary_text || "摘要生成中...";
+        // 簡單處理 Markdown style 的 bold (**text**)
+        cleanSummary = cleanSummary.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        // 處理條列式
+        if (!cleanSummary.includes("<ul>") && cleanSummary.includes("\n")) {
+             cleanSummary = "<ul>" + cleanSummary.split("\n").filter(line => line.trim() !== "").map(line => `<li>${line.replace(/^[•-]\s*/, '')}</li>`).join("") + "</ul>";
+        }
+        summaryText.innerHTML = cleanSummary;
 
-                // 每次重算前先清掉舊設定，避免越調越怪
-                vocabInner.style.maxHeight = "";
-                vocabInner.style.overflowY = "";
-
-                // 只有在 md 以上（兩欄）才限制高度；手機單欄保持原樣
-                if (!mq.matches) return;
-
-                // 摘要欄的實際高度（已經是「自然高度」）
-                const summaryRect = summaryPanel.getBoundingClientRect();
-
-                // 取出詞彙欄 padding，等等要扣掉
-                const style = getComputedStyle(vocabPanel);
-                const paddingTop    = parseFloat(style.paddingTop)    || 0;
-                const paddingBottom = parseFloat(style.paddingBottom) || 0;
-
-                // 詞彙欄標題 h3 的高度
-                const header = vocabPanel.querySelector("h3");
-                const headerHeight = header ? header.getBoundingClientRect().height : 0;
-
-                const gap = 16; // 底下留一點緩衝，不要完全貼滿
-
-                // 摘要高度扣掉標題 + padding 之後，才是內層可用高度
-                const target = summaryRect.height - (headerHeight + paddingTop + paddingBottom + gap);
-
-                if (target > 100) {   // 避免變成負值或太小
-                    vocabInner.style.maxHeight = target + "px";
-                    vocabInner.style.overflowY = "auto";
-                }
-            };
-
-            // 第一次 render 完成後調整一次
-            adjustVocabHeight();
-            // 視窗大小改變時再調整（例如你縮放瀏覽器寬度）
-            window.addEventListener("resize", adjustVocabHeight);
-        } catch (e) {
-            console.error("調整詞彙欄高度時發生錯誤：", e);
+        // 2. 填入詞彙
+        const keywordsList = document.getElementById("keywords-list");
+        keywordsList.innerHTML = "";
+        if (data.summary.vocab_list && Array.isArray(data.summary.vocab_list)) {
+            data.summary.vocab_list.forEach(v => {
+                const div = document.createElement("div");
+                div.className = "vocab-item bg-white p-3 rounded-xl border border-blue-100 shadow-sm";
+                div.innerHTML = `<div class="font-bold text-blue-600 mb-1">★ ${v.term}</div><div class="text-sm text-slate-600 text-justify">${v.def}</div>`;
+                keywordsList.appendChild(div);
+            });
         }
 
+        // 3. 繪製 Mermaid 圖表
+        const chartDiv = document.getElementById("mermaid-chart");
+        if (data.summary.mindmap_mermaid) {
+            chartDiv.innerHTML = `<div class="mermaid">${data.summary.mindmap_mermaid}</div>`;
+            try {
+                mermaid.init(undefined, document.querySelectorAll(".mermaid"));
+            } catch(e) { console.error("Mermaid error", e); }
+        }
 
-    // 手機下載選單
+        // 4. 填入迷思
+        const mythList = document.getElementById("myth-list");
+        mythList.innerHTML = "";
+        if (data.summary.myths && Array.isArray(data.summary.myths)) {
+            data.summary.myths.forEach((m, idx) => {
+                const div = document.createElement("div");
+                div.className = "bg-white p-4 rounded-xl border-l-4 border-red-400 shadow-sm";
+                div.innerHTML = `
+                    <div class="font-bold text-red-600 mb-2 text-sm">迷思 ${idx + 1}</div>
+                    <div class="font-bold text-slate-700 mb-1"><i class="fa-solid fa-xmark text-red-500 mr-1"></i> ${m.myth}</div>
+                    <div class="text-sm text-slate-500 border-t border-slate-100 pt-2 mt-2"><i class="fa-solid fa-check text-green-500 mr-1"></i> ${m.correct}</div>
+                `;
+                mythList.appendChild(div);
+            });
+        }
 
+        // ★★★ 關鍵：渲染完成後，立刻計算高度並對齊 ★★★
+        // 稍微延遲一點點確保 DOM 已經長好
+        setTimeout(adjustVocabHeight, 100);
+    }
+
+    // ★★★ 自動高度對齊修復函數 ★★★
+    function adjustVocabHeight() {
+        // 1. 取得元素
+        const summaryPanel = document.getElementById("summary-panel");
+        const vocabList = document.getElementById("keywords-list"); // 捲動區域
+        const vocabPanel = document.getElementById("vocab-panel"); // 外框
+
+        if (!summaryPanel || !vocabList || !vocabPanel) return;
+
+        // 2. 先重置，讓它恢復自然高度，這樣才量得準
+        vocabList.style.maxHeight = "";
+        vocabList.style.overflowY = "visible";
+
+        // 3. 檢查是否為桌機版 (寬度大於 768px)
+        if (window.innerWidth < 768) {
+            // 手機版不需要限高
+            return; 
+        }
+
+        // 4. 測量「摘要欄」的高度 (這是我們的標準高度)
+        const summaryHeight = summaryPanel.getBoundingClientRect().height;
+
+        // 5. 測量「詞彙欄」標題的高度和 Padding (外框高度 - 內容高度 的差值)
+        // 這裡我們直接計算標題高度和上下的 padding
+        const header = vocabPanel.querySelector("h3");
+        const headerHeight = header ? header.offsetHeight : 0;
+        
+        // Tailwind p-6 是 1.5rem = 24px，上下共 48px，再加上一些間距 margin-bottom: 4 (16px)
+        const totalPaddingAndGap = 48 + 16 + 10; // 10 是額外緩衝
+
+        // 6. 計算詞彙列表「剩下多少空間」
+        const availableHeight = summaryHeight - headerHeight - totalPaddingAndGap;
+
+        // 7. 設定高度
+        // 只有當計算出的高度大於 200px (避免太小) 且 小於詞彙原本的高度時才設定
+        if (availableHeight > 200) {
+            vocabList.style.maxHeight = availableHeight + "px";
+            vocabList.style.overflowY = "auto";
+        }
+    }
 
     function downloadTXT() {
         if(!currentResultData) { 
@@ -507,10 +563,11 @@
         const element = source.cloneNode(true);
         element.querySelectorAll(".no-print, select, button").forEach(e => e.remove());
         
-        const vocabContainer = element.querySelector("#keywords-list");
-        if(vocabContainer) {
-            vocabContainer.style.height = "auto";
-            vocabContainer.style.overflow = "visible";
+        // 下載時要展開所有內容，不可以有捲軸
+        const vocabList = element.querySelector("#keywords-list");
+        if(vocabList) {
+            vocabList.style.maxHeight = "none";
+            vocabList.style.overflow = "visible";
         }
 
         const vocabPanel = element.querySelector("#vocab-panel");
@@ -611,9 +668,9 @@
         const svg = content.querySelector('svg');
         if (svg) {
             svg.removeAttribute('style');
-            svg.style.width = '100%';     
-            svg.style.height = 'auto';    
-            svg.style.minWidth = '100%';  
+            svg.style.width = '100%';      
+            svg.style.height = 'auto';     
+            svg.style.minWidth = '100%';   
             svg.style.maxWidth = '1500px';  
             svg.style.pointerEvents = 'auto';
         }
