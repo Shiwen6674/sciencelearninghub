@@ -394,146 +394,205 @@
     }
 
     // ★ 修正重點：自動判斷是文字還是物件，解決 [object Object] 問題 ★
-    function renderResult(data) {
-        console.log("渲染數據:", data); 
+    f// ★ 修正版：對齊後端欄位 + 防止 [object Object] + 保留相容性 ★
+function renderResult(data) {
+    console.log("渲染數據:", data);
 
-        // 1. 填入標題與 TAG
-        const resultTitle = document.getElementById('result-title');
-        if (resultTitle) resultTitle.innerText = data.topic || data.unitName || filters.unitName || '無標題';
-        
-        const resultTag = document.getElementById('result-tag');
-        if (resultTag) {
-            const g = data.grade || filters.grade || '';
-            const s = data.semester || filters.semester || '';
-            resultTag.innerText = g + '年級 ' + s;
-        }
+    // 0. 保險：先抓 raw_content，後面當作備援
+    const raw = data.raw_content || {};
 
-        // 2. 填入摘要 (修正 object Object 問題)
-        const summaryBox = document.getElementById('summary-text');
-        if (summaryBox) {
-            let summaryContent = data.summary;
-            // 如果回傳的是物件，嘗試抓取裡面的 content 或 text 屬性
-            if (typeof summaryContent === 'object' && summaryContent !== null) {
-                summaryContent = summaryContent.content || summaryContent.text || summaryContent.summary || "摘要生成中...";
-            }
-            summaryBox.innerHTML = summaryContent || '生成摘要失敗...';
-        }
-
-        // 3. 填入關鍵詞
-        const keywordList = document.getElementById('keywords-list');
-        if (keywordList) {
-            keywordList.innerHTML = '';
-            // 相容性處理：有時候關鍵詞會包在 keywords 裡，有時候在 summary.keywords
-            let kList = data.keywords;
-            if (!kList && data.summary && data.summary.keywords) {
-                kList = data.summary.keywords;
-            }
-
-            if (kList && Array.isArray(kList)) {
-                kList.forEach(k => {
-                    const term = typeof k === 'object' ? k.term : k;
-                    const def = typeof k === 'object' ? k.def : '';
-                    
-                    const div = document.createElement('div');
-                    div.className = 'vocab-item bg-white p-3 rounded-xl border border-blue-100 hover:border-blue-300 transition shadow-sm mb-2';
-                    div.innerHTML = `<span class="font-bold text-blue-700 text-lg block mb-1">${term}</span><span class="text-sm text-slate-600 leading-relaxed block">${def}</span>`;
-                    keywordList.appendChild(div);
-                });
-            } else {
-                keywordList.innerHTML = '<div class="text-slate-400 p-2">無詞彙資料</div>';
-            }
-        }
-
-        // 4. 繪製 Mermaid 架構圖
-        const chartDiv = document.getElementById('mermaid-chart');
-        if (chartDiv) {
-            let mapData = data.mindMap;
-            // 相容性處理：有時候架構圖會包在 summary.mindMap
-            if (!mapData && data.summary && data.summary.mindMap) {
-                mapData = data.summary.mindMap;
-            }
-
-            if (mapData) {
-                chartDiv.innerHTML = `<div class="mermaid">${mapData}</div>`;
-                try {
-                    mermaid.init(undefined, document.querySelectorAll('.mermaid'));
-                } catch (e) {
-                    console.error('Mermaid 繪圖失敗', e);
-                    chartDiv.innerText = '架構圖繪製失敗，請重試。';
-                }
-            } else {
-                chartDiv.innerText = '無架構圖數據';
-            }
-        }
-
-        // 5. 填入迷思概念
-        const mythList = document.getElementById('myth-list');
-        if (mythList) {
-            mythList.innerHTML = '';
-            let mList = data.myths;
-            // 相容性處理
-            if (!mList && data.summary && data.summary.myths) {
-                mList = data.summary.myths;
-            }
-
-            if (mList && Array.isArray(mList)) {
-                mList.forEach((m, index) => {
-                    const div = document.createElement('div');
-                    div.className = 'bg-white p-4 rounded-xl border-l-4 border-red-400 shadow-sm';
-                    div.innerHTML = `
-                        <div class="font-bold text-red-500 mb-2 flex items-start gap-2">
-                            <i class="fa-solid fa-xmark mt-1"></i> <span>${m.myth}</span>
-                        </div>
-                        <div class="text-sm text-slate-600 pl-6 border-t border-red-50 pt-2 mt-2">
-                            <i class="fa-solid fa-check text-green-500 mr-1"></i> 正確：${m.correct}
-                        </div>`;
-                    mythList.appendChild(div);
-                });
-            } else {
-                 mythList.innerHTML = '<div class="text-slate-400 p-2">無迷思資料</div>';
-            }
-        }
-
-        // 6. 切換畫面
-        document.getElementById('loading-view').classList.add('hidden');
-        document.getElementById('loading-view').classList.remove('flex');
-        document.getElementById('content-view').classList.remove('hidden');
-        
-        document.getElementById('btn-generate').disabled = false;
-
-        setTimeout(adjustVocabLayout, 100); 
+    // 1. 標題與 TAG
+    const resultTitle = document.getElementById('result-title');
+    if (resultTitle) {
+        resultTitle.innerText =
+            data.topic ||
+            data.unitName ||
+            raw.unitName ||
+            filters.unitName ||
+            '無標題';
     }
+
+    const resultTag = document.getElementById('result-tag');
+    if (resultTag) {
+        const g = data.grade || raw.grade || filters.grade || '';
+        const s = data.semester || raw.semester || filters.semester || '';
+        resultTag.innerText = (g ? g + '年級 ' : '') + s;
+    }
+
+    // 2. 摘要（避免 [object Object]，並優先使用 summary_html）
+    const summaryBox = document.getElementById('summary-text');
+    if (summaryBox) {
+        let summaryContent = data.summary;
+
+        if (summaryContent && typeof summaryContent === 'object') {
+            summaryContent =
+                summaryContent.summary_html ||   // 你原本的欄位
+                summaryContent.html ||
+                summaryContent.content ||
+                summaryContent.text ||
+                summaryContent.summary ||
+                '';
+        }
+
+        if (!summaryContent && raw.text_summary) {
+            summaryContent = raw.text_summary;
+        }
+
+        summaryBox.innerHTML = summaryContent || '生成摘要失敗...';
+    }
+
+    // 3. 科學詞彙（支援多種欄位名稱：keywords / summary.keywords / summary.vocab_list / raw_content.vocab_list）
+    const keywordList = document.getElementById('keywords-list');
+    if (keywordList) {
+        keywordList.innerHTML = '';
+
+        let kList =
+            data.keywords ||
+            (data.summary && (data.summary.keywords || data.summary.vocab_list)) ||
+            raw.vocab_list ||
+            [];
+
+        if (Array.isArray(kList) && kList.length > 0) {
+            kList.forEach(k => {
+                const term = typeof k === 'object' ? (k.term || k.word || '') : k;
+                const def  = typeof k === 'object' ? (k.def || k.definition || '') : '';
+
+                if (!term) return;
+
+                const div = document.createElement('div');
+                div.className = 'vocab-item bg-white p-3 rounded-xl border border-blue-100 hover:border-blue-300 transition shadow-sm mb-2';
+                div.innerHTML =
+                    `<span class="font-bold text-blue-700 text-lg block mb-1">${term}</span>` +
+                    `<span class="text-sm text-slate-600 leading-relaxed block">${def}</span>`;
+                keywordList.appendChild(div);
+            });
+        } else {
+            keywordList.innerHTML = '<div class="text-slate-400 p-2">無詞彙資料</div>';
+        }
+    }
+
+    // 4. Mermaid 架構圖（支援 summary.mermaid / summary.mindMap / data.mindMap）
+    const chartDiv = document.getElementById('mermaid-chart');
+    if (chartDiv) {
+        let mapData =
+            data.mindMap ||
+            (data.summary && (data.summary.mindMap || data.summary.mermaid)) ||
+            '';
+
+        if (mapData && typeof mapData === 'string') {
+            // 去掉 ```mermaid``` 包裹
+            mapData = mapData
+                .replace(/```mermaid/i, '')
+                .replace(/```/g, '')
+                .trim();
+        }
+
+        if (mapData) {
+            chartDiv.innerHTML = `<div class="mermaid">${mapData}</div>`;
+            try {
+                mermaid.init(undefined, document.querySelectorAll('.mermaid'));
+            } catch (e) {
+                console.error('Mermaid 繪圖失敗', e);
+                chartDiv.innerText = '架構圖繪製失敗，請重試。';
+            }
+        } else {
+            chartDiv.innerText = '無架構圖數據';
+        }
+    }
+
+    // 5. 迷思概念（支援 data.myths / summary.myths）
+    const mythList = document.getElementById('myth-list');
+    if (mythList) {
+        mythList.innerHTML = '';
+
+        let mList = data.myths || (data.summary && data.summary.myths) || [];
+        if (Array.isArray(mList) && mList.length > 0) {
+            mList.forEach(m => {
+                const myth    = m.myth || m.misconception || '';
+                const correct = m.correct || m.explanation || '';
+
+                if (!myth && !correct) return;
+
+                const div = document.createElement('div');
+                div.className = 'bg-white p-4 rounded-xl border-l-4 border-red-400 shadow-sm';
+                div.innerHTML = `
+                    <div class="font-bold text-red-500 mb-2 flex items-start gap-2">
+                        <i class="fa-solid fa-xmark mt-1"></i> <span>${myth}</span>
+                    </div>
+                    <div class="text-sm text-slate-600 pl-6 border-t border-red-50 pt-2 mt-2">
+                        <i class="fa-solid fa-check text-green-500 mr-1"></i> 正確：${correct}
+                    </div>`;
+                mythList.appendChild(div);
+            });
+        } else {
+            mythList.innerHTML = '<div class="text-slate-400 p-2">無迷思資料</div>';
+        }
+    }
+
+    // 6. 切換畫面
+    const loadingView = document.getElementById('loading-view');
+    const contentView = document.getElementById('content-view');
+    if (loadingView) {
+        loadingView.classList.add('hidden');
+        loadingView.classList.remove('flex');
+    }
+    if (contentView) {
+        contentView.classList.remove('hidden');
+    }
+
+    const btn = document.getElementById('btn-generate');
+    if (btn) btn.disabled = false;
+
+    // 用 requestAnimationFrame 確保 DOM 高度都算完再調版面
+    requestAnimationFrame(adjustVocabLayout);
+}
+
 
     function adjustVocabLayout() {
-        try {
-            const mq = window.matchMedia("(min-width: 768px)");
-            if (!mq.matches) return; 
+    try {
+        const mq = window.matchMedia("(min-width: 768px)");
+        if (!mq.matches) return; // 手機版不做兩欄高度對齊
 
-            const summaryPanel = document.getElementById("summary-panel");
-            const vocabPanel = document.getElementById("vocab-panel");
-            const vocabInner = document.getElementById("keywords-list") ? document.getElementById("keywords-list").parentElement : null;
+        const summaryPanel = document.getElementById("summary-panel");
+        const vocabPanel   = document.getElementById("vocab-panel");
+        // 詞彙欄真正要捲動的是這個 overflow-y-auto 的 div
+        const vocabInner   = vocabPanel ? vocabPanel.querySelector(".overflow-y-auto") : null;
 
-            if (!summaryPanel || !vocabPanel || !vocabInner) return;
+        if (!summaryPanel || !vocabPanel || !vocabInner) return;
 
+        // 先清掉舊設定
+        vocabPanel.style.height = "";
+        vocabInner.style.maxHeight = "";
+        vocabInner.style.overflowY = "";
+
+        const summaryRect = summaryPanel.getBoundingClientRect();
+        const style       = getComputedStyle(vocabPanel);
+        const header      = vocabPanel.querySelector("h3");
+        const headerHeight = header ? header.getBoundingClientRect().height : 0;
+        const paddingTop    = parseFloat(style.paddingTop)    || 0;
+        const paddingBottom = parseFloat(style.paddingBottom) || 0;
+
+        // 整個詞彙卡片高度 = 摘要卡片高度（這樣上下就會切齊）
+        const panelHeight = summaryRect.height;
+        vocabPanel.style.height = panelHeight + "px";
+
+        // 內層捲動區可用高度 = 總高 - 標題 - padding - 一點緩衝
+        const available = panelHeight - headerHeight - paddingTop - paddingBottom - 16;
+
+        if (available > 120) { // 避免太小反而怪
+            vocabInner.style.maxHeight = available + "px";
+            vocabInner.style.overflowY = "auto";
+        } else {
+            // 太矮就不要強制捲動
+            vocabPanel.style.height = "auto";
             vocabInner.style.maxHeight = "";
             vocabInner.style.overflowY = "";
-
-            const summaryRect = summaryPanel.getBoundingClientRect();
-            const style = getComputedStyle(vocabPanel);
-            const header = vocabPanel.querySelector("h3");
-            const headerHeight = header ? header.getBoundingClientRect().height : 0;
-            const padding = (parseFloat(style.paddingTop) || 0) + (parseFloat(style.paddingBottom) || 0);
-            
-            const targetHeight = summaryRect.height - headerHeight - padding - 20;
-
-            if (targetHeight > 200) {
-                vocabInner.style.maxHeight = targetHeight + "px";
-                vocabInner.style.overflowY = "auto";
-            }
-        } catch (e) {
-            console.error("版面調整錯誤", e);
         }
+    } catch (e) {
+        console.error("版面調整錯誤", e);
     }
+}
+
 
     function downloadTXT() {
         if(!currentResultData) { 
