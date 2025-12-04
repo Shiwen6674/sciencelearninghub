@@ -44,21 +44,28 @@
 
 /* Mermaid 圖放大與樣式修正 */
 /* Mermaid 優化樣式：解決字太小問題，並限制高度避免版面過長 */
+/* --- Mermaid 樣式修正：自動適應方框 (Fit Box) --- */
         #mermaid-chart {
             width: 100%;
-            overflow-x: auto;       /* 寬度超出時，下方顯示捲軸 */
-            padding-bottom: 10px;   /* 預留空間給捲軸 */
             display: flex;
-            justify-content: center; /* 如果圖很小，讓它置中 */
+            justify-content: center; /* 讓圖表置中 */
+            overflow: hidden;        /* 隱藏溢出，確保不破版 */
+        }
+
+        #mermaid-chart .mermaid {
+            width: 100%;
+            display: flex;
+            justify-content: center;
         }
 
         #mermaid-chart .mermaid svg {
-            /* ★關鍵設定：確保字體清晰，不被壓縮★ */
-            height: auto;
-            width: auto !important;      /* 讓寬度依照內容自動撐開 */
-            max-width: none !important;  /* 禁止瀏覽器強制縮小它 */
-            min-width: 100%;             /* 至少跟框框一樣寬 */
-            font-family: "Microsoft JhengHei", sans-serif !important; /* 確保中文字體 */
+            /* ★關鍵設定：讓圖表自動縮放以適應容器寬度★ */
+            width: 100% !important;      
+            max-width: 100% !important;  
+            height: auto !important;
+            
+            /* 確保字型 */
+            font-family: "Microsoft JhengHei", sans-serif !important; 
         }
 
         /* 列印專用樣式 (PDF分頁設定) */
