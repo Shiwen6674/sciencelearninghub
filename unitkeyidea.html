@@ -46,14 +46,14 @@
         .vocab-item { transition: transform 0.2s; }
         .vocab-item:hover { transform: translateY(-2px); }
 
-        /* Mermaid 圖表樣式 */
+        /* Mermaid 圖表樣式 (自動適應框框) */
         #mermaid-chart {
             width: 100%;
-            overflow-x: auto;       
-            padding: 10px 0; 
             display: flex;
             justify-content: center;
-            pointer-events: none; 
+            overflow: hidden; /* 隱藏超出部分 */
+            padding: 10px 0;
+            pointer-events: none; /* 讓點擊穿透 */
         }
         #mermaid-chart .mermaid svg {
             width: 100% !important;      
@@ -62,7 +62,7 @@
             font-family: "Microsoft JhengHei", sans-serif !important; 
         }
 
-        /* 手機全螢幕燈箱 */
+        /* 全螢幕燈箱 (可捲動) */
         #image-modal { z-index: 99999; overflow: auto; -webkit-overflow-scrolling: touch; }
         #modal-content {
             width: 95vw; height: auto; min-height: 50vh;
@@ -71,7 +71,7 @@
             display: flex; align-items: flex-start; justify-content: center;
         }
 
-        /* PDF 下載專用 */
+        /* PDF 下載 */
         .pdf-page-break { page-break-before: always; break-before: page; margin-top: 20px; display: block; }
         .pdf-rotate-map {
             transform: rotate(90deg); transform-origin: top left;
@@ -80,14 +80,7 @@
         }
         .no-pdf { display: none !important; }
         
-        /* 隱形點擊遮罩 */
-        .click-mask {
-            position: absolute;
-            inset: 0;
-            z-index: 50; 
-            background-color: transparent; 
-            cursor: pointer;
-        }
+        .click-mask { position: absolute; inset: 0; z-index: 50; background-color: transparent; cursor: pointer; }
     </style>
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col">
@@ -100,14 +93,12 @@
                 </div>
                 <span class="font-bold hidden md:block" data-i18n="back_home">返回學習中心</span>
             </a>
-
             <a href="sciencebilingual.html" class="group flex items-center gap-2 text-slate-500 hover:text-purple-600 transition decoration-0">
                 <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow group-hover:shadow-md transition">
                     <i class="fa-solid fa-book-open-reader"></i>
                 </div>
                 <span class="font-bold hidden md:block" data-i18n="btn_bilingual">科學雙語閱讀</span>
             </a>
-
             <div class="h-8 w-px bg-slate-300 mx-2 hidden sm:block"></div>
             <div class="hidden sm:block">
                 <h1 class="font-bold text-lg" data-i18n="page_title">單元重點整理</h1>
@@ -188,15 +179,19 @@
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
                 
-                <div id="summary-panel" class="md:col-span-2 glass-panel p-6 rounded-2xl bg-white border-l-4 border-blue-500 h-full flex flex-col shadow-sm">
+                <div id="summary-panel" class="md:col-span-2 glass-panel p-6 rounded-2xl bg-white border-l-4 border-blue-500 h-auto md:h-full flex flex-col shadow-sm">
                     <h3 class="font-bold text-blue-800 mb-4 text-xl"><i class="fa-solid fa-star text-yellow-400"></i> <span data-i18n="title_summary">核心概念摘要</span></h3>
                     <div id="summary-text" class="prose max-w-none text-slate-600 leading-relaxed flex-1"></div>
                 </div>
                 
-                <div id="vocab-panel" class="glass-panel p-6 rounded-2xl bg-gradient-to-br from-white to-blue-50 border-l-4 border-blue-500 h-full flex flex-col shadow-sm pdf-page-break">
+                <div id="vocab-panel" class="glass-panel p-6 rounded-2xl bg-gradient-to-br from-white to-blue-50 border-l-4 border-blue-500 h-auto md:h-full flex flex-col shadow-sm pdf-page-break relative">
                     <h3 class="font-bold text-slate-700 mb-4 text-xl"><span data-i18n="title_vocab">科學詞彙與定義</span></h3>
-                    <div class="flex-1 overflow-y-auto custom-scrollbar min-h-0 pr-1">
+                    
+                    <div class="md:absolute md:inset-0 md:top-16 md:px-6 md:pb-6 md:overflow-y-auto custom-scrollbar">
                         <div id="keywords-list" class="space-y-3 pb-2"></div>
+                    </div>
+                    <div class="md:hidden">
+                         <div id="keywords-list-mobile" class="space-y-3"></div>
                     </div>
                 </div>
                 
@@ -207,7 +202,6 @@
                             <span data-i18n="title_map">知識架構圖</span> 
                             <span class="text-xs bg-purple-100 text-purple-600 px-2 py-0.5 rounded-full ml-2">點擊放大</span>
                         </h3>
-                        
                         <button onclick="openModal()" class="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg text-sm font-bold border border-blue-200 hover:bg-blue-100 transition no-pdf">
                             <i class="fa-solid fa-expand mr-1"></i> 全螢幕
                         </button>
@@ -359,49 +353,36 @@
             const cleanedSummary = data.summary.summary_html.replace(/\*\*/g, ""); 
             document.getElementById("summary-text").innerHTML = cleanedSummary;
 
-            const vocabContainer = document.getElementById("keywords-list");
-            vocabContainer.innerHTML = "";
-            if(data.summary.vocab_list) {
-                data.summary.vocab_list.forEach((item, index) => {
-                    const cleanedDef = item.def.replace(/\*\*/g, ""); 
-                    vocabContainer.innerHTML += `<div class="bg-white p-3 rounded-xl border border-slate-100 shadow-sm mb-2 vocab-item"><div class="flex gap-3"><span class="bg-blue-100 text-blue-700 font-bold px-2 py-1 rounded text-sm h-fit">${index+1}</span><div><div class="font-bold text-slate-800">${item.term}</div><div class="text-sm text-slate-600">${cleanedDef}</div></div></div></div>`;
-                });
-            }
+            // 分別填充電腦版與手機版的詞彙容器
+            const vocabHTML = data.summary.vocab_list.map((item, index) => {
+                const cleanedDef = item.def.replace(/\*\*/g, ""); 
+                return `<div class="bg-white p-3 rounded-xl border border-slate-100 shadow-sm mb-2 vocab-item"><div class="flex gap-3"><span class="bg-blue-100 text-blue-700 font-bold px-2 py-1 rounded text-sm h-fit">${index+1}</span><div><div class="font-bold text-slate-800">${item.term}</div><div class="text-sm text-slate-600">${cleanedDef}</div></div></div></div>`;
+            }).join('');
+            
+            document.getElementById("keywords-list").innerHTML = vocabHTML; // 電腦版
+            document.getElementById("keywords-list-mobile").innerHTML = vocabHTML; // 手機版
 
-            // Knowledge Map Rendering
+            // Mermaid
             const chartDiv = document.getElementById("mermaid-chart");
             chartDiv.innerHTML = "";
             if(data.summary.mermaid) {
                 let mCode = data.summary.mermaid.replace(/```(mermaid|json)?/gi, "").replace(/```/g, "").trim();
-                
-                if (/^graph\s+[A-Z]{2}/i.test(mCode)) {
-                    mCode = mCode.replace(/^graph\s+[A-Z]{2}/i, "graph TD");
-                } else {
-                    mCode = "graph TD\n" + mCode;
-                }
-                
+                if (/^graph\s+[A-Z]{2}/i.test(mCode)) { mCode = mCode.replace(/^graph\s+[A-Z]{2}/i, "graph TD"); } else { mCode = "graph TD\n" + mCode; }
                 mCode = mCode.replace(/\[(.*?)\]/g, (match, content) => {
-                    let safe = content
-                        .replace(/:/g, "：").replace(/\(/g, "（").replace(/\)/g, "）")
-                        .replace(/"/g, "").replace(/'/g, "").replace(/,/g, "，");
+                    let safe = content.replace(/:/g, "：").replace(/\(/g, "（").replace(/\)/g, "）").replace(/"/g, "").replace(/'/g, "").replace(/,/g, "，");
                     return `[${safe}]`;
                 });
-
                 const mermaidEl = document.createElement("div");
                 mermaidEl.className = "mermaid";
                 mermaidEl.textContent = mCode;
                 chartDiv.appendChild(mermaidEl);
-
                 try {
                     mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'loose', flowchart: { useMaxWidth: false, htmlLabels: true } });
                     mermaid.init(undefined, mermaidEl);
-                } catch (err) {
-                    console.error("Mermaid Error:", err);
-                    chartDiv.innerHTML = `<div class="text-red-500 bg-red-50 p-4 rounded border border-red-200">圖表語法錯誤</div>`;
-                }
+                } catch (err) { chartDiv.innerHTML = `<div class="text-red-500 bg-red-50 p-4 rounded border border-red-200">圖表語法錯誤</div>`; }
             }
 
-            // Myths Rendering
+            // Myths
             const mythDiv = document.getElementById("myth-list");
             mythDiv.innerHTML = "";
             if(data.summary.myths) {
@@ -414,12 +395,11 @@
             }
         }
 
-        // ★★★ 下拉選單處理函式 ★★★
+        // 下拉選單處理
         function handleDownload(select) {
             const val = select.value;
             if(val === 'txt') downloadTXT();
             if(val === 'pdf') downloadPDF();
-            // 重置選單
             setTimeout(() => select.value = "", 500);
         }
 
@@ -443,15 +423,19 @@
             if (!currentResultData) { alert("請先生成內容後再下載！"); return; }
             
             const element = document.getElementById("content-view").cloneNode(true);
-            // 移除不需要列印的元素 (包含電腦版按鈕和手機版下拉選單)
             element.querySelectorAll(".no-print, select, button").forEach(e => e.remove());
             
+            // 展開詞彙捲軸 (電腦版)
             const vocabContainer = element.querySelector("#keywords-list");
             if(vocabContainer) {
                 vocabContainer.classList.remove("md:absolute", "md:inset-0", "md:overflow-y-auto");
                 vocabContainer.style.height = "auto";
                 vocabContainer.style.overflow = "visible";
             }
+            // 隱藏手機版詞彙佔位，避免重複
+            const mobileVocab = element.querySelector("#keywords-list-mobile");
+            if(mobileVocab) mobileVocab.remove();
+
             const vocabPanel = element.querySelector("#vocab-panel");
             if(vocabPanel) {
                 vocabPanel.style.height = "auto";
