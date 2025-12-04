@@ -50,7 +50,7 @@
         #mermaid-chart {
             width: 100%;
             overflow-x: auto;       
-            padding: 20px 0;
+            padding: 10px 0; /* 縮減 padding */
             display: flex;
             justify-content: center;
             /* 讓內容不阻擋點擊 */
@@ -81,15 +81,12 @@
         }
         .no-pdf { display: none !important; }
         
-        /* iPhone 強制點擊優化 */
-        .cursor-pointer { cursor: pointer !important; }
-        
         /* 隱形點擊遮罩 */
         .click-mask {
             position: absolute;
             inset: 0;
-            z-index: 50; /* 確保在最上層 */
-            background-color: transparent; /* 完全透明 */
+            z-index: 50; 
+            background-color: transparent; 
             cursor: pointer;
         }
     </style>
@@ -161,13 +158,15 @@
                     <h1 id="result-title" class="text-3xl font-black text-slate-800 mt-2">Title</h1>
                 </div>
                 
-                <div class="flex gap-2 no-print relative" style="z-index: 500;">
-                    <button onclick="downloadTXT()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-6 py-3 rounded-xl font-bold text-sm transition cursor-pointer border border-slate-200 shadow-sm flex-1 md:flex-none justify-center flex items-center active:scale-95 touch-manipulation">
-                        <i class="fa-solid fa-file-lines mr-2"></i> <span data-i18n="btn_txt">下載 TXT</span>
-                    </button>
-                    <button onclick="downloadPDF()" class="bg-red-50 hover:bg-red-100 text-red-600 px-6 py-3 rounded-xl font-bold text-sm transition cursor-pointer border border-red-100 shadow-sm flex-1 md:flex-none justify-center flex items-center active:scale-95 touch-manipulation">
-                        <i class="fa-solid fa-file-pdf mr-2"></i> <span data-i18n="btn_pdf">下載 PDF</span>
-                    </button>
+                <div class="no-print relative" style="z-index: 9999; min-width: 160px;">
+                    <select onchange="handleDownload(this)" class="bg-white border border-slate-300 text-slate-700 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block w-full p-3 shadow-sm font-bold cursor-pointer outline-none appearance-none">
+                        <option value="" disabled selected>📥 下載檔案...</option>
+                        <option value="txt">📄 下載 TXT</option>
+                        <option value="pdf">📕 下載 PDF</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+                        <i class="fa-solid fa-chevron-down text-xs"></i>
+                    </div>
                 </div>
             </div>
 
@@ -187,13 +186,12 @@
                 
                 <div class="md:col-span-3 glass-panel p-6 rounded-2xl bg-white pdf-page-break shadow-sm">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="font-bold text-purple-700 text-xl"><i class="fa-solid fa-project-diagram"></i> <span data-i18n="title_map">知識架構圖</span></h3>
-                        <button onclick="openModal()" class="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg text-sm font-bold border border-blue-200 hover:bg-blue-100 transition no-pdf">
-                            <i class="fa-solid fa-expand mr-1"></i> 全螢幕
-                        </button>
+                        <h3 class="font-bold text-purple-700 text-xl cursor-pointer hover:text-purple-900 transition w-fit select-none" onclick="openModal()" ontouchend="openModal()">
+                            <i class="fa-solid fa-project-diagram"></i> <span data-i18n="title_map">知識架構圖</span> (點擊放大)
+                        </h3>
                     </div>
                     
-                    <div class="bg-slate-50 rounded-xl p-4 md:p-6 border border-slate-100 overflow-hidden w-full relative h-auto min-h-[200px]" id="chart-container">
+                    <div class="bg-slate-50 rounded-xl p-4 md:p-6 border border-slate-100 overflow-hidden w-full relative h-auto" id="chart-container">
                         <div class="click-mask" onclick="openModal()"></div>
                         <div id="mermaid-chart" class="w-full flex justify-center"></div>
                     </div>
@@ -394,13 +392,19 @@
             }
         }
 
-        // 下載函數：移除所有延遲，加入 Alert 提示
+        // ★★★ 新增：下拉選單處理函式 ★★★
+        function handleDownload(select) {
+            const val = select.value;
+            // 執行對應下載
+            if(val === 'txt') downloadTXT();
+            if(val === 'pdf') downloadPDF();
+            
+            // 重置選單，讓使用者可以再次選擇同一個選項
+            select.value = ""; 
+        }
+
         function downloadTXT() {
             if(!currentResultData) { alert("請先生成內容後再下載！"); return; }
-            
-            // ★★★ iPhone 除錯提示：如果您看到這個視窗，代表按鈕可以按了！ ★★★
-            alert("✅ 正在製作 TXT 檔案，請稍候...");
-
             let content = `========================================\n  單元重點整理：${currentResultData.raw_content.unitName}\n========================================\n\n`;
             let summary = document.getElementById("summary-text").innerText.replace(/\n\s*\n/g, '\n\n').trim();
             content += `【 核心概念摘要 】\n----------------------------------------\n${summary}\n\n\n`;
@@ -418,11 +422,10 @@
         function downloadPDF() {
             if (!currentResultData) { alert("請先生成內容後再下載！"); return; }
             
-            // ★★★ iPhone 除錯提示 ★★★
-            alert("✅ 正在製作 PDF，請稍候...");
+            // alert("開始製作 PDF..."); // 移除了煩人的提示，下拉選單會有原生震動/反饋
 
             const element = document.getElementById("content-view").cloneNode(true);
-            element.querySelectorAll(".no-pdf, button").forEach(e => e.remove());
+            element.querySelectorAll(".no-pdf, select, button").forEach(e => e.remove()); // 移除下拉選單
             
             const vocabContainer = element.querySelector("#keywords-list");
             if(vocabContainer) {
@@ -453,8 +456,7 @@
                 margin:       10,
                 filename:     currentResultData.raw_content.unitName + "_重點整理.pdf",
                 image:        { type: 'jpeg', quality: 0.98 },
-                // 手機上降低一點解析度，避免記憶體不足崩潰
-                html2canvas:  { scale: 1.5, useCORS: true },
+                html2canvas:  { scale: 2, useCORS: true },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
                 pagebreak:    { mode: ['css', 'legacy'] }
             };
@@ -482,7 +484,6 @@
             } catch(e) { console.error(e); }
         }
 
-        // 全螢幕燈箱
         function openModal() {
             const chartDiv = document.getElementById("mermaid-chart");
             
