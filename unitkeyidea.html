@@ -527,6 +527,50 @@
             }
         }
     }
+        // 讓「科學詞彙與定義」欄位在桌機寬度時：
+        // －上下與「核心概念摘要」切齊
+        // －如果內容太多，就在內部出現捲軸
+        try {
+            const mq = window.matchMedia("(min-width: 768px)");
+
+            const adjustVocabHeight = () => {
+                const summaryPanel = document.getElementById("summary-panel");
+                const vocabPanel   = document.getElementById("vocab-panel");
+                const vocabInner   = vocabPanel ? vocabPanel.querySelector(".flex-1") : null;
+                if (!summaryPanel || !vocabPanel || !vocabInner) return;
+
+                // 先清掉舊的 max-height（避免 resize 時越來越怪）
+                vocabInner.style.maxHeight = "";
+                vocabInner.style.overflowY = "";
+
+                // 只在兩欄（md 以上）時限制高度；手機單欄時就讓它自然長
+                if (!mq.matches) return;
+
+                const summaryRect = summaryPanel.getBoundingClientRect();
+
+                const style = getComputedStyle(vocabPanel);
+                const paddingTop    = parseFloat(style.paddingTop)    || 0;
+                const paddingBottom = parseFloat(style.paddingBottom) || 0;
+
+                const header = vocabPanel.querySelector("h3");
+                const headerHeight = header ? header.getBoundingClientRect().height : 0;
+
+                const gap = 16; // 留一點緩衝，不要貼滿
+
+                const target = summaryRect.height - (headerHeight + paddingTop + paddingBottom + gap);
+                if (target > 100) {   // 避免出現負值或高度太小
+                    vocabInner.style.maxHeight = target + "px";
+                    vocabInner.style.overflowY = "auto";
+                }
+            };
+
+            // 第一次 render 結束後調整一次
+            adjustVocabHeight();
+            // 如果使用者縮放視窗，再自動調整一次
+            window.addEventListener("resize", adjustVocabHeight);
+        } catch (e) {
+            console.error("調整詞彙欄高度時發生錯誤：", e);
+        }
 
     // 手機下載選單
 
