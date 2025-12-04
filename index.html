@@ -747,22 +747,19 @@ async function handleLogin(e) {
         
         // --- ★★★ 修正部分結束 ★★★ ---
 
-async function handleRegister(e) { 
-    e.preventDefault(); 
+async function handleRegister(e) { 
+    e.preventDefault(); 
     
-    // 獲取所有通用欄位
     const role = document.getElementById('input-role').value || 'student';
     const email = document.getElementById('reg-email').value.trim();
     const password = document.getElementById('reg-password').value;
     const confirmPassword = document.getElementById('reg-password-confirm').value;
     
-    // 檢查密碼一致性
     if (password !== confirmPassword) {
         alert('密碼和確認密碼不一致！');
         return;
     }
     
-    // 統一組裝通用資料 (部分欄位可能在特定角色裡是必填的)
     let registrationData = {
         type: 'register',
         role: role,
@@ -774,28 +771,26 @@ async function handleRegister(e) { 
         countryCode: ''
     };
     
-    // 根據角色收集特定欄位
     if (role === 'student') {
         registrationData.countryCode = document.getElementById('input-country-student').value;
         registrationData.schoolName = document.getElementById('input-school-student').value.trim();
-        registrationData.gradeLevel = document.getElementById('input-grade-student').value; // gradeLevel 對應後端的 Grade
+        registrationData.gradeLevel = document.getElementById('input-grade-student').value;
         registrationData.class = document.getElementById('input-class').value.trim();
         registrationData.studentID = document.getElementById('input-student-id').value.trim();
     } else if (role === 'teacher') {
         registrationData.countryCode = document.getElementById('input-country-teacher').value;
-        registrationData.orgName = document.getElementById('input-school-teacher').value.trim(); // OrgName 傳輸學校名稱
+        registrationData.orgName = document.getElementById('input-school-teacher').value.trim();
         registrationData.position = document.getElementById('input-position').value;
         registrationData.gradeLevel = document.getElementById('input-teaching-grade').value;
         registrationData.subject = document.getElementById('input-subject').value.trim();
         registrationData.seniority = document.getElementById('input-seniority').value;
     } else if (role === 'researcher') {
         registrationData.countryCode = document.getElementById('input-country-researcher').value;
-        registrationData.orgName = document.getElementById('input-unit').value.trim(); // OrgName 傳輸單位名稱
-        registrationData.position = document.getElementById('input-research-title').value.trim(); // position 傳輸職稱
+        registrationData.orgName = document.getElementById('input-unit').value.trim();
+        registrationData.position = document.getElementById('input-research-title').value.trim();
         registrationData.researchField = document.getElementById('input-field').value.trim();
     }
     
-    // 檢查基礎必填欄位 (後端會執行更嚴格的檢查，這裡只做前端防呆)
     if (!registrationData.name || !registrationData.email || !registrationData.password || !registrationData.countryCode) {
         alert('請填寫所有基礎必填欄位 (Email, 密碼, 姓名, 國家/地區)。');
         return;
@@ -807,12 +802,10 @@ async function handleRegister(e) { 
     btn.disabled = true;
 
     try {
+        // ★ 關鍵：不要加 headers，讓瀏覽器用 simple request
         const response = await fetch(GAS_URL, {
             method: 'POST',
-            body: JSON.stringify(registrationData),
-            headers: {
-                'Content-Type': 'application/json'
-            }
+            body: JSON.stringify(registrationData)
         });
 
         const text = await response.text();
@@ -844,6 +837,7 @@ async function handleRegister(e) { 
         btn.disabled = false;
     }
 }
+
     </script>
 </body>
 </html>
