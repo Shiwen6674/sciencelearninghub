@@ -172,9 +172,9 @@
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
                 
-                <div id="summary-panel" class="md:col-span-2 glass-panel p-6 rounded-2xl bg-white border-l-4 border-blue-500 h-full flex flex-col shadow-sm">
+                <div id="summary-panel" class="md:col-span-2 glass-panel p-6 rounded-2xl bg-white border-l-4 border-blue-500 shadow-sm">
                     <h3 class="font-bold text-blue-800 mb-4 text-xl"><i class="fa-solid fa-star text-yellow-400"></i> <span data-i18n="title_summary">核心概念摘要</span></h3>
-                    <div id="summary-text" class="prose max-w-none text-slate-600 leading-relaxed flex-1"></div>
+                    <div id="summary-text" class="prose max-w-none text-slate-600 leading-relaxed"></div>
                 </div>
                 
               <div id="vocab-panel" class="glass-panel p-6 rounded-2xl bg-gradient-to-br from-white to-blue-50 border-l-4 border-blue-500 h-full flex flex-col shadow-sm">
@@ -396,181 +396,58 @@
         }
     }
 
-    function renderResult(data) {
-        const floatingChat = document.getElementById("floating-chat");
-        const loading = document.getElementById("loading-view");
-        const contentView = document.getElementById("content-view");
-        if (floatingChat) floatingChat.classList.remove("hidden");
-        if (loading) {
-            loading.classList.add("hidden");
-            loading.classList.remove("flex");
-        }
-        if (contentView) contentView.classList.remove("hidden");
-
-        const chatBody = document.getElementById("chat-messages");
-        if (chatBody) {
-            chatBody.innerHTML = `<div class="self-start bg-white border border-slate-100 p-3 rounded-lg rounded-tl-none shadow-sm max-w-[85%] text-sm"><span class="font-bold text-blue-600 block mb-1 text-xs">小科 AI</span>嗨，同學你好！我是小科，關於【${data.raw_content.unitName}】單元，你有什麼問題要問我呢？</div>`;
-        }
-
-        const titleEl = document.getElementById("result-title");
-        const tagEl = document.getElementById("result-tag");
-        if (titleEl) titleEl.innerText = data.raw_content.unitName;
-
-        const uType = data.raw_content.unitType;
-        const lessonStr = (uType && !isNaN(uType)) ? `第${uType}課` : (uType || "");
-        const semStr = (filters.semester === "上" ? "上學期" : (filters.semester === "下" ? "下學期" : filters.semester));
-        if (tagEl) tagEl.innerText = `${filters.publisher} • ${filters.grade}年級${semStr} • ${lessonStr}`;
-
-        const summaryEl = document.getElementById("summary-text");
-        if (summaryEl && data.summary.summary_html) {
-            const cleanedSummary = data.summary.summary_html.replace(/\*\*/g, ""); 
-            summaryEl.innerHTML = cleanedSummary;
-        }
-
-        // 科學詞彙
-        const vocabContainer = document.getElementById("keywords-list");
-        if (vocabContainer) {
-            vocabContainer.innerHTML = "";
-            if(Array.isArray(data.summary.vocab_list)) {
-                const vocabHTML = data.summary.vocab_list.map((item, index) => {
-                    const cleanedDef = (item.def || "").replace(/\*\*/g, ""); 
-                    return `<div class="bg-white p-3 rounded-xl border border-slate-100 shadow-sm mb-2 vocab-item">
-                                <div class="flex gap-3">
-                                    <span class="bg-blue-100 text-blue-700 font-bold px-2 py-1 rounded text-sm h-fit">${index+1}</span>
-                                    <div>
-                                        <div class="font-bold text-slate-800">${item.term || ""}</div>
-                                        <div class="text-sm text-slate-600">${cleanedDef}</div>
-                                    </div>
-                                </div>
-                            </div>`;
-                }).join('');
-                vocabContainer.innerHTML = vocabHTML;
-            }
-        }
-
-        // 知識架構圖 (Mermaid)
-        const chartDiv = document.getElementById("mermaid-chart");
-        if (chartDiv) {
-            chartDiv.innerHTML = "";
-            if(data.summary.mermaid) {
-                let mCode = data.summary.mermaid
-                    .replace(/```(mermaid|json)?/gi, "")
-                    .replace(/```/g, "")
-                    .trim();
-                
-                if (/^graph\s+[A-Z]{2}/i.test(mCode)) {
-                    mCode = mCode.replace(/^graph\s+[A-Z]{2}/i, "graph TD");
-                } else if (!/^graph\s+/i.test(mCode)) {
-                    mCode = "graph TD\n" + mCode;
-                }
-                
-                mCode = mCode.replace(/\[(.*?)\]/g, (match, content) => {
-                    let safe = content
-                        .replace(/:/g, "：")
-                        .replace(/\(/g, "（")
-                        .replace(/\)/g, "）")
-                        .replace(/"/g, "")
-                        .replace(/'/g, "")
-                        .replace(/,/g, "，");
-                    return `[${safe}]`;
-                });
-
-                const mermaidEl = document.createElement("div");
-                mermaidEl.className = "mermaid";
-                mermaidEl.textContent = mCode;
-                chartDiv.appendChild(mermaidEl);
-
-                try {
-                    mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'loose', flowchart: { useMaxWidth: false, htmlLabels: true } });
-                    mermaid.init(undefined, mermaidEl);
-                } catch (err) {
-                    console.error("Mermaid Error:", err);
-                    chartDiv.innerHTML = `<div class="text-red-500 bg-red-50 p-4 rounded border border-red-200">圖表語法錯誤</div>`;
-                }
-            }
-        }
-
-        // 迷思診斷
-        const mythDiv = document.getElementById("myth-list");
-        if (mythDiv) {
-            mythDiv.innerHTML = "";
-            if(Array.isArray(data.summary.myths)) {
-                data.summary.myths.forEach(m => {
-                    let title = m.myth || m.title || "迷思";
-                    let desc = m.correct || m.correct_concept || m.desc || "正確觀念";
-                    const cleanLabel = (text) => {
-                        if (!text) return "";
-                        return text.replace(/\*\*/g, "")
-                                   .replace(/^(迷思|正確觀念|正確|Misconception|Correction)\s*[:：]\s*/i, "")
-                                   .trim();
-                    };
-                    mythDiv.innerHTML += `
-                        <div class="bg-white p-5 rounded-xl border border-red-100 shadow-sm hover:shadow-md transition h-full flex flex-col">
-                            <div class="flex items-center gap-3 mb-3">
-                                <div class="bg-red-100 text-red-600 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">
-                                    <i class="fa-solid fa-xmark font-bold"></i>
-                                </div>
-                                <div class="text-slate-800 font-bold">
-                                    <span class="text-red-600 font-black text-base">迷思：</span>${cleanLabel(title)}
-                                </div>
-                            </div>
-                            <div class="mt-auto pt-3 border-t border-slate-100 pl-11">
-                                <div class="text-green-600 font-bold text-sm mb-1">
-                                    <i class="fa-solid fa-check mr-1"></i> 正確觀念
-                                </div>
-                                <div class="text-sm text-slate-600 leading-relaxed text-justify">
-                                    ${cleanLabel(desc)}
-                                </div>
-                            </div>
-                        </div>`;
-                });
-            }
-        }
-    }
-        // 讓「科學詞彙與定義」欄位在桌機寬度時：
-        // －上下與「核心概念摘要」切齊
-        // －如果內容太多，就在內部出現捲軸
+    function         // 讓「科學詞彙與定義」在桌機兩欄時：
+        // －外框高度與「核心概念摘要」一致
+        // －多出內容改成內部捲軸
         try {
             const mq = window.matchMedia("(min-width: 768px)");
 
             const adjustVocabHeight = () => {
                 const summaryPanel = document.getElementById("summary-panel");
                 const vocabPanel   = document.getElementById("vocab-panel");
+                // 詞彙欄裡面那個有 flex-1 的內層（你原本就有）
                 const vocabInner   = vocabPanel ? vocabPanel.querySelector(".flex-1") : null;
+
                 if (!summaryPanel || !vocabPanel || !vocabInner) return;
 
-                // 先清掉舊的 max-height（避免 resize 時越來越怪）
+                // 每次重算前先清掉舊設定，避免越調越怪
                 vocabInner.style.maxHeight = "";
                 vocabInner.style.overflowY = "";
 
-                // 只在兩欄（md 以上）時限制高度；手機單欄時就讓它自然長
+                // 只有在 md 以上（兩欄）才限制高度；手機單欄保持原樣
                 if (!mq.matches) return;
 
+                // 摘要欄的實際高度（已經是「自然高度」）
                 const summaryRect = summaryPanel.getBoundingClientRect();
 
+                // 取出詞彙欄 padding，等等要扣掉
                 const style = getComputedStyle(vocabPanel);
                 const paddingTop    = parseFloat(style.paddingTop)    || 0;
                 const paddingBottom = parseFloat(style.paddingBottom) || 0;
 
+                // 詞彙欄標題 h3 的高度
                 const header = vocabPanel.querySelector("h3");
                 const headerHeight = header ? header.getBoundingClientRect().height : 0;
 
-                const gap = 16; // 留一點緩衝，不要貼滿
+                const gap = 16; // 底下留一點緩衝，不要完全貼滿
 
+                // 摘要高度扣掉標題 + padding 之後，才是內層可用高度
                 const target = summaryRect.height - (headerHeight + paddingTop + paddingBottom + gap);
-                if (target > 100) {   // 避免出現負值或高度太小
+
+                if (target > 100) {   // 避免變成負值或太小
                     vocabInner.style.maxHeight = target + "px";
                     vocabInner.style.overflowY = "auto";
                 }
             };
 
-            // 第一次 render 結束後調整一次
+            // 第一次 render 完成後調整一次
             adjustVocabHeight();
-            // 如果使用者縮放視窗，再自動調整一次
+            // 視窗大小改變時再調整（例如你縮放瀏覽器寬度）
             window.addEventListener("resize", adjustVocabHeight);
         } catch (e) {
             console.error("調整詞彙欄高度時發生錯誤：", e);
         }
+
 
     // 手機下載選單
 
