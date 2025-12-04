@@ -416,55 +416,62 @@ showToast("範例已載入，請按「開始 AI 檢測」", "success");
         }
 
         function renderResults(data) {
-            document.getElementById('res-score').innerText = data.summary.score;
-            document.getElementById('res-total').innerText = data.summary.total;
-            document.getElementById('res-safe').innerText = data.summary.safe;
-            document.getElementById('res-risk').innerText = data.summary.risk;
+    document.getElementById('res-score').innerText = data.summary.score;
+    document.getElementById('res-total').innerText = data.summary.total;
+    document.getElementById('res-safe').innerText = data.summary.safe;
+    document.getElementById('res-risk').innerText = data.summary.risk;
+    document.getElementById('ai-feedback-content').innerHTML = data.aiFeedback;
 
-            document.getElementById('ai-feedback-content').innerHTML = data.aiFeedback;
+    // 修改表頭：將「年級差」改為「學期差」
+    document.querySelector('[data-i18n="th_diff"]').innerText = "學期差";
 
-            const tbody = document.getElementById('result-table-body');
-            if (data.table.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-500">沒有符合篩選條件的詞彙。</td></tr>';
-                return;
-            }
+    const tbody = document.getElementById('result-table-body');
+    if (data.table.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-500">沒有符合篩選條件的詞彙。</td></tr>';
+        return;
+    }
 
-            tbody.innerHTML = data.table.map((item, index) => {
-                let badgeClass = "bg-slate-400";
-                let statusText = "未定義";
-                let diffText = "N/A";
+    tbody.innerHTML = data.table.map((item, index) => {
+        let badgeClass = "bg-slate-400";
+        let statusText = "未知";
+        let diffText = "N/A";
 
-                if (item.diff > -90) { 
-                    diffText = (item.diff > 0 ? "+" : "") + item.diff;
-                    if (item.diff >= 2) { badgeClass = "bg-safe-deep"; statusText = "極易"; }
-                    else if (item.diff >= 0) { badgeClass = "bg-safe-light"; statusText = "符合"; }
-                    else if (item.diff >= -0.5) { badgeClass = "bg-warn"; statusText = "稍難"; }
-                    else { badgeClass = "bg-danger"; statusText = "超前"; }
-                } else { 
-                    if (item.first.includes("未見")) {
-                         badgeClass = "bg-danger"; statusText = "未見";
-                    } else {
-                         badgeClass = "bg-safe-light"; statusText = "已收錄";
-                         diffText = "-";
-                    }
+        // item.diff 現在是「學期數」
+        if (item.diff > -99) {
+            // 顯示 +N 或 -N (單位：學期)
+            diffText = (item.diff > 0 ? "+" : "") + item.diff;
+
+            if (item.state === "fit") {
+                if (item.diff >= 4) { // 超過 4 個學期 (2年)
+                    badgeClass = "bg-safe-deep"; statusText = "極易";
+                } else {
+                    badgeClass = "bg-safe-light"; statusText = "符合";
                 }
-
-                const rowClass = index % 2 === 0 ? 'bg-white/50' : 'bg-green-50/30';
-                return `
-                <tr class="${rowClass} hover:bg-green-100/50 transition duration-150">
-                    <td class="py-3 pl-4 font-bold text-slate-700">${item.term}</td>
-                    <td class="py-3 font-mono text-sm text-slate-500">${item.pos}</td>
-                    <td class="py-3 text-slate-600 text-sm">${item.first}</td>
-                    <td class="py-3 font-mono font-bold text-center text-slate-700">${diffText}</td>
-                    <td class="py-3 text-center">
-                        <span class="${badgeClass} text-white text-xs px-3 py-1 rounded-full shadow-sm font-bold inline-block min-w-[60px]">
-                            ${statusText}
-                        </span>
-                    </td>
-                </tr>`;
-            }).join('');
+            } else if (item.state === "next_sem") {
+                badgeClass = "bg-warn"; statusText = "下學期";
+            } else if (item.state === "risk") {
+                badgeClass = "bg-danger"; statusText = "超前";
+            }
+        } else {
+            // 未見的情況 (diff 極小)
+            badgeClass = "bg-danger"; statusText = "未見"; diffText = "-";
         }
 
+        const rowClass = index % 2 === 0 ? 'bg-white/50' : 'bg-green-50/30';
+        return `
+        <tr class="${rowClass} hover:bg-green-100/50 transition duration-150">
+            <td class="py-3 pl-4 font-bold text-slate-700">${item.term}</td>
+            <td class="py-3 font-mono text-sm text-slate-500">${item.pos}</td>
+            <td class="py-3 text-slate-600 text-sm">${item.first}</td>
+            <td class="py-3 font-mono font-bold text-center text-slate-700" title="相差學期數">${diffText}</td>
+            <td class="py-3 text-center">
+                <span class="${badgeClass} text-white text-xs px-3 py-1 rounded-full shadow-sm font-bold inline-block min-w-[60px]">
+                    ${statusText}
+                </span>
+            </td>
+        </tr>`;
+    }).join('');
+}
         function showToast(msg, type = "info") {
             const toast = document.getElementById('toast');
             const icon = document.getElementById('toast-icon');
