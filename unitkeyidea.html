@@ -575,9 +575,7 @@ mermaid.init(undefined, document.querySelectorAll('.mermaid')).then(() => {
     const btn = document.getElementById('btn-generate');
     if (btn) btn.disabled = false;
 
-    // 用 requestAnimationFrame 確保 DOM 高度都算完再調版面
-    requestAnimationFrame(adjustVocabLayout);
-}
+     }
 
 
       function downloadTXT() {
