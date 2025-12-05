@@ -173,7 +173,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch"> 
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start"> 
                 
                 <div id="summary-panel" class="md:col-span-2 glass-panel p-6 rounded-2xl bg-white border-l-4 border-blue-500 shadow-sm">
                     <h3 class="font-bold text-blue-800 mb-4 text-xl"><i class="fa-solid fa-star text-yellow-400"></i> <span data-i18n="title_summary">核心概念摘要</span></h3>
@@ -574,7 +574,7 @@ mermaid.init(undefined, document.querySelectorAll('.mermaid')).then(() => {
 
     const btn = document.getElementById('btn-generate');
     if (btn) btn.disabled = false;
-
+setTimeout(syncVocabHeight, 100);
      }
 
 
@@ -761,6 +761,30 @@ mermaid.init(undefined, document.querySelectorAll('.mermaid')).then(() => {
         modal.classList.add("hidden");
         modal.classList.remove("flex");
     }
+      // ★ 新增這個函式：強制讓詞彙欄高度 = 摘要欄高度 ★
+function syncVocabHeight() {
+    const summaryPanel = document.getElementById("summary-panel");
+    const vocabPanel   = document.getElementById("vocab-panel");
+    
+    // 如果找不到元素，或現在是手機版直向排列 (螢幕寬度小於 768px)，就不要執行
+    if (!summaryPanel || !vocabPanel) return;
+    if (window.innerWidth < 768) {
+        vocabPanel.style.height = "auto"; // 手機版恢復自動高度
+        return;
+    }
+
+    // 1. 先重置詞彙欄高度，確保不會影響測量
+    vocabPanel.style.height = "auto";
+    
+    // 2. 抓取摘要欄目前的實際高度
+    const targetHeight = summaryPanel.offsetHeight;
+
+    // 3. 設定給詞彙欄
+    vocabPanel.style.height = targetHeight + "px";
+}
+
+// 監聽視窗縮放，即時調整
+window.addEventListener('resize', syncVocabHeight);  
 </script>
 
 </body>
