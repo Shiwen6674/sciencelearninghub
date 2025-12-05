@@ -19,7 +19,12 @@
                 } 
             } 
         }
-        mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'loose' });
+        mermaid.initialize({ 
+    startOnLoad: false, 
+    theme: 'neutral', 
+    securityLevel: 'loose',
+    flowchart: { useMaxWidth: false, htmlLabels: true } 
+});
     </script>
     
     <style>
@@ -168,7 +173,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start"> 
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch"> 
                 
                 <div id="summary-panel" class="md:col-span-2 glass-panel p-6 rounded-2xl bg-white border-l-4 border-blue-500 shadow-sm">
                     <h3 class="font-bold text-blue-800 mb-4 text-xl"><i class="fa-solid fa-star text-yellow-400"></i> <span data-i18n="title_summary">核心概念摘要</span></h3>
@@ -501,22 +506,23 @@ if (resultTag) {
             
             try {
                 // 初始化並渲染
-                mermaid.init(undefined, document.querySelectorAll('.mermaid')).then(() => {
-                    // ★★★ 關鍵修正：渲染完成後，強制調整 SVG 大小 ★★★
-                    const svg = chartDiv.querySelector('svg');
-                    if (svg) {
-                        // 移除 mermaid 可能加上的固定寬度 style
-                        svg.removeAttribute('style');
-                        svg.removeAttribute('width');
-                        
-                        // 強制設定為 100% 寬度，高度自動，並允許最大寬度無限制
-                        svg.style.width = "100%";
-                        svg.style.height = "auto";
-                        svg.style.maxWidth = "none";
-                        // 確保中文字體
-                        svg.style.fontFamily = '"Microsoft JhengHei", sans-serif';
-                    }
-                });
+                // 在 renderResult 函式內，找到 mermaid.init(...).then(() => { ... }) 裡面
+mermaid.init(undefined, document.querySelectorAll('.mermaid')).then(() => {
+    const svg = chartDiv.querySelector('svg');
+    if (svg) {
+        // ★★★ 修改這裡：強制撐滿容器 ★★★
+        svg.removeAttribute('style');
+        svg.removeAttribute('width');
+        svg.removeAttribute('height'); // 移除原本高度限制
+        
+        svg.style.width = "100%";
+        svg.style.height = "auto";
+        svg.style.maxWidth = "100%"; // 限制不超過框框
+        svg.style.display = "block"; // 避免底部白邊
+        svg.style.margin = "0 auto"; // 置中
+        svg.style.fontFamily = '"Microsoft JhengHei", sans-serif';
+    }
+});
             } catch (e) {
                 console.error('Mermaid 繪圖失敗', e);
                 chartDiv.innerText = '架構圖繪製失敗，請重試。';
@@ -574,53 +580,7 @@ if (resultTag) {
 }
 
 
-    function adjustVocabLayout() {
-    try {
-        const mq = window.matchMedia("(min-width: 768px)");
-        if (!mq.matches) return; // 手機版不做兩欄高度對齊
-
-        const summaryPanel = document.getElementById("summary-panel");
-        const vocabPanel   = document.getElementById("vocab-panel");
-        // 詞彙欄真正要捲動的是這個 overflow-y-auto 的 div
-        const vocabInner   = vocabPanel ? vocabPanel.querySelector(".overflow-y-auto") : null;
-
-        if (!summaryPanel || !vocabPanel || !vocabInner) return;
-
-        // 先清掉舊設定
-        vocabPanel.style.height = "";
-        vocabInner.style.maxHeight = "";
-        vocabInner.style.overflowY = "";
-
-        const summaryRect = summaryPanel.getBoundingClientRect();
-        const style       = getComputedStyle(vocabPanel);
-        const header      = vocabPanel.querySelector("h3");
-        const headerHeight = header ? header.getBoundingClientRect().height : 0;
-        const paddingTop    = parseFloat(style.paddingTop)    || 0;
-        const paddingBottom = parseFloat(style.paddingBottom) || 0;
-
-        // 整個詞彙卡片高度 = 摘要卡片高度（這樣上下就會切齊）
-        const panelHeight = summaryRect.height;
-        vocabPanel.style.height = panelHeight + "px";
-
-        // 內層捲動區可用高度 = 總高 - 標題 - padding - 一點緩衝
-        const available = panelHeight - headerHeight - paddingTop - paddingBottom - 16;
-
-        if (available > 120) { // 避免太小反而怪
-            vocabInner.style.maxHeight = available + "px";
-            vocabInner.style.overflowY = "auto";
-        } else {
-            // 太矮就不要強制捲動
-            vocabPanel.style.height = "auto";
-            vocabInner.style.maxHeight = "";
-            vocabInner.style.overflowY = "";
-        }
-    } catch (e) {
-        console.error("版面調整錯誤", e);
-    }
-}
-
-
-    function downloadTXT() {
+      function downloadTXT() {
         if(!currentResultData) { 
             alert("請先生成內容後再下載！"); 
             return; 
