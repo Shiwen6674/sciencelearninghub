@@ -500,38 +500,34 @@ if (resultTag) {
                 .trim();
         }
 
-        if (mapData) {
-            // 先清空並放入 div
-            chartDiv.innerHTML = `<div class="mermaid">${mapData}</div>`;
-            
-            try {
-                // 初始化並渲染
-                // 在 renderResult 函式內，找到 mermaid.init(...).then(() => { ... }) 裡面
-mermaid.init(undefined, document.querySelectorAll('.mermaid')).then(() => {
-    const svg = chartDiv.querySelector('svg');
-    if (svg) {
-        // ★★★ 修改這裡：強制撐滿容器 ★★★
-        svg.removeAttribute('style');
-        svg.removeAttribute('width');
-        svg.removeAttribute('height'); // 移除原本高度限制
-        
-        svg.style.width = "100%";
-        svg.style.height = "auto";
-        svg.style.maxWidth = "100%"; // 限制不超過框框
-        svg.style.display = "block"; // 避免底部白邊
-        svg.style.margin = "0 auto"; // 置中
-        svg.style.fontFamily = '"Microsoft JhengHei", sans-serif';
-    }
-});
-            } catch (e) {
-                console.error('Mermaid 繪圖失敗', e);
-                chartDiv.innerText = '架構圖繪製失敗，請重試。';
+  if (mapData) {
+    // 【修改點 1】外層容器加上 width: 100%，確保它能佔滿整個寬度
+    chartDiv.innerHTML = `<div class="mermaid" style="width: 100%; display: flex; justify-content: center;">${mapData}</div>`;
+    
+    try {
+        mermaid.init(undefined, document.querySelectorAll('.mermaid')).then(() => {
+            const svg = chartDiv.querySelector('svg');
+            if (svg) {
+                // 【修改點 2】強制移除寫死的尺寸，並用 CSS 拉大
+                svg.removeAttribute('style');
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                
+                svg.style.width = "100%";      // 關鍵：強迫寬度撐滿容器
+                svg.style.height = "auto";     // 高度自動等比例
+                svg.style.maxWidth = "none";   // 關鍵：解除最大寬度限制，允許圖表被拉大
+                svg.style.display = "block";
+                svg.style.margin = "0 auto";
+                svg.style.fontFamily = '"Microsoft JhengHei", sans-serif';
             }
-        } else {
-            chartDiv.innerText = '無架構圖數據';
-        }
+        });
+    } catch (e) {
+        console.error('Mermaid 繪圖失敗', e);
+        chartDiv.innerText = '架構圖繪製失敗，請重試。';
     }
-
+} else {
+    chartDiv.innerText = '無架構圖數據';
+}
     // 5. 迷思概念（支援 data.myths / summary.myths）
     const mythList = document.getElementById('myth-list');
     if (mythList) {
