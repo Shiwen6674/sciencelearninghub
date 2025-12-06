@@ -214,7 +214,7 @@
         </div>
     </main>
 
-    <div id="floating-chat" class="fixed bottom-6 right-6 z-[100] flex flex-col items-end gap-4 no-print">
+    <div id="floating-chat" class="hidden fixed bottom-6 right-6 z-[100] flex flex-col items-end gap-4 no-print">
         <div id="xiaoke-window" class="chat-window closed w-80 md:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden h-[500px]">
             <div class="bg-blue-600 p-4 text-white flex justify-between items-center">
                 <div class="flex items-center gap-2">
@@ -614,6 +614,8 @@ if (resultTag) {
 
     const btn = document.getElementById('btn-generate');
     if (btn) btn.disabled = false;
+        const chatBtn = document.getElementById('floating-chat');
+    if (chatBtn) chatBtn.classList.remove('hidden');
 setTimeout(syncVocabHeight, 100);
      }
 
