@@ -1183,6 +1183,8 @@
         btnNext.disabled = (index === total - 1);
         btnPrev.classList.toggle("opacity-40", btnPrev.disabled);
         btnNext.classList.toggle("opacity-40", btnNext.disabled);
+        if (index !== total - 1) { // 如果不是最後一題
+            btnNext.disabled = true;
     }
 
     function handleQuizAnswer(selectedIndex) {
@@ -1306,48 +1308,6 @@ const btnNext = document.getElementById("quiz-next");
     }
 
 // ---- 修正：確保「上一題／下一題」按鈕一定能正確觸發 ----
-const quizNextBtn = document.getElementById("quiz-next");
-if (quizNextBtn) {
-    quizNextBtn.onclick = function (e) {
-        e.preventDefault();
-        nextQuizQuestion();
-    };
-}
-
-const quizPrevBtn = document.getElementById("quiz-prev");
-if (quizPrevBtn) {
-    quizPrevBtn.onclick = function (e) {
-        e.preventDefault();
-        prevQuizQuestion();
-    };
-}
-// ---- 修正區塊結束 ----
-// ---- 修正：強制接管「上一題／下一題」按鈕點擊 ----
-document.addEventListener('click', function (e) {
-    // 先抓「下一題」按鈕（包含按到裡面的文字或 span 都算）
-    const nextBtn = e.target.closest('#quiz-next');
-    if (nextBtn) {
-        e.preventDefault();
-        try {
-            nextQuizQuestion();
-        } catch (err) {
-            console.error('nextQuizQuestion 執行錯誤：', err);
-        }
-        return;
-    }
-
-    // 再抓「上一題」按鈕
-    const prevBtn = e.target.closest('#quiz-prev');
-    if (prevBtn) {
-        e.preventDefault();
-        try {
-            prevQuizQuestion();
-        } catch (err) {
-            console.error('prevQuizQuestion 執行錯誤：', err);
-        }
-    }
-});
-// ---- 修正區塊結束 ----
 
     window.addEventListener('resize', syncVocabHeight);  
     </script>
