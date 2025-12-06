@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
@@ -265,7 +265,8 @@
                 <button onclick="sendChatMessage()" class="bg-blue-600 text-white w-10 h-10 rounded-full hover:bg-blue-700 transition flex items-center justify-center"><i class="fa-solid fa-paper-plane text-xs"></i></button>
             </div>
         </div>
-        <button onclick="toggleChat()" class="w-14 h-14 bg-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition overflow-hidden border-2 border-blue-600 p-1">
+        <!-- ★ 修改：放大 icon，移除外圈邊框與白色圈 -->
+        <button onclick="toggleChat()" class="w-16 h-16 bg-transparent rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition overflow-hidden">
             <img src="https://raw.githubusercontent.com/Shiwen6674/sciencelearninghub/main/irob.png" alt="小科" class="w-full h-full object-cover rounded-full">
         </button>
     </div>
@@ -372,7 +373,8 @@
     };
 
     window.onload = async () => {
-        const user = JSON.parse(sessionStorage.getItem("currentUser") || '{"name":"訪客"}');
+        // ★ 修改：同時支援 sessionStorage 與 localStorage，避免顯示成「訪客」
+        const user = JSON.parse(sessionStorage.getItem("currentUser") || localStorage.getItem("currentUser") || '{"name":"訪客"}');
         const userInfo = document.getElementById("user-info");
         if (userInfo) userInfo.innerText = user.name;
         
@@ -690,14 +692,17 @@
 
             let mList = data.myths || (data.summary && data.summary.myths) || [];
             if (Array.isArray(mList) && mList.length > 0) {
-                mythData = mList;
-                mList.forEach((m, index) => {
+                // ★ 最多只出 10 題
+                const limitedMyths = mList.slice(0, 10);
+                mythData = limitedMyths;
+
+                limitedMyths.forEach((m, index) => {
                     const rawMyth    = m.myth || m.misconception || '';
                     const correctExp = m.correct || m.explanation || '';
 
                     if (!rawMyth && !correctExp) return;
 
-                    // ★ 修改：優先使用後端的 question（含 <b>...</b> 問句），沒有再用 myth
+                    // 優先使用後端的 question（含問句），沒有再用 myth，並用粗體呈現
                     let statement = m.question || rawMyth || '';
                     statement = statement
                         .replace(/^迷思[:：]\s*/,'')
@@ -714,17 +719,15 @@
                                 <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-50 text-blue-600 text-xs font-bold">Q${index + 1}</span>
                                 <span class="text-xs font-bold text-slate-500">科學動動腦</span>
                             </div>
-                            <span class="text-[11px] text-slate-400">先想一想，再翻答案</span>
+                            <span class="text-[11px] text-slate-400">先想一想，再作答</span>
                         </div>
-                        <div class="text-sm md:text-base text-slate-800 leading-relaxed">${statement}</div>
+                        <div class="text-sm md:text-base text-slate-800 leading-relaxed"><b>${statement}</b></div>
                         <div class="flex flex-col sm:flex-row gap-2">
-                            <button id="${cardId}-btn-true" onclick="answerMyth(${index}, true)" class="myth-option-btn flex-1 px-3 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-blue-300 text-slate-700 text-left">
-                                <span class="block font-semibold mb-0.5">我覺得這樣說是對的</span>
-                                <span class="block text-[11px] text-slate-500">直覺覺得這個說法沒有問題</span>
+                            <button id="${cardId}-btn-true" onclick="answerMyth(${index}, true)" class="myth-option-btn flex-1 px-3 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-blue-300 text-slate-700 text-center">
+                                <span class="block font-semibold">正確 O</span>
                             </button>
-                            <button id="${cardId}-btn-false" onclick="answerMyth(${index}, false)" class="myth-option-btn flex-1 px-3 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-emerald-300 text-slate-700 text-left">
-                                <span class="block font-semibold mb-0.5">我覺得哪裡怪怪的</span>
-                                <span class="block text-[11px] text-slate-500">好像跟課本學到的不太一樣</span>
+                            <button id="${cardId}-btn-false" onclick="answerMyth(${index}, false)" class="myth-option-btn flex-1 px-3 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-emerald-300 text-slate-700 text-center">
+                                <span class="block font-semibold">錯誤 X</span>
                             </button>
                         </div>
                         <div id="${cardId}-feedback" class="mt-3 hidden text-sm leading-relaxed rounded-xl border border-slate-100 bg-slate-50 px-3 py-2"></div>
@@ -770,7 +773,7 @@
         content += `【 核心概念摘要 】\n----------------------------------------\n${summary}\n\n\n`;
         content += `【 科學詞彙與定義 】\n----------------------------------------\n`;
         
-        // ★ 唯一修改：改用 summary.vocab_list 當主要來源，對齊後端 aiResult 結構
+        // 唯一修改：改用 summary.vocab_list 當主要來源，對齊後端 aiResult 結構
         let vList = currentResultData.keywords || (currentResultData.summary ? (currentResultData.summary.keywords || currentResultData.summary.vocab_list) : []) || [];
         if (Array.isArray(vList)) {
             vList.forEach((v, i) => {
@@ -911,7 +914,8 @@
         input.value = "";
 
         try {
-            const currentUser = JSON.parse(sessionStorage.getItem("currentUser") || '{"name":"訪客"}');
+            // 同步使用 session/localStorage 的 currentUser
+            const currentUser = JSON.parse(sessionStorage.getItem("currentUser") || localStorage.getItem("currentUser") || '{"name":"訪客"}');
             const contextText = currentResultData ? (currentResultData.raw_content ? currentResultData.raw_content.text : "") : "";
             const contextVocab = currentResultData ? (currentResultData.raw_content ? currentResultData.raw_content.vocab_str : "") : "";
             const res = await fetch(GAS_API_URL, { 
@@ -991,6 +995,24 @@
     function answerMyth(index, chooseTrue) {
         if (!Array.isArray(mythData) || !mythData[index]) return;
 
+        // ★ 依序作答：只允許目前第一個尚未作答的題目
+        try {
+            let firstUnanswered = -1;
+            for (let i = 0; i < mythData.length; i++) {
+                const fb = document.getElementById(`myth-${i}-feedback`);
+                if (fb && fb.dataset.answered !== "1") {
+                    firstUnanswered = i;
+                    break;
+                }
+            }
+            if (firstUnanswered !== -1 && index !== firstUnanswered) {
+                alert("請依照題號順序作答，先完成前一題喔！");
+                return;
+            }
+        } catch (e) {
+            console.log("myth sequential guard error:", e);
+        }
+
         const cardId = `myth-${index}`;
         const btnTrue  = document.getElementById(`${cardId}-btn-true`);
         const btnFalse = document.getElementById(`${cardId}-btn-false`);
@@ -1003,7 +1025,7 @@
         const myth    = mythData[index].myth || mythData[index].misconception || '';
         const correct = mythData[index].correct || mythData[index].explanation || '';
 
-        // ★ 修改：優先使用後端的 isTrue（true=敘述正確、false=敘述錯誤）
+        // 優先使用後端的 isTrue（true=敘述正確、false=敘述錯誤）
         const isTrueFlag = (typeof mythData[index].isTrue === "boolean") ? mythData[index].isTrue : null;
         let isCorrectChoice;
         if (isTrueFlag === null) {
@@ -1025,7 +1047,7 @@
         let html = "";
 
         if (isCorrectChoice) {
-            // 選對的一側標綠，另一側變淡
+            // 答對：標綠，訊息「恭喜答對了！你真棒！」
             if (chooseTrue) {
                 btnTrue.classList.add("border-green-500","bg-green-50","text-green-700");
                 btnFalse.classList.add("opacity-70");
@@ -1034,12 +1056,11 @@
                 btnTrue.classList.add("opacity-70");
             }
             html = `
-                <div class="font-semibold text-emerald-700 mb-1">答得很好，你有抓到重點！</div>
+                <div class="font-semibold text-emerald-700 mb-1">恭喜答對了！你真棒！</div>
                 <div class="text-slate-700 text-sm mb-1">${correct}</div>
-                <div class="mt-1 text-[11px] text-slate-500">如果還不太確定，可以再回去看課本文字和活動說明喔。</div>
             `;
         } else {
-            // 選錯：錯的標紅，對的標綠
+            // 答錯：錯的一側標紅，正確那側標綠，訊息「可惜答錯了，再試試！」
             if (chooseTrue) {
                 btnTrue.classList.add("border-red-500","bg-red-50","text-red-700");
                 btnFalse.classList.add("border-green-500","bg-green-50","text-green-700");
@@ -1048,9 +1069,8 @@
                 btnTrue.classList.add("border-green-500","bg-green-50","text-green-700");
             }
             html = `
-                <div class="font-semibold text-orange-600 mb-1">很多同學一開始也會這樣想。</div>
+                <div class="font-semibold text-orange-600 mb-1">可惜答錯了，再試試！</div>
                 <div class="text-slate-700 text-sm mb-1">${correct}</div>
-                <div class="mt-1 text-[11px] text-slate-500">下次看到類似的情況，可以試著用今天的正確觀念再想一次。若想再確認，回頭翻翻本單元課本文字和活動也會很有幫助。</div>
             `;
         }
 
@@ -1075,7 +1095,10 @@
             "";
         quizTitleEl.innerText = unitName ? `單元小測驗－${unitName}` : "單元小測驗";
 
-        if (!Array.isArray(quizRaw) || quizRaw.length === 0) {
+        // ★ 最多只取前 10 題
+        const sourceArray = Array.isArray(quizRaw) ? quizRaw.slice(0, 10) : [];
+
+        if (!Array.isArray(sourceArray) || sourceArray.length === 0) {
             quizState.questions    = [];
             quizState.currentIndex = 0;
             quizState.hasAnswered  = false;
@@ -1086,7 +1109,7 @@
             return;
         }
 
-        quizState.questions = quizRaw.map((q, idx) => {
+        quizState.questions = sourceArray.map((q, idx) => {
             const stem = q.stem || q.question || q.text || `第 ${idx + 1} 題`;
             let options = q.options || q.choices || q.choice || [];
             if (!Array.isArray(options)) options = [];
@@ -1202,13 +1225,15 @@
                 buttons[correctIndex].classList.add("border-green-500","bg-green-50","text-green-700");
             }
             quizFeedbackEl.className = "mt-4 text-sm rounded-xl px-3 py-2 bg-orange-50 border border-orange-200 text-orange-800";
+            // ★ 移除「沒關係，這題很多同學也會答錯。」這句
             quizFeedbackEl.innerHTML = `
-                <div class="font-semibold mb-1">沒關係，這題很多同學也會答錯。</div>
-                <div>${q.explanation || "可以對照課本內容，再想想題目在問什麼，下一題會更進步。"} </div>
+                <div class="font-semibold mb-1">這一題可以再想一想。</div>
+                <div>${q.explanation || "可以對照課本中的相關重點，重新思考題目在考什麼。"} </div>
             `;
         }
 
-        quizFeedbackEl.innerHTML += `<div class="mt-2 text-[11px] text-slate-500">若想再確認，可以回去看本單元課本的相關段落與活動喔。</div>`;
+        // ★ 刪除原本「若想再確認，可以回去看本單元課本的相關段落與活動喔。」的附加文字
+
         quizFeedbackEl.classList.remove("hidden");
 
         quizState.hasAnswered = true;
@@ -1239,7 +1264,8 @@
     // 前端先預留 log_quiz_answer，後端沒實作也不會壞
     function submitQuizLog(question, selectedIndex, correctIndex, isCorrect) {
         if (!question) return;
-        const currentUser = JSON.parse(sessionStorage.getItem("currentUser") || '{"name":"訪客"}');
+        // ★ 同步支援 session/localStorage，以確保寫入試算表時有正確姓名
+        const currentUser = JSON.parse(sessionStorage.getItem("currentUser") || localStorage.getItem("currentUser") || '{"name":"訪客"}');
 
         const payload = {
             action: "log_quiz_answer",
