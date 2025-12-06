@@ -1180,7 +1180,7 @@
 
         quizProgressEl.innerText = `第 ${index + 1} 題／共 ${total} 題`;
         btnPrev.disabled = (index === 0);
-        btnNext.disabled = (total <= 1);
+        btnNext.disabled = (index === total - 1);
         btnPrev.classList.toggle("opacity-40", btnPrev.disabled);
         btnNext.classList.toggle("opacity-40", btnNext.disabled);
     }
@@ -1238,7 +1238,11 @@
         quizFeedbackEl.classList.remove("hidden");
 
         quizState.hasAnswered = true;
-
+const btnNext = document.getElementById("quiz-next");
+        if (btnNext && quizState.currentIndex < quizState.questions.length - 1) {
+            btnNext.disabled = false;
+            btnNext.classList.remove("opacity-40");
+        }
         try {
             submitQuizLog(q, selectedIndex, correctIndex, isCorrect);
         } catch (e) {
