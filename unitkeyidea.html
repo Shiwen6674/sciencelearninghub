@@ -372,31 +372,59 @@
         el.disabled=false;
     }
 
-    async function startGeneration() {
-        const selPanel = document.getElementById("selection-panel");
-        const loading = document.getElementById("loading-view");
-        if (selPanel) selPanel.classList.add("hidden");
-        if (loading) {
-            loading.classList.remove("hidden");
-            loading.classList.add("flex");
-        }
-        try {
-            const res = await fetch(GAS_API_URL, { 
-                method: "POST", 
-                body: JSON.stringify({ action: "get_content_and_generate", filters: filters }) 
-            });
-            const json = await res.json();
-            if(json.status === "success") { 
-                currentResultData = json.data; 
-                renderResult(json.data); 
-            } else {
-                throw new Error(json.message);
-            }
-        } catch(e) { 
-            alert("Error: " + e.message); 
-            location.reload(); 
-        }
-    }
+    // 【不需要改動此處】
+async function startGeneration() {
+    const selPanel = document.getElementById("selection-panel");
+    const loading = document.getElementById("loading-view");
+    if (selPanel) selPanel.classList.add("hidden");
+    if (loading) {
+        loading.classList.remove("hidden");
+        loading.classList.add("flex");
+    }
+
+    try {
+        const res = await fetch(GAS_API_URL, { 
+            method: "POST", 
+            body: JSON.stringify({ action: "get_content_and_generate", filters: filters }) 
+        });
+        
+        // ★ 核心修正：加入回應狀態檢查及更穩定的 JSON 解析 ★
+        if (!res.ok) {
+            throw new Error(`HTTP 錯誤! 狀態碼: ${res.status}`);
+        }
+        
+        const text = await res.text();
+        let json;
+        try {
+            json = JSON.parse(text);
+        } catch(parseError) {
+            console.error("JSON 解析失敗的原始文本:", text);
+            throw new Error("API 返回資料格式錯誤 (非完整 JSON)。");
+        }
+        // ★ 修正結束 ★
+
+        if(json.status === "success") { 
+            currentResultData = json.data; 
+            renderResult(json.data); 
+        } else {
+            throw new Error(json.message || "API 返回狀態為失敗");
+        }
+    } catch(e) { 
+        alert("AI 生成失敗！請檢查 API 或重試。\n錯誤訊息: " + e.message); 
+        
+        // 載入失敗時，把選單叫回來
+        if (selPanel) selPanel.classList.remove("hidden");
+        if (loading) {
+            loading.classList.add("hidden");
+            loading.classList.remove("flex");
+        }
+        
+        // 讓使用者可以再次點擊生成按鈕
+        const btn = document.getElementById("btn-generate");
+        if (btn) btn.disabled = false;
+    }
+    
+}
 
     // ★ 修正重點：自動判斷是文字還是物件，解決 [object Object] 問題 ★
     f// ★ 修正版：對齊後端欄位 + 防止 [object Object] + 保留相容性 ★
