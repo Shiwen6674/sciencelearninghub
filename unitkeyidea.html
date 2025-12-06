@@ -20,11 +20,11 @@
             } 
         }
         mermaid.initialize({ 
-    startOnLoad: false, 
-    theme: 'neutral', 
-    securityLevel: 'loose',
-    flowchart: { useMaxWidth: false, htmlLabels: true } 
-});
+            startOnLoad: false, 
+            theme: 'neutral', 
+            securityLevel: 'loose',
+            flowchart: { useMaxWidth: false, htmlLabels: true } 
+        });
     </script>
     
     <style>
@@ -253,69 +253,56 @@
         "zh-CN": { back_home:"返回学习中心", btn_bilingual:"科学双语阅读", btn_eval:"AI 评分诊断", page_title:"单元重点整理", page_subtitle:"AI 智能笔记生成", settings_title:"请挑选你要的学习单元", label_stage:"学习阶段", label_publisher:"版本", label_grade:"年级", label_semester:"学期", label_unit:"单元名称", btn_generate:"AI 分析并生成", btn_txt:"下载 TXT", btn_pdf:"下载 PDF", title_summary:"核心概念摘要", title_vocab:"科学词汇与定义", title_map:"知识架构图", title_myth:"常见迷思诊断" }
     };
 
-   window.onload = async () => {
-    // ... (讀取使用者資訊的程式碼不變) ...
-    const user = JSON.parse(sessionStorage.getItem("currentUser") || '{"name":"訪客"}');
-    const userInfo = document.getElementById("user-info");
-    if (userInfo) userInfo.innerText = user.name;
-    
-    // 確保選單元素存在
-    const selStage = document.getElementById("sel-stage");
-
-    try {
-        const res = await fetch(GAS_API_URL + "?action=get_metadata");
+    window.onload = async () => {
+        const user = JSON.parse(sessionStorage.getItem("currentUser") || '{"name":"訪客"}');
+        const userInfo = document.getElementById("user-info");
+        if (userInfo) userInfo.innerText = user.name;
         
-        // 1. 檢查 HTTP 狀態碼 (非 200/OK 狀態)
-        if (!res.ok) {
-            throw new Error(`伺服器 HTTP 錯誤: ${res.status}`);
-        }
+        const selStage = document.getElementById("sel-stage");
 
-        // 2. 先讀取為文字，以便捕捉 JSON 解析錯誤
-        const text = await res.text();
-        let json;
         try {
-            json = JSON.parse(text); // 嘗試將文字解析為 JSON
-        } catch (parseError) {
-            // 🚨 如果這裡發生錯誤，代表 GAS 腳本輸出了非 JSON 格式的內容 (例如 HTML 錯誤頁)
-            console.error("JSON 解析失敗的原始文本:", text);
-            throw new Error(`API 回應格式錯誤，原始內容開頭: ${text.substring(0, 50)}...`);
-        }
-        
-        // 3. 檢查 API 回應的 status 欄位
-        if(json.status === "success") {
-            // 資料庫連線成功邏輯
-            allData = json.data;
-            const dbStatus = document.getElementById("db-status");
-            if (dbStatus) {
-                dbStatus.innerHTML = `<i class="fa-solid fa-check"></i> 資料庫連線成功`;
-                dbStatus.className = "text-xs font-bold text-green-600";
+            const res = await fetch(GAS_API_URL + "?action=get_metadata");
+            if (!res.ok) {
+                throw new Error(`伺服器 HTTP 錯誤: ${res.status}`);
             }
-            initSelectors(); // 呼叫填充下拉選單的函式
-        } else {
-            // API 回應狀態為失敗 (status:"error")
-            throw new Error(json.message || "API 回應狀態非成功");
+
+            const text = await res.text();
+            let json;
+            try {
+                json = JSON.parse(text);
+            } catch (parseError) {
+                console.error("JSON 解析失敗的原始文本:", text);
+                throw new Error(`API 回應格式錯誤，原始內容開頭: ${text.substring(0, 50)}...`);
+            }
+            
+            if(json.status === "success") {
+                allData = json.data;
+                const dbStatus = document.getElementById("db-status");
+                if (dbStatus) {
+                    dbStatus.innerHTML = `<i class="fa-solid fa-check"></i> 資料庫連線成功`;
+                    dbStatus.className = "text-xs font-bold text-green-600";
+                }
+                initSelectors();
+            } else {
+                throw new Error(json.message || "API 回應狀態非成功");
+            }
+        } catch(e) {
+            console.error("載入元數據失敗:", e);
+            const dbStatus = document.getElementById("db-status");
+            
+            if (dbStatus) {
+                dbStatus.innerText = "連線失敗";
+                dbStatus.className = "text-xs font-bold text-red-500";
+            }
+            
+            if (selStage) {
+                selStage.innerHTML = '<option value="" disabled selected>連線失敗，請重試...</option>';
+                selStage.disabled = true;
+            }
+            
+            alert(`無法載入資料庫！\n錯誤類型: ${e.message}`);
         }
-    } catch(e) {
-        // 4. 捕捉所有錯誤並停止 Loading
-        console.error("載入元數據失敗:", e);
-        const dbStatus = document.getElementById("db-status");
-        
-        // 更新狀態
-        if (dbStatus) {
-            dbStatus.innerText = "連線失敗";
-            dbStatus.className = "text-xs font-bold text-red-500";
-        }
-        
-        // 修正 Loading 卡住：清空第一個選單狀態
-        if (selStage) {
-            selStage.innerHTML = '<option value="" disabled selected>連線失敗，請重試...</option>';
-            selStage.disabled = true;
-        }
-        
-        // 給使用者明確的提示，幫助您除錯
-        alert(`無法載入資料庫！\n錯誤類型: ${e.message}`);
-    }
-};
+    };
 
     function changeLanguage() {
         const langSel = document.getElementById("language-selector");
@@ -407,239 +394,222 @@
         el.disabled=false;
     }
 
-    // 【不需要改動此處】
-async function startGeneration() {
-    const selPanel = document.getElementById("selection-panel");
-    const loading = document.getElementById("loading-view");
-    if (selPanel) selPanel.classList.add("hidden");
-    if (loading) {
-        loading.classList.remove("hidden");
-        loading.classList.add("flex");
-    }
-
-    try {
-        const res = await fetch(GAS_API_URL, { 
-            method: "POST", 
-            body: JSON.stringify({ action: "get_content_and_generate", filters: filters }) 
-        });
-        
-        // ★ 核心修正：加入回應狀態檢查及更穩定的 JSON 解析 ★
-        if (!res.ok) {
-            throw new Error(`HTTP 錯誤! 狀態碼: ${res.status}`);
-        }
-        
-        const text = await res.text();
-        let json;
-        try {
-            json = JSON.parse(text);
-        } catch(parseError) {
-            console.error("JSON 解析失敗的原始文本:", text);
-            throw new Error("API 返回資料格式錯誤 (非完整 JSON)。");
-        }
-        // ★ 修正結束 ★
-
-        if(json.status === "success") { 
-            currentResultData = json.data; 
-            renderResult(json.data); 
-        } else {
-            throw new Error(json.message || "API 返回狀態為失敗");
-        }
-    } catch(e) { 
-        alert("AI 生成失敗！請檢查 API 或重試。\n錯誤訊息: " + e.message); 
-        
-        // 載入失敗時，把選單叫回來
-        if (selPanel) selPanel.classList.remove("hidden");
-        if (loading) {
-            loading.classList.add("hidden");
-            loading.classList.remove("flex");
-        }
-        
-        // 讓使用者可以再次點擊生成按鈕
-        const btn = document.getElementById("btn-generate");
-        if (btn) btn.disabled = false;
-    }
-    
-}
-
-    // ★ 修正重點：自動判斷是文字還是物件，解決 [object Object] 問題 ★
-    // ★ 修正版：對齊後端欄位 + 防止 [object Object] + 保留相容性 ★
-function renderResult(data) {
-    console.log("渲染數據:", data);
-
-    // 0. 保險：先抓 raw_content，後面當作備援
-    const raw = data.raw_content || {};
-
-    // 1. 標題與 TAG
-    const resultTitle = document.getElementById('result-title');
-    if (resultTitle) {
-        resultTitle.innerText =
-            data.topic ||
-            data.unitName ||
-            raw.unitName ||
-            filters.unitName ||
-            '無標題';
-    }
-
-const resultTag = document.getElementById('result-tag');
-if (resultTag) {
-    const p = data.publisher || filters.publisher || '';      // 例如：南一
-    const g = data.grade || filters.grade || '';              // 例如：3
-    const rawS = data.semester || filters.semester || '';     // 例如：上 或 下
-
-    let s = rawS;
-    if (rawS === '上') s = '上學期';
-    else if (rawS === '下') s = '下學期';
-
-    resultTag.innerText = `${p} ${g}年級 ${s}`;                // 南一 3年級 上學期
-}
-
-
-    // 2. 摘要（避免 [object Object]，並優先使用 summary_html）
-    const summaryBox = document.getElementById('summary-text');
-    if (summaryBox) {
-        let summaryContent = data.summary;
-
-        if (summaryContent && typeof summaryContent === 'object') {
-            summaryContent =
-                summaryContent.summary_html ||   // 你原本的欄位
-                summaryContent.html ||
-                summaryContent.content ||
-                summaryContent.text ||
-                summaryContent.summary ||
-                '';
+    async function startGeneration() {
+        const selPanel = document.getElementById("selection-panel");
+        const loading = document.getElementById("loading-view");
+        if (selPanel) selPanel.classList.add("hidden");
+        if (loading) {
+            loading.classList.remove("hidden");
+            loading.classList.add("flex");
         }
 
-        if (!summaryContent && raw.text_summary) {
-            summaryContent = raw.text_summary;
-        }
-
-        summaryBox.innerHTML = summaryContent || '生成摘要失敗...';
-    }
-
-    // 3. 科學詞彙（支援多種欄位名稱：keywords / summary.keywords / summary.vocab_list / raw_content.vocab_list）
-    const keywordList = document.getElementById('keywords-list');
-    if (keywordList) {
-        keywordList.innerHTML = '';
-
-        let kList =
-            data.keywords ||
-            (data.summary && (data.summary.keywords || data.summary.vocab_list)) ||
-            raw.vocab_list ||
-            [];
-
-        if (Array.isArray(kList) && kList.length > 0) {
-            kList.forEach(k => {
-                const term = typeof k === 'object' ? (k.term || k.word || '') : k;
-                const def  = typeof k === 'object' ? (k.def || k.definition || '') : '';
-
-                if (!term) return;
-
-                const div = document.createElement('div');
-                div.className = 'vocab-item bg-white p-3 rounded-xl border border-blue-100 hover:border-blue-300 transition shadow-sm mb-2';
-                div.innerHTML =
-                    `<span class="font-bold text-blue-700 text-lg block mb-1">${term}</span>` +
-                    `<span class="text-sm text-slate-600 leading-relaxed block">${def}</span>`;
-                keywordList.appendChild(div);
+        try {
+            const res = await fetch(GAS_API_URL, { 
+                method: "POST", 
+                body: JSON.stringify({ action: "get_content_and_generate", filters: filters }) 
             });
-        } else {
-            keywordList.innerHTML = '<div class="text-slate-400 p-2">無詞彙資料</div>';
-        }
-    }
-
-    // 4. Mermaid 架構圖（支援 summary.mermaid / summary.mindMap / data.mindMap）
-    // 4. Mermaid 架構圖（修正縮放問題）
-    const chartDiv = document.getElementById('mermaid-chart');
-    if (chartDiv) {
-        let mapData =
-            data.mindMap ||
-            (data.summary && (data.summary.mindMap || data.summary.mermaid)) ||
-            '';
-
-        if (mapData && typeof mapData === 'string') {
-            // 去掉 ```mermaid``` 包裹
-            mapData = mapData
-                .replace(/```mermaid/i, '')
-                .replace(/```/g, '')
-                .trim();
-        }
-
-  if (mapData) {
-    // 【修改點 1】外層容器加上 width: 100%，確保它能佔滿整個寬度
-    chartDiv.innerHTML = `<div class="mermaid" style="width: 100%; display: flex; justify-content: center;">${mapData}</div>`;
-    
-    try {
-        mermaid.init(undefined, document.querySelectorAll('.mermaid')).then(() => {
-            const svg = chartDiv.querySelector('svg');
-            if (svg) {
-                // 【修改點 2】強制移除寫死的尺寸，並用 CSS 拉大
-                svg.removeAttribute('style');
-                svg.removeAttribute('width');
-                svg.removeAttribute('height');
-                
-                svg.style.width = "100%";      // 關鍵：強迫寬度撐滿容器
-                svg.style.height = "auto";     // 高度自動等比例
-                svg.style.maxWidth = "none";   // 關鍵：解除最大寬度限制，允許圖表被拉大
-                svg.style.display = "block";
-                svg.style.margin = "0 auto";
-                svg.style.fontFamily = '"Microsoft JhengHei", sans-serif';
+            
+            if (!res.ok) {
+                throw new Error(`HTTP 錯誤! 狀態碼: ${res.status}`);
             }
-        });
-    } catch (e) {
-        console.error('Mermaid 繪圖失敗', e);
-        chartDiv.innerText = '架構圖繪製失敗，請重試。';
-    }
-} else {
-    chartDiv.innerText = '無架構圖數據';
-}
-           // 5. 迷思概念（支援 data.myths / summary.myths）
-    const mythList = document.getElementById('myth-list');
-    if (mythList) {
-        mythList.innerHTML = '';
+            
+            const text = await res.text();
+            let json;
+            try {
+                json = JSON.parse(text);
+            } catch(parseError) {
+                console.error("JSON 解析失敗的原始文本:", text);
+                throw new Error("API 返回資料格式錯誤 (非完整 JSON)。");
+            }
 
-        let mList = data.myths || (data.summary && data.summary.myths) || [];
-        if (Array.isArray(mList) && mList.length > 0) {
-            mList.forEach(m => {
-                const myth    = m.myth || m.misconception || '';
-                const correct = m.correct || m.explanation || '';
-
-                if (!myth && !correct) return;
-
-                const div = document.createElement('div');
-                div.className = 'bg-white p-4 rounded-xl border-l-4 border-red-400 shadow-sm';
-                div.innerHTML = `
-                    <div class="font-bold text-red-500 mb-2 flex items-start gap-2">
-                        <i class="fa-solid fa-xmark mt-1"></i> <span>${myth}</span>
-                    </div>
-                    <div class="text-sm text-slate-600 pl-6 border-t border-red-50 pt-2 mt-2">
-                        <i class="fa-solid fa-check text-green-500 mr-1"></i> 正確：${correct}
-                    </div>`;
-                mythList.appendChild(div);
-            });
-        } else {
-            mythList.innerHTML = '<div class="text-slate-400 p-2">無迷思資料</div>';
+            if(json.status === "success") { 
+                currentResultData = json.data; 
+                renderResult(json.data); 
+            } else {
+                throw new Error(json.message || "API 返回狀態為失敗");
+            }
+        } catch(e) { 
+            alert("AI 生成失敗！請檢查 API 或重試。\n錯誤訊息: " + e.message); 
+            
+            if (selPanel) selPanel.classList.remove("hidden");
+            if (loading) {
+                loading.classList.add("hidden");
+                loading.classList.remove("flex");
+            }
+            
+            const btn = document.getElementById("btn-generate");
+            if (btn) btn.disabled = false;
         }
     }
 
-    // 6. 切換畫面
-    const loadingView = document.getElementById('loading-view');
-    const contentView = document.getElementById('content-view');
-    if (loadingView) {
-        loadingView.classList.add('hidden');
-        loadingView.classList.remove('flex');
-    }
-    if (contentView) {
-        contentView.classList.remove('hidden');
-    }
+    function renderResult(data) {
+        console.log("渲染數據:", data);
 
-    const btn = document.getElementById('btn-generate');
-    if (btn) btn.disabled = false;
+        const raw = data.raw_content || {};
+
+        const resultTitle = document.getElementById('result-title');
+        if (resultTitle) {
+            resultTitle.innerText =
+                data.topic ||
+                data.unitName ||
+                raw.unitName ||
+                filters.unitName ||
+                '無標題';
+        }
+
+        const resultTag = document.getElementById('result-tag');
+        if (resultTag) {
+            const p = data.publisher || filters.publisher || '';
+            const g = data.grade || filters.grade || '';
+            const rawS = data.semester || filters.semester || '';
+
+            let s = rawS;
+            if (rawS === '上') s = '上學期';
+            else if (rawS === '下') s = '下學期';
+
+            resultTag.innerText = `${p} ${g}年級 ${s}`;
+        }
+
+        const summaryBox = document.getElementById('summary-text');
+        if (summaryBox) {
+            let summaryContent = data.summary;
+
+            if (summaryContent && typeof summaryContent === 'object') {
+                summaryContent =
+                    summaryContent.summary_html ||
+                    summaryContent.html ||
+                    summaryContent.content ||
+                    summaryContent.text ||
+                    summaryContent.summary ||
+                    '';
+            }
+
+            if (!summaryContent && raw.text_summary) {
+                summaryContent = raw.text_summary;
+            }
+
+            summaryBox.innerHTML = summaryContent || '生成摘要失敗...';
+        }
+
+        const keywordList = document.getElementById('keywords-list');
+        if (keywordList) {
+            keywordList.innerHTML = '';
+
+            let kList =
+                data.keywords ||
+                (data.summary && (data.summary.keywords || data.summary.vocab_list)) ||
+                raw.vocab_list ||
+                [];
+
+            if (Array.isArray(kList) && kList.length > 0) {
+                kList.forEach(k => {
+                    const term = typeof k === 'object' ? (k.term || k.word || '') : k;
+                    const def  = typeof k === 'object' ? (k.def || k.definition || '') : '';
+
+                    if (!term) return;
+
+                    const div = document.createElement('div');
+                    div.className = 'vocab-item bg-white p-3 rounded-xl border border-blue-100 hover:border-blue-300 transition shadow-sm mb-2';
+                    div.innerHTML =
+                        `<span class="font-bold text-blue-700 text-lg block mb-1">${term}</span>` +
+                        `<span class="text-sm text-slate-600 leading-relaxed block">${def}</span>`;
+                    keywordList.appendChild(div);
+                });
+            } else {
+                keywordList.innerHTML = '<div class="text-slate-400 p-2">無詞彙資料</div>';
+            }
+        }
+
+        // Mermaid 架構圖（修正縮放 + 收好大括號）
+        const chartDiv = document.getElementById('mermaid-chart');
+        if (chartDiv) {
+            let mapData =
+                data.mindMap ||
+                (data.summary && (data.summary.mindMap || data.summary.mermaid)) ||
+                '';
+
+            if (mapData && typeof mapData === 'string') {
+                mapData = mapData
+                    .replace(/```mermaid/i, '')
+                    .replace(/```/g, '')
+                    .trim();
+            }
+
+            if (mapData) {
+                chartDiv.innerHTML = `<div class="mermaid" style="width: 100%; display: flex; justify-content: center;">${mapData}</div>`;
+                
+                try {
+                    mermaid.init(undefined, document.querySelectorAll('.mermaid')).then(() => {
+                        const svg = chartDiv.querySelector('svg');
+                        if (svg) {
+                            svg.removeAttribute('style');
+                            svg.removeAttribute('width');
+                            svg.removeAttribute('height');
+                            
+                            svg.style.width = "100%";
+                            svg.style.height = "auto";
+                            svg.style.maxWidth = "none";
+                            svg.style.display = "block";
+                            svg.style.margin = "0 auto";
+                            svg.style.fontFamily = '"Microsoft JhengHei", sans-serif';
+                        }
+                    });
+                } catch (e) {
+                    console.error('Mermaid 繪圖失敗', e);
+                    chartDiv.innerText = '架構圖繪製失敗，請重試。';
+                }
+            } else {
+                chartDiv.innerText = '無架構圖數據';
+            }
+        }
+
+        const mythList = document.getElementById('myth-list');
+        if (mythList) {
+            mythList.innerHTML = '';
+
+            let mList = data.myths || (data.summary && data.summary.myths) || [];
+            if (Array.isArray(mList) && mList.length > 0) {
+                mList.forEach(m => {
+                    const myth    = m.myth || m.misconception || '';
+                    const correct = m.correct || m.explanation || '';
+
+                    if (!myth && !correct) return;
+
+                    const div = document.createElement('div');
+                    div.className = 'bg-white p-4 rounded-xl border-l-4 border-red-400 shadow-sm';
+                    div.innerHTML = `
+                        <div class="font-bold text-red-500 mb-2 flex items-start gap-2">
+                            <i class="fa-solid fa-xmark mt-1"></i> <span>${myth}</span>
+                        </div>
+                        <div class="text-sm text-slate-600 pl-6 border-t border-red-50 pt-2 mt-2">
+                            <i class="fa-solid fa-check text-green-500 mr-1"></i> 正確：${correct}
+                        </div>`;
+                    mythList.appendChild(div);
+                });
+            } else {
+                mythList.innerHTML = '<div class="text-slate-400 p-2">無迷思資料</div>';
+            }
+        }
+
+        const loadingView = document.getElementById('loading-view');
+        const contentView = document.getElementById('content-view');
+        if (loadingView) {
+            loadingView.classList.add('hidden');
+            loadingView.classList.remove('flex');
+        }
+        if (contentView) {
+            contentView.classList.remove('hidden');
+        }
+
+        const btn = document.getElementById('btn-generate');
+        if (btn) btn.disabled = false;
         const chatBtn = document.getElementById('floating-chat');
-    if (chatBtn) chatBtn.classList.remove('hidden');
-setTimeout(syncVocabHeight, 100);
-     }
+        if (chatBtn) chatBtn.classList.remove('hidden');
 
+        setTimeout(syncVocabHeight, 100);
+    }
 
-      function downloadTXT() {
+    function downloadTXT() {
         if(!currentResultData) { 
             alert("請先生成內容後再下載！"); 
             return; 
@@ -650,7 +620,6 @@ setTimeout(syncVocabHeight, 100);
         content += `【 核心概念摘要 】\n----------------------------------------\n${summary}\n\n\n`;
         content += `【 科學詞彙與定義 】\n----------------------------------------\n`;
         
-        // 修正下載邏輯，確保能抓到資料
         let vList = currentResultData.keywords || (currentResultData.summary ? currentResultData.summary.keywords : []) || [];
         if (Array.isArray(vList)) {
             vList.forEach((v, i) => {
@@ -822,30 +791,23 @@ setTimeout(syncVocabHeight, 100);
         modal.classList.add("hidden");
         modal.classList.remove("flex");
     }
-      // ★ 新增這個函式：強制讓詞彙欄高度 = 摘要欄高度 ★
-function syncVocabHeight() {
-    const summaryPanel = document.getElementById("summary-panel");
-    const vocabPanel   = document.getElementById("vocab-panel");
-    
-    // 如果找不到元素，或現在是手機版直向排列 (螢幕寬度小於 768px)，就不要執行
-    if (!summaryPanel || !vocabPanel) return;
-    if (window.innerWidth < 768) {
-        vocabPanel.style.height = "auto"; // 手機版恢復自動高度
-        return;
+
+    function syncVocabHeight() {
+        const summaryPanel = document.getElementById("summary-panel");
+        const vocabPanel   = document.getElementById("vocab-panel");
+        
+        if (!summaryPanel || !vocabPanel) return;
+        if (window.innerWidth < 768) {
+            vocabPanel.style.height = "auto";
+            return;
+        }
+
+        vocabPanel.style.height = "auto";
+        const targetHeight = summaryPanel.offsetHeight;
+        vocabPanel.style.height = targetHeight + "px";
     }
 
-    // 1. 先重置詞彙欄高度，確保不會影響測量
-    vocabPanel.style.height = "auto";
-    
-    // 2. 抓取摘要欄目前的實際高度
-    const targetHeight = summaryPanel.offsetHeight;
-
-    // 3. 設定給詞彙欄
-    vocabPanel.style.height = targetHeight + "px";
-}
-
-// 監聽視窗縮放，即時調整
-window.addEventListener('resize', syncVocabHeight);  
-</script>
+    window.addEventListener('resize', syncVocabHeight);  
+    </script>
 </body>
 </html>
