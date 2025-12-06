@@ -697,7 +697,8 @@
 
                     if (!rawMyth && !correctExp) return;
 
-                    let statement = rawMyth || '';
+                    // ★ 修改：優先使用後端的 question（含 <b>...</b> 問句），沒有再用 myth
+                    let statement = m.question || rawMyth || '';
                     statement = statement
                         .replace(/^迷思[:：]\s*/,'')
                         .replace(/^常見想法[:：]\s*/,'')
@@ -769,7 +770,8 @@
         content += `【 核心概念摘要 】\n----------------------------------------\n${summary}\n\n\n`;
         content += `【 科學詞彙與定義 】\n----------------------------------------\n`;
         
-        let vList = currentResultData.keywords || (currentResultData.summary ? currentResultData.summary.keywords : []) || [];
+        // ★ 唯一修改：改用 summary.vocab_list 當主要來源，對齊後端 aiResult 結構
+        let vList = currentResultData.keywords || (currentResultData.summary ? (currentResultData.summary.keywords || currentResultData.summary.vocab_list) : []) || [];
         if (Array.isArray(vList)) {
             vList.forEach((v, i) => {
                 const term = v.term || v;
@@ -1001,6 +1003,17 @@
         const myth    = mythData[index].myth || mythData[index].misconception || '';
         const correct = mythData[index].correct || mythData[index].explanation || '';
 
+        // ★ 修改：優先使用後端的 isTrue（true=敘述正確、false=敘述錯誤）
+        const isTrueFlag = (typeof mythData[index].isTrue === "boolean") ? mythData[index].isTrue : null;
+        let isCorrectChoice;
+        if (isTrueFlag === null) {
+            // 若沒有 isTrue（舊格式），維持原本假設：常見說法多半「不完全正確」
+            isCorrectChoice = !chooseTrue;
+        } else {
+            // 有 isTrue 時，學生選擇與 isTrue 一致才算答對
+            isCorrectChoice = (chooseTrue === isTrueFlag);
+        }
+
         [btnTrue, btnFalse].forEach(btn => {
             btn.classList.remove(
                 "border-green-500","bg-green-50","text-green-700",
@@ -1009,20 +1022,31 @@
             );
         });
 
-        const isCorrectChoice = !chooseTrue; // 假設這些常見說法其實「不完全正確」
         let html = "";
 
         if (isCorrectChoice) {
-            btnFalse.classList.add("border-green-500","bg-green-50","text-green-700");
-            btnTrue.classList.add("opacity-70");
+            // 選對的一側標綠，另一側變淡
+            if (chooseTrue) {
+                btnTrue.classList.add("border-green-500","bg-green-50","text-green-700");
+                btnFalse.classList.add("opacity-70");
+            } else {
+                btnFalse.classList.add("border-green-500","bg-green-50","text-green-700");
+                btnTrue.classList.add("opacity-70");
+            }
             html = `
                 <div class="font-semibold text-emerald-700 mb-1">答得很好，你有抓到重點！</div>
                 <div class="text-slate-700 text-sm mb-1">${correct}</div>
                 <div class="mt-1 text-[11px] text-slate-500">如果還不太確定，可以再回去看課本文字和活動說明喔。</div>
             `;
         } else {
-            btnTrue.classList.add("border-red-500","bg-red-50","text-red-700");
-            btnFalse.classList.add("border-green-500","bg-green-50","text-green-700");
+            // 選錯：錯的標紅，對的標綠
+            if (chooseTrue) {
+                btnTrue.classList.add("border-red-500","bg-red-50","text-red-700");
+                btnFalse.classList.add("border-green-500","bg-green-50","text-green-700");
+            } else {
+                btnFalse.classList.add("border-red-500","bg-red-50","text-red-700");
+                btnTrue.classList.add("border-green-500","bg-green-50","text-green-700");
+            }
             html = `
                 <div class="font-semibold text-orange-600 mb-1">很多同學一開始也會這樣想。</div>
                 <div class="text-slate-700 text-sm mb-1">${correct}</div>
