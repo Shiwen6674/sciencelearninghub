@@ -253,34 +253,50 @@
         "zh-CN": { back_home:"返回学习中心", btn_bilingual:"科学双语阅读", btn_eval:"AI 评分诊断", page_title:"单元重点整理", page_subtitle:"AI 智能笔记生成", settings_title:"请挑选你要的学习单元", label_stage:"学习阶段", label_publisher:"版本", label_grade:"年级", label_semester:"学期", label_unit:"单元名称", btn_generate:"AI 分析并生成", btn_txt:"下载 TXT", btn_pdf:"下载 PDF", title_summary:"核心概念摘要", title_vocab:"科学词汇与定义", title_map:"知识架构图", title_myth:"常见迷思诊断" }
     };
 
-    window.onload = async () => {
-        const user = JSON.parse(sessionStorage.getItem("currentUser") || '{"name":"訪客"}');
-        const userInfo = document.getElementById("user-info");
-        if (userInfo) userInfo.innerText = user.name;
+   window.onload = async () => {
+        const user = JSON.parse(sessionStorage.getItem("currentUser") || '{"name":"訪客"}');
+        const userInfo = document.getElementById("user-info");
+        if (userInfo) userInfo.innerText = user.name;
+        
+        // 確保選單元素存在
+        const selStage = document.getElementById("sel-stage");
 
-        try {
-            const res = await fetch(GAS_API_URL + "?action=get_metadata");
-            const json = await res.json();
-            if(json.status === "success") {
-                allData = json.data;
-                const dbStatus = document.getElementById("db-status");
-                if (dbStatus) {
-                    dbStatus.innerHTML = `<i class="fa-solid fa-check"></i> 資料庫連線成功`;
-                    dbStatus.className = "text-xs font-bold text-green-600";
-                }
-                initSelectors();
-            } else {
-                throw new Error(json.message);
+        try {
+            const res = await fetch(GAS_API_URL + "?action=get_metadata");
+            const json = await res.json();
+            
+            // 檢查回應是否成功
+            if(json.status === "success") {
+                allData = json.data;
+                const dbStatus = document.getElementById("db-status");
+                if (dbStatus) {
+                    dbStatus.innerHTML = `<i class="fa-solid fa-check"></i> 資料庫連線成功`;
+                    dbStatus.className = "text-xs font-bold text-green-600";
+                }
+                initSelectors(); // 成功時，填充選單
+            } else {
+                // API 回應狀態非成功 (例如: status:"error")
+                throw new Error(json.message || "API 回應狀態非成功");
+            }
+        } catch(e) {
+            console.error("載入元數據失敗:", e);
+            const dbStatus = document.getElementById("db-status");
+            
+            if (dbStatus) {
+                dbStatus.innerText = "連線失敗";
+                dbStatus.className = "text-xs font-bold text-red-500";
+            }
+            
+            // ★ 修正重點：手動清空第一個選單的 Loading 狀態 ★
+            if (selStage) {
+                // 恢復為預設的 "Select..." 選項並禁用
+                selStage.innerHTML = '<option value="" disabled selected>Select...</option>';
+                selStage.disabled = true;
             }
-        } catch(e) {
-            console.error(e);
-            const dbStatus = document.getElementById("db-status");
-            if (dbStatus) {
-                dbStatus.innerText = "連線失敗";
-                dbStatus.className = "text-xs font-bold text-red-500";
-            }
-        }
-    };
+            // 可選：給使用者提示
+            alert(`載入資料庫失敗: ${e.message || "請檢查網路或後端 GAS 服務是否正常。"}`);
+        }
+    };
 
     function changeLanguage() {
         const langSel = document.getElementById("language-selector");
