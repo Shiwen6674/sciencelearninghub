@@ -86,6 +86,10 @@
         .no-pdf { display: none !important; }
         
         .click-mask { position: absolute; inset: 0; z-index: 50; background-color: transparent; cursor: pointer; }
+
+        /* 科學動動腦、單元小測驗互動按鈕 */
+        .myth-option-btn { transition: all 0.18s ease; }
+        .quiz-option-btn { transition: all 0.18s ease; }
     </style>
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col">
@@ -207,8 +211,40 @@
                 </div>
                 
                 <div class="md:col-span-3 glass-panel p-6 rounded-2xl bg-red-50/50 border border-red-100 pdf-page-break shadow-sm">
-                    <h3 class="font-bold text-red-600 mb-4 text-xl"><i class="fa-solid fa-circle-exclamation"></i> <span data-i18n="title_myth">常見迷思診斷</span></h3>
+                    <h3 class="font-bold text-red-600 mb-4 text-xl">
+                        <i class="fa-solid fa-lightbulb"></i> 
+                        <span data-i18n="title_myth">科學動動腦</span>
+                    </h3>
                     <div id="myth-list" class="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch"></div>
+                </div>
+
+                <!-- 單元小測驗區塊：單題逐題呈現、NotebookLM 風格 -->
+                <div id="quiz-panel" class="md:col-span-3 glass-panel p-6 rounded-2xl bg-emerald-50/60 border border-emerald-100 shadow-sm">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold text-emerald-700 text-xl flex items-center gap-2">
+                            <i class="fa-solid fa-circle-question"></i>
+                            <span id="quiz-title">單元小測驗</span>
+                        </h3>
+                        <div id="quiz-progress" class="text-xs font-bold text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full">
+                            第 0 題／共 0 題
+                        </div>
+                    </div>
+                    <div id="quiz-body" class="space-y-3">
+                        <div id="quiz-question" class="font-bold text-slate-800 mb-2 leading-relaxed text-sm md:text-base"></div>
+                        <div id="quiz-options" class="space-y-2"></div>
+                        <div id="quiz-feedback" class="mt-4 text-sm rounded-xl px-3 py-2 hidden"></div>
+                        <div class="mt-4 flex justify-between items-center">
+                            <button id="quiz-prev" type="button" onclick="prevQuizQuestion()" class="text-xs px-3 py-1.5 rounded-full border border-slate-200 text-slate-600 bg-white hover:bg-slate-50">
+                                上一題
+                            </button>
+                            <button id="quiz-next" type="button" onclick="nextQuizQuestion()" class="text-xs px-3 py-1.5 rounded-full border border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100">
+                                下一題
+                            </button>
+                        </div>
+                    </div>
+                    <div id="quiz-empty" class="text-sm text-slate-500">
+                        本單元的小測驗尚未準備好，之後會由老師再補上喔。
+                    </div>
                 </div>
             </div>
         </div>
@@ -245,12 +281,94 @@
     let allData = [];
     let filters = {};
     let currentResultData = null;
+    let mythData = [];
+    let quizState = {
+        questions: [],
+        currentIndex: 0,
+        hasAnswered: false
+    };
 
     const i18n = {
-        "zh-TW": { back_home:"返回學習中心", btn_bilingual:"科學雙語閱讀", btn_eval:"AI 評分診斷", page_title:"單元重點整理", page_subtitle:"AI 智能筆記生成", settings_title:"請挑選你要的學習單元", label_stage:"學習階段", label_publisher:"版本", label_grade:"年級", label_semester:"學期", label_unit:"單元名稱", btn_generate:"AI 分析並生成", btn_txt:"下載 TXT", btn_pdf:"下載 PDF", title_summary:"核心概念摘要", title_vocab:"科學詞彙與定義", title_map:"知識架構圖", title_myth:"常見迷思診斷" },
-        "en": { back_home:"Back Home", btn_bilingual:"Bilingual Reading", btn_eval:"AI Assessment", page_title:"Unit Summary", page_subtitle:"AI Generator", settings_title:"Select Learning Unit", label_stage:"Level", label_publisher:"Publisher", label_grade:"Grade", label_semester:"Semester", label_unit:"Unit", btn_generate:"Generate", btn_txt:"Download TXT", btn_pdf:"Download PDF", title_summary:"Core Concepts", title_vocab:"Vocabulary", title_map:"Mind Map", title_myth:"Common Myths" },
-        "ja": { back_home:"ホームに戻る", btn_bilingual:"二言語読解", btn_eval:"AI 診断・採点", page_title:"単元のまとめ", page_subtitle:"AIノート生成", settings_title:"学習単元を選択", label_stage:"段階", label_publisher:"出版社", label_grade:"学年", label_semester:"学期", label_unit:"単元", btn_generate:"生成する", btn_txt:"TXTを保存", btn_pdf:"PDFを保存", title_summary:"核心概念", title_vocab:"科学用語", title_map:"知識マップ", title_myth:"よくある誤解" },
-        "zh-CN": { back_home:"返回学习中心", btn_bilingual:"科学双语阅读", btn_eval:"AI 评分诊断", page_title:"单元重点整理", page_subtitle:"AI 智能笔记生成", settings_title:"请挑选你要的学习单元", label_stage:"学习阶段", label_publisher:"版本", label_grade:"年级", label_semester:"学期", label_unit:"单元名称", btn_generate:"AI 分析并生成", btn_txt:"下载 TXT", btn_pdf:"下载 PDF", title_summary:"核心概念摘要", title_vocab:"科学词汇与定义", title_map:"知识架构图", title_myth:"常见迷思诊断" }
+        "zh-TW": { 
+            back_home:"返回學習中心", 
+            btn_bilingual:"科學雙語閱讀", 
+            btn_eval:"AI 評分診斷", 
+            page_title:"單元重點整理", 
+            page_subtitle:"AI 智能筆記生成", 
+            settings_title:"請挑選你要的學習單元", 
+            label_stage:"學習階段", 
+            label_publisher:"版本", 
+            label_grade:"年級", 
+            label_semester:"學期", 
+            label_unit:"單元名稱", 
+            btn_generate:"AI 分析並生成", 
+            btn_txt:"下載 TXT", 
+            btn_pdf:"下載 PDF", 
+            title_summary:"核心概念摘要", 
+            title_vocab:"科學詞彙與定義", 
+            title_map:"知識架構圖", 
+            title_myth:"科學動動腦" 
+        },
+        "en": { 
+            back_home:"Back Home", 
+            btn_bilingual:"Bilingual Reading", 
+            btn_eval:"AI Assessment", 
+            page_title:"Unit Summary", 
+            page_subtitle:"AI Generator", 
+            settings_title:"Select Learning Unit", 
+            label_stage:"Level", 
+            label_publisher:"Publisher", 
+            label_grade:"Grade", 
+            label_semester:"Semester", 
+            label_unit:"Unit", 
+            btn_generate:"Generate", 
+            btn_txt:"Download TXT", 
+            btn_pdf:"Download PDF", 
+            title_summary:"Core Concepts", 
+            title_vocab:"Vocabulary", 
+            title_map:"Mind Map", 
+            title_myth:"Thinking Check" 
+        },
+        "ja": { 
+            back_home:"ホームに戻る", 
+            btn_bilingual:"二言語読解", 
+            btn_eval:"AI 診断・採点", 
+            page_title:"単元のまとめ", 
+            page_subtitle:"AIノート生成", 
+            settings_title:"学習単元を選択", 
+            label_stage:"段階", 
+            label_publisher:"出版社", 
+            label_grade:"学年", 
+            label_semester:"学期", 
+            label_unit:"単元", 
+            btn_generate:"生成する", 
+            btn_txt:"TXTを保存", 
+            btn_pdf:"PDFを保存", 
+            title_summary:"核心概念", 
+            title_vocab:"科学用語", 
+            title_map:"知識マップ", 
+            title_myth:"考えてみよう" 
+        },
+        "zh-CN": { 
+            back_home:"返回学习中心", 
+            btn_bilingual:"科学双语阅读", 
+            btn_eval:"AI 评分诊断", 
+            page_title:"单元重点整理", 
+            page_subtitle:"AI 智能笔记生成", 
+            settings_title:"请挑选你要的学习单元", 
+            label_stage:"学习阶段", 
+            label_publisher:"版本", 
+            label_grade:"年级", 
+            label_semester:"学期", 
+            label_unit:"单元名称", 
+            btn_generate:"AI 分析并生成", 
+            btn_txt:"下载 TXT", 
+            btn_pdf:"下载 PDF", 
+            title_summary:"核心概念摘要", 
+            title_vocab:"科学词汇与定义", 
+            title_map:"知识架构图", 
+            title_myth:"科学动动脑" 
+        }
     };
 
     window.onload = async () => {
@@ -431,10 +549,12 @@
         } catch(e) { 
             alert("AI 生成失敗！請檢查 API 或重試。\n錯誤訊息: " + e.message); 
             
-            if (selPanel) selPanel.classList.remove("hidden");
-            if (loading) {
-                loading.classList.add("hidden");
-                loading.classList.remove("flex");
+            const selPanelAgain = document.getElementById("selection-panel");
+            if (selPanelAgain) selPanelAgain.classList.remove("hidden");
+            const loadingAgain = document.getElementById("loading-view");
+            if (loadingAgain) {
+                loadingAgain.classList.add("hidden");
+                loadingAgain.classList.remove("flex");
             }
             
             const btn = document.getElementById("btn-generate");
@@ -520,7 +640,7 @@
             }
         }
 
-        // Mermaid 架構圖（修正縮放 + 收好大括號）
+        // Mermaid 架構圖
         const chartDiv = document.getElementById('mermaid-chart');
         if (chartDiv) {
             let mapData =
@@ -563,33 +683,62 @@
             }
         }
 
-        const mythList = document.getElementById('myth-list');
-        if (mythList) {
-            mythList.innerHTML = '';
+        // 科學動動腦：互動版迷思題
+        const mythListEl = document.getElementById('myth-list');
+        if (mythListEl) {
+            mythListEl.innerHTML = '';
 
             let mList = data.myths || (data.summary && data.summary.myths) || [];
             if (Array.isArray(mList) && mList.length > 0) {
-                mList.forEach(m => {
-                    const myth    = m.myth || m.misconception || '';
-                    const correct = m.correct || m.explanation || '';
+                mythData = mList;
+                mList.forEach((m, index) => {
+                    const rawMyth    = m.myth || m.misconception || '';
+                    const correctExp = m.correct || m.explanation || '';
 
-                    if (!myth && !correct) return;
+                    if (!rawMyth && !correctExp) return;
 
+                    let statement = rawMyth || '';
+                    statement = statement
+                        .replace(/^迷思[:：]\s*/,'')
+                        .replace(/^常見想法[:：]\s*/,'')
+                        .trim();
+
+                    const cardId = `myth-${index}`;
                     const div = document.createElement('div');
-                    div.className = 'bg-white p-4 rounded-xl border-l-4 border-red-400 shadow-sm';
+                    div.className = 'bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-3';
+
                     div.innerHTML = `
-                        <div class="font-bold text-red-500 mb-2 flex items-start gap-2">
-                            <i class="fa-solid fa-xmark mt-1"></i> <span>${myth}</span>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-50 text-blue-600 text-xs font-bold">Q${index + 1}</span>
+                                <span class="text-xs font-bold text-slate-500">科學動動腦</span>
+                            </div>
+                            <span class="text-[11px] text-slate-400">先想一想，再翻答案</span>
                         </div>
-                        <div class="text-sm text-slate-600 pl-6 border-t border-red-50 pt-2 mt-2">
-                            <i class="fa-solid fa-check text-green-500 mr-1"></i> 正確：${correct}
-                        </div>`;
-                    mythList.appendChild(div);
+                        <div class="text-sm md:text-base text-slate-800 leading-relaxed">${statement}</div>
+                        <div class="flex flex-col sm:flex-row gap-2">
+                            <button id="${cardId}-btn-true" onclick="answerMyth(${index}, true)" class="myth-option-btn flex-1 px-3 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-blue-300 text-slate-700 text-left">
+                                <span class="block font-semibold mb-0.5">我覺得這樣說是對的</span>
+                                <span class="block text-[11px] text-slate-500">直覺覺得這個說法沒有問題</span>
+                            </button>
+                            <button id="${cardId}-btn-false" onclick="answerMyth(${index}, false)" class="myth-option-btn flex-1 px-3 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-emerald-300 text-slate-700 text-left">
+                                <span class="block font-semibold mb-0.5">我覺得哪裡怪怪的</span>
+                                <span class="block text-[11px] text-slate-500">好像跟課本學到的不太一樣</span>
+                            </button>
+                        </div>
+                        <div id="${cardId}-feedback" class="mt-3 hidden text-sm leading-relaxed rounded-xl border border-slate-100 bg-slate-50 px-3 py-2"></div>
+                    `;
+                    mythListEl.appendChild(div);
                 });
             } else {
-                mythList.innerHTML = '<div class="text-slate-400 p-2">無迷思資料</div>';
+                mythListEl.innerHTML = '<div class="text-slate-400 p-2">本單元暫無「科學動動腦」小題。</div>';
+                mythData = [];
             }
         }
+
+        // 單元小測驗初始化（預留 quiz 資料：data.quiz 或 data.summary.quiz）
+        const quizRaw = data.quiz || (data.summary && data.summary.quiz) || [];
+        initQuiz(quizRaw);
 
         const loadingView = document.getElementById('loading-view');
         const contentView = document.getElementById('content-view');
@@ -629,11 +778,11 @@
             });
         }
         
-        content += `\n【 常見迷思診斷 】\n----------------------------------------\n`;
+        content += `\n【 科學動動腦 】\n----------------------------------------\n`;
         let mList = currentResultData.myths || (currentResultData.summary ? currentResultData.summary.myths : []) || [];
         if (Array.isArray(mList)) {
             mList.forEach((m, i) => {
-                content += `● 迷思 ${i+1}：${m.myth}\n   正確：${m.correct}\n\n`;
+                content += `● 題目 ${i+1}：${(m.myth || "").replace(/^迷思[:：]\s*/,'')}\n   正確觀念：${m.correct || ""}\n\n`;
             });
         }
 
@@ -695,6 +844,11 @@
             mythList.parentElement.classList.add("pdf-page-break");
         }
 
+        const quizPanel = element.querySelector("#quiz-panel");
+        if (quizPanel) {
+            quizPanel.classList.add("pdf-page-break");
+        }
+
         const opt = {
             margin:       10,
             filename:     (filters.unitName || 'unit') + "_重點整理.pdf",
@@ -713,37 +867,33 @@
     }
 
     // 取代原本的 toggleChat()
-function toggleChat() { 
-    const win = document.getElementById("xiaoke-window");
-    if (!win) return;
+    function toggleChat() { 
+        const win = document.getElementById("xiaoke-window");
+        if (!win) return;
 
-    // 判斷這次是「打開」還是「關閉」
-    const wasClosed = win.classList.contains("closed");
-    win.classList.toggle("closed");
+        const wasClosed = win.classList.contains("closed");
+        win.classList.toggle("closed");
 
-    // 只有在「剛打開」聊天視窗，而且目前沒有任何訊息時，才送出小科的招呼語
-    if (wasClosed) {
-        const chatBody = document.getElementById("chat-messages");
-        if (chatBody && !chatBody.innerHTML.trim()) {
+        if (wasClosed) {
+            const chatBody = document.getElementById("chat-messages");
+            if (chatBody && !chatBody.innerHTML.trim()) {
 
-            // 抓目前的單元名稱：先用 filters.unitName，沒有再用後端回來的 unitName
-            const unitName =
-                (filters && filters.unitName) ||
-                (currentResultData &&
-                    (currentResultData.unitName ||
-                     (currentResultData.raw_content && currentResultData.raw_content.unitName))) ||
-                "這個單元";
+                const unitName =
+                    (filters && filters.unitName) ||
+                    (currentResultData &&
+                        (currentResultData.unitName ||
+                         (currentResultData.raw_content && currentResultData.raw_content.unitName))) ||
+                    "這個單元";
 
-            const greet = `你好，我是小科，有關「${unitName}」，你有什麼問題要問我呢？`;
+                const greet = `你好，我是小科，有關「${unitName}」，你有什麼問題要問我呢？`;
 
-            chatBody.innerHTML = `
-                <div class="self-start bg-white border border-slate-100 p-3 rounded-lg rounded-tr-none shadow-sm max-w-[85%] text-sm">
-                    <span class="font-bold text-blue-600 block mb-1 text-xs">小科 AI</span>${greet}
-                </div>`;
+                chatBody.innerHTML = `
+                    <div class="self-start bg-white border border-slate-100 p-3 rounded-lg rounded-tr-none shadow-sm max-w-[85%] text-sm">
+                        <span class="font-bold text-blue-600 block mb-1 text-xs">小科 AI</span>${greet}
+                    </div>`;
+            }
         }
     }
-}
-
 
     async function sendChatMessage() {
         const input = document.getElementById("chat-input"); 
@@ -833,6 +983,266 @@ function toggleChat() {
         vocabPanel.style.height = "auto";
         const targetHeight = summaryPanel.offsetHeight;
         vocabPanel.style.height = targetHeight + "px";
+    }
+
+    // 科學動動腦：作答互動
+    function answerMyth(index, chooseTrue) {
+        if (!Array.isArray(mythData) || !mythData[index]) return;
+
+        const cardId = `myth-${index}`;
+        const btnTrue  = document.getElementById(`${cardId}-btn-true`);
+        const btnFalse = document.getElementById(`${cardId}-btn-false`);
+        const feedback = document.getElementById(`${cardId}-feedback`);
+        if (!btnTrue || !btnFalse || !feedback) return;
+
+        if (feedback.dataset.answered === "1") return;
+        feedback.dataset.answered = "1";
+
+        const myth    = mythData[index].myth || mythData[index].misconception || '';
+        const correct = mythData[index].correct || mythData[index].explanation || '';
+
+        [btnTrue, btnFalse].forEach(btn => {
+            btn.classList.remove(
+                "border-green-500","bg-green-50","text-green-700",
+                "border-red-500","bg-red-50","text-red-700",
+                "opacity-70"
+            );
+        });
+
+        const isCorrectChoice = !chooseTrue; // 假設這些常見說法其實「不完全正確」
+        let html = "";
+
+        if (isCorrectChoice) {
+            btnFalse.classList.add("border-green-500","bg-green-50","text-green-700");
+            btnTrue.classList.add("opacity-70");
+            html = `
+                <div class="font-semibold text-emerald-700 mb-1">答得很好，你有抓到重點！</div>
+                <div class="text-slate-700 text-sm mb-1">${correct}</div>
+                <div class="mt-1 text-[11px] text-slate-500">如果還不太確定，可以再回去看課本文字和活動說明喔。</div>
+            `;
+        } else {
+            btnTrue.classList.add("border-red-500","bg-red-50","text-red-700");
+            btnFalse.classList.add("border-green-500","bg-green-50","text-green-700");
+            html = `
+                <div class="font-semibold text-orange-600 mb-1">很多同學一開始也會這樣想。</div>
+                <div class="text-slate-700 text-sm mb-1">${correct}</div>
+                <div class="mt-1 text-[11px] text-slate-500">下次看到類似的情況，可以試著用今天的正確觀念再想一次。若想再確認，回頭翻翻本單元課本文字和活動也會很有幫助。</div>
+            `;
+        }
+
+        feedback.innerHTML = html;
+        feedback.classList.remove("hidden");
+    }
+
+    // 單元小測驗：初始化與呈現
+    function initQuiz(quizRaw) {
+        const quizPanel   = document.getElementById("quiz-panel");
+        const quizBody    = document.getElementById("quiz-body");
+        const quizEmpty   = document.getElementById("quiz-empty");
+        const quizTitleEl = document.getElementById("quiz-title");
+
+        if (!quizPanel || !quizBody || !quizEmpty || !quizTitleEl) return;
+
+        const unitName =
+            (filters && filters.unitName) ||
+            (currentResultData &&
+                (currentResultData.unitName ||
+                 (currentResultData.raw_content && currentResultData.raw_content.unitName))) ||
+            "";
+        quizTitleEl.innerText = unitName ? `單元小測驗－${unitName}` : "單元小測驗";
+
+        if (!Array.isArray(quizRaw) || quizRaw.length === 0) {
+            quizState.questions    = [];
+            quizState.currentIndex = 0;
+            quizState.hasAnswered  = false;
+            quizBody.classList.add("hidden");
+            quizEmpty.classList.remove("hidden");
+            const progress = document.getElementById("quiz-progress");
+            if (progress) progress.innerText = "第 0 題／共 0 題";
+            return;
+        }
+
+        quizState.questions = quizRaw.map((q, idx) => {
+            const stem = q.stem || q.question || q.text || `第 ${idx + 1} 題`;
+            let options = q.options || q.choices || q.choice || [];
+            if (!Array.isArray(options)) options = [];
+            let correctIndex = -1;
+
+            if (typeof q.correctIndex === "number") correctIndex = q.correctIndex;
+            else if (typeof q.answerIndex === "number") correctIndex = q.answerIndex;
+            else if (typeof q.correct === "number") correctIndex = q.correct;
+            else if (typeof q.ans === "number") correctIndex = q.ans;
+            else if (typeof q.answer === "string") {
+                const map = { "A": 0, "B": 1, "C": 2, "D": 3 };
+                const key = q.answer.trim().toUpperCase()[0];
+                if (map[key] !== undefined) correctIndex = map[key];
+            }
+
+            const explanation = q.explanation || q.explain || q.detail || q.reason || "";
+            const id = q.id || `Q${idx + 1}`;
+
+            return {
+                id,
+                stem,
+                options,
+                correctIndex,
+                explanation
+            };
+        });
+
+        quizState.currentIndex = 0;
+        quizState.hasAnswered  = false;
+
+        quizEmpty.classList.add("hidden");
+        quizBody.classList.remove("hidden");
+
+        renderQuizQuestion();
+    }
+
+    function renderQuizQuestion() {
+        const q = quizState.questions[quizState.currentIndex];
+        const quizQuestionEl = document.getElementById("quiz-question");
+        const quizOptionsEl  = document.getElementById("quiz-options");
+        const quizFeedbackEl = document.getElementById("quiz-feedback");
+        const quizProgressEl = document.getElementById("quiz-progress");
+        const btnPrev        = document.getElementById("quiz-prev");
+        const btnNext        = document.getElementById("quiz-next");
+
+        if (!q || !quizQuestionEl || !quizOptionsEl || !quizFeedbackEl || !quizProgressEl || !btnPrev || !btnNext) return;
+
+        const total = quizState.questions.length;
+        const index = quizState.currentIndex;
+
+        quizQuestionEl.innerHTML = `<span class="inline-block text-xs font-bold text-slate-500 mb-1">第 ${index + 1} 題</span><br>${q.stem}`;
+        quizOptionsEl.innerHTML  = "";
+        quizFeedbackEl.classList.add("hidden");
+        quizFeedbackEl.innerHTML = "";
+        quizState.hasAnswered    = false;
+
+        const letters = ["A", "B", "C", "D", "E", "F"];
+        q.options.forEach((opt, optIndex) => {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "quiz-option-btn w-full text-left px-3 py-2.5 text-sm rounded-xl border border-slate-200 bg-white hover:bg-emerald-50 hover:border-emerald-300 text-slate-800";
+            btn.setAttribute("data-opt-index", optIndex);
+            btn.onclick = () => handleQuizAnswer(optIndex);
+            btn.innerHTML = `<span class="inline-flex items-center justify-center w-6 h-6 mr-2 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold">${letters[optIndex] || ""}</span>${opt}`;
+            quizOptionsEl.appendChild(btn);
+        });
+
+        quizProgressEl.innerText = `第 ${index + 1} 題／共 ${total} 題`;
+        btnPrev.disabled = (index === 0);
+        btnNext.disabled = (index === total - 1);
+        btnPrev.classList.toggle("opacity-40", btnPrev.disabled);
+        btnNext.classList.toggle("opacity-40", btnNext.disabled);
+    }
+
+    function handleQuizAnswer(selectedIndex) {
+        if (quizState.hasAnswered) return;
+        const q = quizState.questions[quizState.currentIndex];
+        if (!q) return;
+
+        const quizOptionsEl  = document.getElementById("quiz-options");
+        const quizFeedbackEl = document.getElementById("quiz-feedback");
+        if (!quizOptionsEl || !quizFeedbackEl) return;
+
+        const buttons = Array.from(quizOptionsEl.querySelectorAll("button.quiz-option-btn"));
+        const correctIndex = typeof q.correctIndex === "number" ? q.correctIndex : -1;
+
+        buttons.forEach((btn) => {
+            btn.disabled = true;
+            btn.classList.remove(
+                "border-green-500","bg-green-50","text-green-700",
+                "border-red-500","bg-red-50","text-red-700"
+            );
+        });
+
+        let isCorrect = (selectedIndex === correctIndex && correctIndex >= 0);
+
+        if (isCorrect) {
+            const btn = buttons[selectedIndex];
+            if (btn) {
+                btn.classList.add("border-green-500","bg-green-50","text-green-700");
+            }
+            quizFeedbackEl.className = "mt-4 text-sm rounded-xl px-3 py-2 bg-emerald-50 border border-emerald-200 text-emerald-800";
+            quizFeedbackEl.innerHTML = `
+                <div class="font-semibold mb-1">太棒了，這題你答對了！</div>
+                <div>${q.explanation || "你根據課本文字做出正確判斷，繼續保持這樣的思考方式喔。"} </div>
+            `;
+        } else {
+            const chosenBtn = buttons[selectedIndex];
+            if (chosenBtn) {
+                chosenBtn.classList.add("border-red-500","bg-red-50","text-red-700");
+            }
+            if (correctIndex >= 0 && buttons[correctIndex]) {
+                buttons[correctIndex].classList.add("border-green-500","bg-green-50","text-green-700");
+            }
+            quizFeedbackEl.className = "mt-4 text-sm rounded-xl px-3 py-2 bg-orange-50 border border-orange-200 text-orange-800";
+            quizFeedbackEl.innerHTML = `
+                <div class="font-semibold mb-1">沒關係，這題很多同學也會答錯。</div>
+                <div>${q.explanation || "可以對照課本內容，再想想題目在問什麼，下一題會更進步。"} </div>
+            `;
+        }
+
+        quizFeedbackEl.innerHTML += `<div class="mt-2 text-[11px] text-slate-500">若想再確認，可以回去看本單元課本的相關段落與活動喔。</div>`;
+        quizFeedbackEl.classList.remove("hidden");
+
+        quizState.hasAnswered = true;
+
+        try {
+            submitQuizLog(q, selectedIndex, correctIndex, isCorrect);
+        } catch (e) {
+            console.log("submitQuizLog 略過或失敗：", e);
+        }
+    }
+
+    function nextQuizQuestion() {
+        if (!quizState.questions.length) return;
+        if (quizState.currentIndex < quizState.questions.length - 1) {
+            quizState.currentIndex += 1;
+            renderQuizQuestion();
+        }
+    }
+
+    function prevQuizQuestion() {
+        if (!quizState.questions.length) return;
+        if (quizState.currentIndex > 0) {
+            quizState.currentIndex -= 1;
+            renderQuizQuestion();
+        }
+    }
+
+    // 前端先預留 log_quiz_answer，後端沒實作也不會壞
+    function submitQuizLog(question, selectedIndex, correctIndex, isCorrect) {
+        if (!question) return;
+        const currentUser = JSON.parse(sessionStorage.getItem("currentUser") || '{"name":"訪客"}');
+
+        const payload = {
+            action: "log_quiz_answer",
+            userName: currentUser.name,
+            stage: filters.stage || "",
+            publisher: filters.publisher || "",
+            grade: filters.grade || "",
+            semester: filters.semester || "",
+            unitName:
+                (filters && filters.unitName) ||
+                (currentResultData &&
+                    (currentResultData.unitName ||
+                     (currentResultData.raw_content && currentResultData.raw_content.unitName))) || "",
+            questionId: question.id || `Q${quizState.currentIndex + 1}`,
+            questionIndex: quizState.currentIndex + 1,
+            questionText: question.stem || "",
+            studentAnswer: typeof selectedIndex === "number" ? selectedIndex.toString() : "",
+            correctAnswer: typeof correctIndex === "number" ? correctIndex.toString() : "",
+            isCorrect: isCorrect ? "1" : "0"
+        };
+
+        fetch(GAS_API_URL, {
+            method: "POST",
+            body: JSON.stringify(payload)
+        }).catch(err => {
+            console.log("log_quiz_answer 呼叫失敗（可忽略於前端）:", err);
+        });
     }
 
     window.addEventListener('resize', syncVocabHeight);  
