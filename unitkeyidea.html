@@ -572,8 +572,7 @@ if (resultTag) {
 } else {
     chartDiv.innerText = '無架構圖數據';
 }
-        }
-    // 5. 迷思概念（支援 data.myths / summary.myths）
+           // 5. 迷思概念（支援 data.myths / summary.myths）
     const mythList = document.getElementById('myth-list');
     if (mythList) {
         mythList.innerHTML = '';
@@ -697,7 +696,7 @@ setTimeout(syncVocabHeight, 100);
         if(mapContainer && mapContainer.parentElement && mapContainer.parentElement.parentElement) {
             const parent = mapContainer.parentElement;
             parent.parentElement.classList.add("pdf-page-break");
-            parent.style.height = "1000px"; 
+            parent.style.height = "auto"; 
             mapContainer.classList.add("pdf-rotate-map");
         }
 
