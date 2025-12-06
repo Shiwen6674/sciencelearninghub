@@ -1261,8 +1261,13 @@
         }
     }
 
+           // 確保 HTML 中 onclick="nextQuizQuestion()" / "prevQuizQuestion()" 一定找得到
+    window.nextQuizQuestion = nextQuizQuestion;
+    window.prevQuizQuestion = prevQuizQuestion;
+
+           
     // 前端先預留 log_quiz_answer，後端沒實作也不會壞
-    function submitQuizLog(question, selectedIndex, correctIndex, isCorrect) {
+        function submitQuizLog(question, selectedIndex, correctIndex, isCorrect) {
         if (!question) return;
         // ★ 同步支援 session/localStorage，以確保寫入試算表時有正確姓名
         const currentUser = JSON.parse(sessionStorage.getItem("currentUser") || localStorage.getItem("currentUser") || '{"name":"訪客"}');
@@ -1287,13 +1292,14 @@
             isCorrect: isCorrect ? "1" : "0"
         };
 
-        fetch(GAS_API_URL, {
-            method: "POST",
-            body: JSON.stringify(payload)
-        }).catch(err => {
-            console.log("log_quiz_answer 呼叫失敗（可忽略於前端）:", err);
-        });
+        // ★ 改用 GET + query string，讓 Apps Script 的 doGet(e) 也能處理
+        const params = new URLSearchParams(payload);
+        fetch(`${GAS_API_URL}?${params.toString()}`)
+            .catch(err => {
+                console.log("log_quiz_answer 呼叫失敗（可忽略於前端）:", err);
+            });
     }
+
 
     window.addEventListener('resize', syncVocabHeight);  
     </script>
