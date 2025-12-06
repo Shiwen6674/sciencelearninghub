@@ -1179,7 +1179,7 @@
 
         quizProgressEl.innerText = `第 ${index + 1} 題／共 ${total} 題`;
         btnPrev.disabled = (index === 0);
-        btnNext.disabled = (index === total - 1);
+        btnNext.disabled = (total <= 1);
         btnPrev.classList.toggle("opacity-40", btnPrev.disabled);
         btnNext.classList.toggle("opacity-40", btnNext.disabled);
     }
