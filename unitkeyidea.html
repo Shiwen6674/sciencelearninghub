@@ -1301,6 +1301,23 @@
             });
     }
 
+// ---- 修正：確保「上一題／下一題」按鈕一定能正確觸發 ----
+const quizNextBtn = document.getElementById("quiz-next");
+if (quizNextBtn) {
+    quizNextBtn.onclick = function (e) {
+        e.preventDefault();
+        nextQuizQuestion();
+    };
+}
+
+const quizPrevBtn = document.getElementById("quiz-prev");
+if (quizPrevBtn) {
+    quizPrevBtn.onclick = function (e) {
+        e.preventDefault();
+        prevQuizQuestion();
+    };
+}
+// ---- 修正區塊結束 ----
 
     window.addEventListener('resize', syncVocabHeight);  
     </script>
