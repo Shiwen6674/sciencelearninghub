@@ -443,7 +443,7 @@ async function startGeneration() {
 }
 
     // ★ 修正重點：自動判斷是文字還是物件，解決 [object Object] 問題 ★
-    f// ★ 修正版：對齊後端欄位 + 防止 [object Object] + 保留相容性 ★
+    // ★ 修正版：對齊後端欄位 + 防止 [object Object] + 保留相容性 ★
 function renderResult(data) {
     console.log("渲染數據:", data);
 
@@ -572,6 +572,7 @@ if (resultTag) {
 } else {
     chartDiv.innerText = '無架構圖數據';
 }
+        }
     // 5. 迷思概念（支援 data.myths / summary.myths）
     const mythList = document.getElementById('myth-list');
     if (mythList) {
@@ -826,6 +827,5 @@ function syncVocabHeight() {
 // 監聽視窗縮放，即時調整
 window.addEventListener('resize', syncVocabHeight);  
 </script>
-
 </body>
 </html>
