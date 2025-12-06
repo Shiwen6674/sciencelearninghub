@@ -712,10 +712,38 @@
         }
     }
 
-    function toggleChat() { 
-        const win = document.getElementById("xiaoke-window");
-        if (win) win.classList.toggle("closed");
+    // 取代原本的 toggleChat()
+function toggleChat() { 
+    const win = document.getElementById("xiaoke-window");
+    if (!win) return;
+
+    // 判斷這次是「打開」還是「關閉」
+    const wasClosed = win.classList.contains("closed");
+    win.classList.toggle("closed");
+
+    // 只有在「剛打開」聊天視窗，而且目前沒有任何訊息時，才送出小科的招呼語
+    if (wasClosed) {
+        const chatBody = document.getElementById("chat-messages");
+        if (chatBody && !chatBody.innerHTML.trim()) {
+
+            // 抓目前的單元名稱：先用 filters.unitName，沒有再用後端回來的 unitName
+            const unitName =
+                (filters && filters.unitName) ||
+                (currentResultData &&
+                    (currentResultData.unitName ||
+                     (currentResultData.raw_content && currentResultData.raw_content.unitName))) ||
+                "這個單元";
+
+            const greet = `你好，我是小科，有關「${unitName}」，你有什麼問題要問我呢？`;
+
+            chatBody.innerHTML = `
+                <div class="self-start bg-white border border-slate-100 p-3 rounded-lg rounded-tr-none shadow-sm max-w-[85%] text-sm">
+                    <span class="font-bold text-blue-600 block mb-1 text-xs">小科 AI</span>${greet}
+                </div>`;
+        }
     }
+}
+
 
     async function sendChatMessage() {
         const input = document.getElementById("chat-input"); 
