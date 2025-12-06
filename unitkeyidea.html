@@ -254,49 +254,68 @@
     };
 
    window.onload = async () => {
-        const user = JSON.parse(sessionStorage.getItem("currentUser") || '{"name":"訪客"}');
-        const userInfo = document.getElementById("user-info");
-        if (userInfo) userInfo.innerText = user.name;
-        
-        // 確保選單元素存在
-        const selStage = document.getElementById("sel-stage");
+    // ... (讀取使用者資訊的程式碼不變) ...
+    const user = JSON.parse(sessionStorage.getItem("currentUser") || '{"name":"訪客"}');
+    const userInfo = document.getElementById("user-info");
+    if (userInfo) userInfo.innerText = user.name;
+    
+    // 確保選單元素存在
+    const selStage = document.getElementById("sel-stage");
 
-        try {
-            const res = await fetch(GAS_API_URL + "?action=get_metadata");
-            const json = await res.json();
-            
-            // 檢查回應是否成功
-            if(json.status === "success") {
-                allData = json.data;
-                const dbStatus = document.getElementById("db-status");
-                if (dbStatus) {
-                    dbStatus.innerHTML = `<i class="fa-solid fa-check"></i> 資料庫連線成功`;
-                    dbStatus.className = "text-xs font-bold text-green-600";
-                }
-                initSelectors(); // 成功時，填充選單
-            } else {
-                // API 回應狀態非成功 (例如: status:"error")
-                throw new Error(json.message || "API 回應狀態非成功");
-            }
-        } catch(e) {
-            console.error("載入元數據失敗:", e);
-            const dbStatus = document.getElementById("db-status");
-            
-            if (dbStatus) {
-                dbStatus.innerText = "連線失敗";
-                dbStatus.className = "text-xs font-bold text-red-500";
-            }
-            
-            // ★ 修正重點：手動清空第一個選單的 Loading 狀態 ★
-            if (selStage) {
-                // 恢復為預設的 "Select..." 選項並禁用
-                selStage.innerHTML = '<option value="" disabled selected>Select...</option>';
-                selStage.disabled = true;
+    try {
+        const res = await fetch(GAS_API_URL + "?action=get_metadata");
+        
+        // 1. 檢查 HTTP 狀態碼 (非 200/OK 狀態)
+        if (!res.ok) {
+            throw new Error(`伺服器 HTTP 錯誤: ${res.status}`);
+        }
+
+        // 2. 先讀取為文字，以便捕捉 JSON 解析錯誤
+        const text = await res.text();
+        let json;
+        try {
+            json = JSON.parse(text); // 嘗試將文字解析為 JSON
+        } catch (parseError) {
+            // 🚨 如果這裡發生錯誤，代表 GAS 腳本輸出了非 JSON 格式的內容 (例如 HTML 錯誤頁)
+            console.error("JSON 解析失敗的原始文本:", text);
+            throw new Error(`API 回應格式錯誤，原始內容開頭: ${text.substring(0, 50)}...`);
+        }
+        
+        // 3. 檢查 API 回應的 status 欄位
+        if(json.status === "success") {
+            // 資料庫連線成功邏輯
+            allData = json.data;
+            const dbStatus = document.getElementById("db-status");
+            if (dbStatus) {
+                dbStatus.innerHTML = `<i class="fa-solid fa-check"></i> 資料庫連線成功`;
+                dbStatus.className = "text-xs font-bold text-green-600";
             }
-            // 可選：給使用者提示
-            alert(`載入資料庫失敗: ${e.message || "請檢查網路或後端 GAS 服務是否正常。"}`);
-        }
-    };
+            initSelectors(); // 呼叫填充下拉選單的函式
+        } else {
+            // API 回應狀態為失敗 (status:"error")
+            throw new Error(json.message || "API 回應狀態非成功");
+        }
+    } catch(e) {
+        // 4. 捕捉所有錯誤並停止 Loading
+        console.error("載入元數據失敗:", e);
+        const dbStatus = document.getElementById("db-status");
+        
+        // 更新狀態
+        if (dbStatus) {
+            dbStatus.innerText = "連線失敗";
+            dbStatus.className = "text-xs font-bold text-red-500";
+        }
+        
+        // 修正 Loading 卡住：清空第一個選單狀態
+        if (selStage) {
+            selStage.innerHTML = '<option value="" disabled selected>連線失敗，請重試...</option>';
+            selStage.disabled = true;
+        }
+        
+        // 給使用者明確的提示，幫助您除錯
+        alert(`無法載入資料庫！\n錯誤類型: ${e.message}`);
+    }
+};
 
     function changeLanguage() {
         const langSel = document.getElementById("language-selector");
