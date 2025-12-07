@@ -117,7 +117,7 @@
         </div>
         <div class="flex items-center gap-3">
             <a href="aievaluation.html" class="group flex items-center gap-2 text-slate-500 hover:text-green-600 transition decoration-0 mr-2">
-                <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow group-hover:shadow-md transition border border-slate-100">
+                <div class="w-10 h-10 bg白 rounded-full flex items-center justify-center shadow group-hover:shadow-md transition border border-slate-100">
                     <i class="fa-solid fa-clipboard-check"></i>
                 </div>
                 <span class="font-bold hidden lg:block" data-i18n="btn_eval">AI 評分診斷</span>
@@ -894,7 +894,7 @@
                 const greet = `你好，我是小科，有關「${unitName}」，你有什麼問題要問我呢？`;
 
                 chatBody.innerHTML = `
-                    <div class="self-start bg-white border border-slate-100 p-3 rounded-lg rounded-tr-none shadow-sm max-w-[85%] text-sm">
+                    <div class="self-start bg白 border border-slate-100 p-3 rounded-lg rounded-tr-none shadow-sm max-w-[85%] text-sm">
                         <span class="font-bold text-blue-600 block mb-1 text-xs">小科 AI</span>${greet}
                     </div>`;
             }
@@ -937,7 +937,7 @@
             const json = await res.json();
             const cleanReply = (json.data || "").replace(/\*\*/g, "");
             if (chatBody) {
-                chatBody.innerHTML += `<div class="self-start bg-white border border-slate-100 p-3 rounded-lg rounded-tr-none shadow-sm max-w-[85%] text-sm"><span class="font-bold text-blue-600 block mb-1 text-xs">小科 AI</span>${cleanReply}</div>`;
+                chatBody.innerHTML += `<div class="self-start bg白 border border-slate-100 p-3 rounded-lg rounded-tr-none shadow-sm max-w-[85%] text-sm"><span class="font-bold text-blue-600 block mb-1 text-xs">小科 AI</span>${cleanReply}</div>`;
                 chatBody.scrollTop = chatBody.scrollHeight;
             }
         } catch(e) { 
@@ -1171,7 +1171,7 @@
         q.options.forEach((opt, optIndex) => {
             const btn = document.createElement("button");
             btn.type = "button";
-            btn.className = "quiz-option-btn w-full text-left px-3 py-2.5 text-sm rounded-xl border border-slate-200 bg-white hover:bg-emerald-50 hover:border-emerald-300 text-slate-800";
+            btn.className = "quiz-option-btn w-full text左 px-3 py-2.5 text-sm rounded-xl border border-slate-200 bg白 hover:bg-emerald-50 hover:border-emerald-300 text-slate-800";
             btn.setAttribute("data-opt-index", optIndex);
             btn.onclick = () => handleQuizAnswer(optIndex);
             btn.innerHTML = `<span class="inline-flex items-center justify-center w-6 h-6 mr-2 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold">${letters[optIndex] || ""}</span>${opt}`;
@@ -1179,14 +1179,16 @@
         });
 
         quizProgressEl.innerText = `第 ${index + 1} 題／共 ${total} 題`;
+
+        // 上一題：只有在第一題才鎖住
         btnPrev.disabled = (index === 0);
-        btnNext.disabled = (index === total - 1);
         btnPrev.classList.toggle("opacity-40", btnPrev.disabled);
-        btnNext.classList.toggle("opacity-40", btnNext.disabled);
-        if (index !== total - 1) { // 如果不是最後一題
-            btnNext.disabled = true;
+
+        // 下一題：每一題一開始都先鎖住，等答完題才開放
+        btnNext.disabled = true;
+        btnNext.classList.add("opacity-40");
     }
-}
+
     function handleQuizAnswer(selectedIndex) {
         if (quizState.hasAnswered) return;
         const q = quizState.questions[quizState.currentIndex];
@@ -1240,11 +1242,11 @@
         quizFeedbackEl.classList.remove("hidden");
 
         quizState.hasAnswered = true;
-const btnNext = document.getElementById("quiz-next");
-        if (btnNext && quizState.currentIndex < quizState.questions.length - 1) {
-            btnNext.disabled = false;
-            btnNext.classList.remove("opacity-40");
-        }
+        const btnNext = document.getElementById("quiz-next");
+        if (btnNext && quizState.currentIndex < quizState.questions.length - 1) {
+            btnNext.disabled = false;
+            btnNext.classList.remove("opacity-40");
+        }
         try {
             submitQuizLog(q, selectedIndex, correctIndex, isCorrect);
         } catch (e) {
