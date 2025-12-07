@@ -674,6 +674,7 @@ let quizRadarChart = null; // 雷達圖實例
                 });
             } else {
                 keywordList.innerHTML = '<div class="text-slate-400 p-2">無詞彙資料</div>';
+                mythData = [];
             }
         }
 
@@ -1417,7 +1418,7 @@ function requestQuizAISummary(score, concepts, conceptScores, correctCount, tota
         }
     }
 
-    func// === 單元小測驗：總結成績 + 概念診斷 + 橫向長條圖（由 AI 產生文字回饋）===
+    // === 單元小測驗：總結成績 + 概念診斷 + 橫向長條圖（由 AI 產生文字回饋）===
 function renderQuizResult() {
     const totalQ = quizState.questions.length;
     if (!totalQ) return;
@@ -1556,126 +1557,6 @@ function renderQuizResult() {
             .catch(err => {
                 console.log("log_quiz_answer 呼叫失敗（可忽略於前端）:", err);
             });
-    }
-    // === 單元小測驗：總結成績 + 概念診斷 + 橫向長條圖 ===
-    function renderQuizResult() {
-        const totalQ = quizState.questions.length;
-        if (!totalQ) return;
-
-        const resultBox      = document.getElementById("quiz-result");
-        const scoreNumberEl  = document.getElementById("quiz-score-number");
-        const scoreLabelEl   = document.getElementById("quiz-score-label");
-        const resultTextEl   = document.getElementById("quiz-result-text");
-        const detailEl       = document.getElementById("quiz-result-detail");
-        const canvas         = document.getElementById("quiz-radar");
-        const quizBody       = document.getElementById("quiz-body");
-        const quizProgress   = document.getElementById("quiz-progress");
-        const btnMain        = document.getElementById("quiz-main-btn");
-
-        if (!resultBox || !scoreNumberEl || !scoreLabelEl || !resultTextEl || !detailEl || !canvas) return;
-
-        // 按「看結果」後，隱藏題目區與按鈕，改由結果區佔據原本位置
-        if (quizBody) quizBody.classList.add("hidden");
-        if (quizProgress) quizProgress.classList.add("hidden");
-        if (btnMain) btnMain.classList.add("hidden");
-
-        // 統計總得分
-        const answered = quizState.answers.filter(a => a);
-        const correctCount = answered.filter(a => a.correct).length;
-        const score = Math.round((correctCount / totalQ) * 100);
-
-        // 顯示容器
-        resultBox.classList.remove("hidden");
-
-        // 分數與等級文字
-        scoreNumberEl.innerText = `${score} 分`;
-
-        let levelText = "";
-        if (score >= 90) {
-            levelText = "概念非常扎實，可以挑戰進階題目。";
-        } else if (score >= 75) {
-            levelText = "理解不錯，再檢查看看錯的題目就更完整了。";
-        } else if (score >= 60) {
-            levelText = "有基礎概念，建議回頭複習幾個容易混淆的地方。";
-        } else {
-            levelText = "目前對這個單元還不熟悉，建議重新看一次重點整理。";
-        }
-        scoreLabelEl.innerText = levelText;
-
-        resultTextEl.innerText = `你答對 ${correctCount} 題／共 ${totalQ} 題。`;
-
-        // 依概念彙總答對率
-        const conceptStats = {};
-        quizState.questions.forEach((q, idx) => {
-            const concept = q.concept || q.conceptName || q.topic || `第 ${idx + 1} 題`;
-            if (!conceptStats[concept]) {
-                conceptStats[concept] = { total: 0, correct: 0 };
-            }
-            conceptStats[concept].total += 1;
-            const ans = quizState.answers[idx];
-            if (ans && ans.correct) {
-                conceptStats[concept].correct += 1;
-            }
-        });
-
-        const concepts = Object.keys(conceptStats);
-        const conceptScores = concepts.map(c => {
-            const s = conceptStats[c];
-            return Math.round((s.correct / s.total) * 100);
-        });
-
-        // 找出強項與弱項概念
-        const pairs = concepts.map((c, i) => ({ concept: c, score: conceptScores[i] }));
-        const strong = pairs.filter(p => p.score >= 80).map(p => p.concept);
-        const weak   = pairs.filter(p => p.score <= 50).map(p => p.concept);
-
-        let detailText = "";
-        if (strong.length) {
-            detailText += `你對「${strong.join("、")}」等概念理解較清楚，可以嘗試應用到更複雜的情境中。\n`;
-        }
-        if (weak.length) {
-            detailText += `在「${weak.join("、")}」等概念上還比較不熟悉，建議回去對照課本文字與單元重點再複習一次。\n`;
-        }
-        if (!detailText) {
-            detailText = "各概念的表現相近，可以再檢查看看錯題解析，強化整體理解。";
-        }
-        detailEl.innerText = detailText;
-
-        // 畫橫向長條圖（用同一個 quizRadarChart 變數，不改名稱）
-        const ctx = canvas.getContext("2d");
-        if (quizRadarChart) {
-            quizRadarChart.destroy();
-        }
-        quizRadarChart = new Chart(ctx, {
-            type: "bar",
-            data: {
-                labels: concepts,
-                datasets: [{
-                    label: "答對率 (％)",
-                    data: conceptScores
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                indexAxis: "y",
-                scales: {
-                    x: {
-                        min: 0,
-                        max: 100,
-                        ticks: { stepSize: 20 }
-                    }
-                },
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: (ctx) => `答對率：${ctx.parsed.x}%`
-                        }
-                    }
-                }
-            }
-        });
     }
 
     // ★ 新增：向後端請求「AI 逐題解析」
