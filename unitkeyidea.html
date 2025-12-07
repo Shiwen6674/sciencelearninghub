@@ -1461,12 +1461,20 @@ quizState.answers      = [];  // 清空作答紀錄
         const resultTextEl   = document.getElementById("quiz-result-text");
         const detailEl       = document.getElementById("quiz-result-detail");
         const canvas         = document.getElementById("quiz-radar");
+        const quizBody       = document.getElementById("quiz-body");
+        const quizProgress   = document.getElementById("quiz-progress");
+        const btnMain        = document.getElementById("quiz-main-btn");
 
         if (!resultBox || !scoreNumberEl || !scoreLabelEl || !resultTextEl || !detailEl || !canvas) return;
 
+        // 按「看結果」後，隱藏題目區與按鈕，改由結果區佔據原本位置
+        if (quizBody) quizBody.classList.add("hidden");
+        if (quizProgress) quizProgress.classList.add("hidden");
+        if (btnMain) btnMain.classList.add("hidden");
+
         // 統計總得分
         const answered = quizState.answers.filter(a => a);
-        const correctCount = answered.filter(a => a.isCorrect).length;
+        const correctCount = answered.filter(a => a.correct).length;
         const score = Math.round((correctCount / totalQ) * 100);
 
         // 顯示容器
@@ -1498,7 +1506,7 @@ quizState.answers      = [];  // 清空作答紀錄
             }
             conceptStats[concept].total += 1;
             const ans = quizState.answers[idx];
-            if (ans && ans.isCorrect) {
+            if (ans && ans.correct) {
                 conceptStats[concept].correct += 1;
             }
         });
