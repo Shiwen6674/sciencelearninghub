@@ -1308,6 +1308,101 @@ quizState.answers      = [];  // 清空作答紀錄
             console.log("requestQuizAIExplanation 呼叫失敗（前端層級）：", e);
         }
     }
+// ★ 新增：呼叫後端 AI，產生「整體測驗診斷」文字回饋
+function requestQuizAISummary(score, concepts, conceptScores, correctCount, totalQ) {
+    const detailEl     = document.getElementById("quiz-result-detail");
+    const scoreLabelEl = document.getElementById("quiz-score-label");
+    if (!detailEl || !scoreLabelEl) return;
+
+    // 取得目前使用者
+    const currentUser = JSON.parse(
+        sessionStorage.getItem("currentUser") ||
+        localStorage.getItem("currentUser") ||
+        '{"name":"訪客"}'
+    );
+
+    // 取出本單元課文與詞彙，給 AI 當背景
+    const raw = currentResultData && currentResultData.raw_content ? currentResultData.raw_content : {};
+    const contextText  = raw.text || raw.text_summary || raw.text_full || "";
+    const contextVocab = raw.vocab_str || "";
+
+    const unitName =
+        (filters && filters.unitName) ||
+        (currentResultData &&
+            (currentResultData.unitName ||
+             (currentResultData.raw_content && currentResultData.raw_content.unitName))) || "";
+
+    // 每題作答紀錄（給 AI 看答對／答錯的分布）
+    const answerRecords = quizState.questions.map((q, idx) => {
+        const ans = quizState.answers[idx];
+        return {
+            index: idx + 1,
+            concept: q.concept || q.conceptName || q.topic || `第 ${idx + 1} 題`,
+            correct: !!(ans && ans.correct)
+        };
+    });
+
+    const payload = {
+        action: "quiz_ai_summary",
+        userName: currentUser.name,
+        stage: filters.stage || "",
+        publisher: filters.publisher || "",
+        grade: filters.grade || "",
+        semester: filters.semester || "",
+        unitName: unitName,
+        score: score,
+        totalQuestions: totalQ,
+        totalCorrect: correctCount,
+        concepts: concepts,
+        conceptScores: conceptScores,
+        answers: answerRecords,
+        contextText: contextText,
+        contextVocab: contextVocab
+    };
+
+    detailEl.innerText = "AI 分析中…";
+    scoreLabelEl.innerText = "AI 正在分析你的作答結果…";
+
+    fetch(GAS_API_URL, {
+        method: "POST",
+        body: JSON.stringify(payload)
+    })
+    .then(res => {
+        try {
+            return res.json();
+        } catch (e) {
+            throw new Error("解析 JSON 失敗");
+        }
+    })
+    .then(json => {
+        if (!json || json.status !== "success" || !json.data) {
+            scoreLabelEl.innerText = "AI 分析暫時無法提供。";
+            detailEl.innerText = "可以先參考逐題解析，自己歸納需要加強的地方。";
+            return;
+        }
+
+        const d = json.data;
+        const summaryText = d.summary || d.summary_html || d.text || d.explanation || "";
+        const detailText  = d.detail  || d.detail_html  || "";
+
+        if (summaryText) {
+            scoreLabelEl.innerHTML = summaryText;
+        } else {
+            scoreLabelEl.innerText = "";
+        }
+
+        if (detailText) {
+            detailEl.innerHTML = detailText;
+        } else {
+            detailEl.innerText = "";
+        }
+    })
+    .catch(err => {
+        console.log("quiz_ai_summary 呼叫失敗：", err);
+        scoreLabelEl.innerText = "AI 分析目前連線不穩定，稍後可以再試一次。";
+        detailEl.innerText = "可以先參考逐題解析，自己歸納需要加強的地方。";
+    });
+}
 
     function handleQuizMainButton() {
         if (!quizState.questions.length) return;
