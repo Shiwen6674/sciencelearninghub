@@ -251,14 +251,25 @@
 </div>
 
 <!-- 測驗結果區（預設隱藏） -->
-<div id="quiz-result" class="mt-6 hidden rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4">
-    <div class="font-bold text-emerald-800 mb-2">測驗結果</div>
-    <div id="quiz-result-text" class="text-sm text-slate-700 mb-4"></div>
+<!-- 測驗結果區（預設隱藏） -->
+<div id="quiz-result" class="mt-6 hidden rounded-2xl border border-emerald-300 bg-white shadow-sm p-4">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+        <div>
+            <div class="text-xs font-semibold text-slate-500">你的測驗成績</div>
+            <div id="quiz-score-number" class="text-3xl font-black text-emerald-700">0 分</div>
+            <div id="quiz-score-label" class="text-xs font-semibold text-emerald-600 mt-1"></div>
+        </div>
+        <div id="quiz-result-text" class="text-sm text-slate-700 md:text-right"></div>
+    </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-        <canvas id="quiz-radar" class="w-full h-64"></canvas>
-        <div id="quiz-result-detail" class="text-sm text-slate-700 leading-relaxed"></div>
+        <!-- 注意：canvas id 一樣叫 quiz-radar，只是內部畫圖改成橫向長條圖 -->
+        <div class="w-full max-w-md h-56 mx-auto">
+            <canvas id="quiz-radar" class="w-full h-full"></canvas>
+        </div>
+        <div id="quiz-result-detail" class="text-sm text-slate-700 leading-relaxed whitespace-pre-line"></div>
     </div>
 </div>
+
 
                 </div>
             </div>
@@ -1231,7 +1242,10 @@ quizState.answers      = [];  // 清空作答紀錄
         });
 
         let isCorrect = (selectedIndex === correctIndex && correctIndex >= 0);
-
+ quizState.answers[quizState.currentIndex] = {
+            concept: q.concept || q.conceptName || q.topic || `第 ${quizState.currentIndex + 1} 題`,
+            isCorrect: isCorrect
+        };
         if (isCorrect) {
             const btn = buttons[selectedIndex];
             if (btn) {
@@ -1241,6 +1255,7 @@ quizState.answers      = [];  // 清空作答紀錄
             quizFeedbackEl.innerHTML = `
                 <div class="font-semibold mb-1">太棒了，這題你答對了！</div>
                 <div>${q.explanation || "你根據課本文字做出正確判斷，繼續保持這樣的思考方式喔。"} </div>
+                <div id="quiz-ai-explanation" class="mt-2 text-xs text-slate-600">AI 解析生成中...</div>
             `;
         } else {
             const chosenBtn = buttons[selectedIndex];
@@ -1255,6 +1270,7 @@ quizState.answers      = [];  // 清空作答紀錄
             quizFeedbackEl.innerHTML = `
                 <div class="font-semibold mb-1">這一題可以再想一想。</div>
                 <div>${q.explanation || "可以對照課本中的相關重點，重新思考題目在考什麼。"} </div>
+                <div id="quiz-ai-explanation" class="mt-2 text-xs text-slate-600">AI 解析生成中...</div>
             `;
         }
 
@@ -1280,6 +1296,13 @@ quizState.answers      = [];  // 清空作答紀錄
             submitQuizLog(q, selectedIndex, correctIndex, isCorrect);
         } catch (e) {
             console.log("submitQuizLog 略過或失敗：", e);
+        }
+
+        // ★ 新增：呼叫後端 AI，根據學生作答產生「逐題解析」
+        try {
+            requestQuizAIExplanation(q, selectedIndex, isCorrect);
+        } catch (e) {
+            console.log("requestQuizAIExplanation 呼叫失敗（前端層級）：", e);
         }
     }
 
@@ -1426,6 +1449,202 @@ quizState.answers      = [];  // 清空作答紀錄
             .catch(err => {
                 console.log("log_quiz_answer 呼叫失敗（可忽略於前端）:", err);
             });
+    }
+    // === 單元小測驗：總結成績 + 概念診斷 + 橫向長條圖 ===
+    function renderQuizResult() {
+        const totalQ = quizState.questions.length;
+        if (!totalQ) return;
+
+        const resultBox      = document.getElementById("quiz-result");
+        const scoreNumberEl  = document.getElementById("quiz-score-number");
+        const scoreLabelEl   = document.getElementById("quiz-score-label");
+        const resultTextEl   = document.getElementById("quiz-result-text");
+        const detailEl       = document.getElementById("quiz-result-detail");
+        const canvas         = document.getElementById("quiz-radar");
+
+        if (!resultBox || !scoreNumberEl || !scoreLabelEl || !resultTextEl || !detailEl || !canvas) return;
+
+        // 統計總得分
+        const answered = quizState.answers.filter(a => a);
+        const correctCount = answered.filter(a => a.isCorrect).length;
+        const score = Math.round((correctCount / totalQ) * 100);
+
+        // 顯示容器
+        resultBox.classList.remove("hidden");
+
+        // 分數與等級文字
+        scoreNumberEl.innerText = `${score} 分`;
+
+        let levelText = "";
+        if (score >= 90) {
+            levelText = "概念非常扎實，可以挑戰進階題目。";
+        } else if (score >= 75) {
+            levelText = "理解不錯，再檢查看看錯的題目就更完整了。";
+        } else if (score >= 60) {
+            levelText = "有基礎概念，建議回頭複習幾個容易混淆的地方。";
+        } else {
+            levelText = "目前對這個單元還不熟悉，建議重新看一次重點整理。";
+        }
+        scoreLabelEl.innerText = levelText;
+
+        resultTextEl.innerText = `你答對 ${correctCount} 題／共 ${totalQ} 題。`;
+
+        // 依概念彙總答對率
+        const conceptStats = {};
+        quizState.questions.forEach((q, idx) => {
+            const concept = q.concept || q.conceptName || q.topic || `第 ${idx + 1} 題`;
+            if (!conceptStats[concept]) {
+                conceptStats[concept] = { total: 0, correct: 0 };
+            }
+            conceptStats[concept].total += 1;
+            const ans = quizState.answers[idx];
+            if (ans && ans.isCorrect) {
+                conceptStats[concept].correct += 1;
+            }
+        });
+
+        const concepts = Object.keys(conceptStats);
+        const conceptScores = concepts.map(c => {
+            const s = conceptStats[c];
+            return Math.round((s.correct / s.total) * 100);
+        });
+
+        // 找出強項與弱項概念
+        const pairs = concepts.map((c, i) => ({ concept: c, score: conceptScores[i] }));
+        const strong = pairs.filter(p => p.score >= 80).map(p => p.concept);
+        const weak   = pairs.filter(p => p.score <= 50).map(p => p.concept);
+
+        let detailText = "";
+        if (strong.length) {
+            detailText += `你對「${strong.join("、")}」等概念理解較清楚，可以嘗試應用到更複雜的情境中。\n`;
+        }
+        if (weak.length) {
+            detailText += `在「${weak.join("、")}」等概念上還比較不熟悉，建議回去對照課本文字與單元重點再複習一次。\n`;
+        }
+        if (!detailText) {
+            detailText = "各概念的表現相近，可以再檢查看看錯題解析，強化整體理解。";
+        }
+        detailEl.innerText = detailText;
+
+        // 畫橫向長條圖（用同一個 quizRadarChart 變數，不改名稱）
+        const ctx = canvas.getContext("2d");
+        if (quizRadarChart) {
+            quizRadarChart.destroy();
+        }
+        quizRadarChart = new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels: concepts,
+                datasets: [{
+                    label: "答對率 (％)",
+                    data: conceptScores
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: "y",
+                scales: {
+                    x: {
+                        min: 0,
+                        max: 100,
+                        ticks: { stepSize: 20 }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => `答對率：${ctx.parsed.x}%`
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // ★ 新增：向後端請求「AI 逐題解析」
+    function requestQuizAIExplanation(question, selectedIndex, isCorrect) {
+        const target = document.getElementById("quiz-ai-explanation");
+        if (!target) return;
+
+        // 取得目前使用者
+        const currentUser = JSON.parse(
+            sessionStorage.getItem("currentUser") ||
+            localStorage.getItem("currentUser") ||
+            '{"name":"訪客"}'
+        );
+
+        const raw = currentResultData && currentResultData.raw_content ? currentResultData.raw_content : {};
+        const contextText  = raw.text || raw.text_summary || raw.text_full || "";
+        const contextVocab = raw.vocab_str || "";
+
+        const unitName =
+            (filters && filters.unitName) ||
+            (currentResultData &&
+                (currentResultData.unitName ||
+                 (currentResultData.raw_content && currentResultData.raw_content.unitName))) || "";
+
+        const payload = {
+            action: "quiz_ai_explain",
+            userName: currentUser.name,
+            stage: filters.stage || "",
+            publisher: filters.publisher || "",
+            grade: filters.grade || "",
+            semester: filters.semester || "",
+            unitName: unitName,
+            contextText: contextText,
+            contextVocab: contextVocab,
+            isCorrect: isCorrect ? 1 : 0,
+            question: {
+                id: question.id || `Q${quizState.currentIndex + 1}`,
+                stem: question.stem || "",
+                options: question.options || [],
+                correctIndex: (typeof question.correctIndex === "number" ? question.correctIndex : -1),
+                studentIndex: (typeof selectedIndex === "number" ? selectedIndex : -1),
+                concept: question.concept || question.conceptName || question.topic || `第 ${quizState.currentIndex + 1} 題`
+            }
+        };
+
+        target.innerText = "AI 解析生成中…";
+
+        fetch(GAS_API_URL, {
+            method: "POST",
+            body: JSON.stringify(payload)
+        })
+        .then(res => {
+            try {
+                return res.json();
+            } catch (e) {
+                throw new Error("解析 JSON 失敗");
+            }
+        })
+        .then(json => {
+            if (!target) return;
+            if (!json || json.status !== "success" || !json.data) {
+                target.innerText = "AI 解析暫時無法提供，先對照課本文字自己想一想。";
+                return;
+            }
+
+            const d = json.data;
+            const html =
+                d.explanation_html ||
+                d.explanation ||
+                d.text ||
+                (typeof d === "string" ? d : "");
+
+            if (html) {
+                target.innerHTML = html;
+            } else {
+                target.innerText = "AI 解析暫時無法提供，先對照課本文字自己想一想。";
+            }
+        })
+        .catch(err => {
+            console.log("quiz_ai_explain 呼叫失敗：", err);
+            if (target) {
+                target.innerText = "AI 解析目前連線不穩定，稍後可以再試一次。";
+            }
+        });
     }
 
 // ---- 修正：確保「上一題／下一題」按鈕一定能正確觸發 ----
