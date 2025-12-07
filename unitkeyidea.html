@@ -1243,7 +1243,7 @@
 
         quizState.hasAnswered = true;
         const btnNext = document.getElementById("quiz-next");
-        if (btnNext && quizState.currentIndex < quizState.questions.length - 1) {
+        if (btnNext) {
             btnNext.disabled = false;
             btnNext.classList.remove("opacity-40");
         }
