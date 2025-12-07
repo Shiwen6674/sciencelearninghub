@@ -55,18 +55,17 @@
         .vocab-item { transition: transform 0.2s; }
         .vocab-item:hover { transform: translateY(-2px); }
 
-        /* Mermaid 圖表樣式 (自動適應框框) */
+        /* Mermaid 圖表樣式：改成可橫向捲動，保留較大寬度避免太小 */
         #mermaid-chart {
             width: 100%;
-            display: flex;
-            justify-content: center;
-            overflow: hidden; /* 隱藏超出部分 */
+            display: block;
+            overflow-x: auto;   /* 重要：讓大圖橫向捲動，不被硬壓縮 */
+            overflow-y: hidden;
             padding: 10px 0;
-            pointer-events: none; /* 讓點擊穿透 */
+            pointer-events: auto; /* 保留點擊能力（搭配上層 click-mask） */
         }
         #mermaid-chart .mermaid svg {
-            width: 100% !important;      
-            max-width: 100% !important;  
+            min-width: 900px;  /* 給一個較大的最小寬度，避免字太小 */
             height: auto !important;
             font-family: "Microsoft JhengHei", sans-serif !important; 
         }
@@ -89,8 +88,14 @@
         }
         .no-pdf { display: none !important; }
         
-        .click-mask { position: absolute; inset: 0; z-index: 50; background-color: transparent; cursor: pointer; pointer-events: none; }
-
+        .click-mask { 
+            position: absolute; 
+            inset: 0; 
+            z-index: 50; 
+            background-color: transparent; 
+            cursor: pointer; 
+            pointer-events: auto;  /* 修正：讓點擊真的被這層接到，才能放大圖 */
+        }
 
         /* 科學動動腦、單元小測驗互動按鈕 */
         .myth-option-btn { transition: all 0.18s ease; }
@@ -108,7 +113,7 @@
                 <span class="font-bold hidden md:block" data-i18n="back_home">返回學習中心</span>
             </a>
             <a href="sciencebilingual.html" class="group flex items-center gap-2 text-slate-500 hover:text-purple-600 transition decoration-0">
-                <div class="w-10 h-10 bg白 rounded-full flex items-center justify-center shadow group-hover:shadow-md transition">
+                <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow group-hover:shadow-md transition">
                     <i class="fa-solid fa-book-open-reader"></i>
                 </div>
                 <span class="font-bold hidden md:block" data-i18n="btn_bilingual">科學雙語閱讀</span>
@@ -121,7 +126,7 @@
         </div>
         <div class="flex items-center gap-3">
             <a href="aievaluation.html" class="group flex items-center gap-2 text-slate-500 hover:text-green-600 transition decoration-0 mr-2">
-                <div class="w-10 h-10 bg白 rounded-full flex items-center justify-center shadow group-hover:shadow-md transition border border-slate-100">
+                <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow group-hover:shadow-md transition border border-slate-100">
                     <i class="fa-solid fa-clipboard-check"></i>
                 </div>
                 <span class="font-bold hidden lg:block" data-i18n="btn_eval">AI 評分診斷</span>
@@ -211,7 +216,7 @@
                     
                     <div class="bg-slate-50 rounded-xl p-4 md:p-6 border border-slate-100 overflow-hidden w-full relative h-auto" id="chart-container">
                         <div class="click-mask" onclick="openModal()"></div>
-                        <div id="mermaid-chart" class="w-full flex justify-center"></div>
+                        <div id="mermaid-chart" class="w-full"></div>
                     </div>
                 </div>
                 
@@ -688,7 +693,7 @@ let quizRadarChart = null; // 雷達圖實例
             }
 
             if (mapData) {
-                chartDiv.innerHTML = `<div class="mermaid" style="width: 100%; display: flex; justify-content: center;">${mapData}</div>`;
+                chartDiv.innerHTML = `<div class="mermaid">${mapData}</div>`;
                 
                 try {
                     mermaid.init(undefined, document.querySelectorAll('.mermaid')).then(() => {
@@ -698,9 +703,7 @@ let quizRadarChart = null; // 雷達圖實例
                             svg.removeAttribute('width');
                             svg.removeAttribute('height');
                             
-                            svg.style.width = "100%";
                             svg.style.height = "auto";
-                            svg.style.maxWidth = "none";
                             svg.style.display = "block";
                             svg.style.margin = "0 auto";
                             svg.style.fontFamily = '"Microsoft JhengHei", sans-serif';
@@ -1320,100 +1323,123 @@ quizState.answers      = [];  // 清空作答紀錄
     }
 
     function renderQuizResult() {
-        const total = quizState.questions.length;
-        if (!total) return;
+        const totalQ = quizState.questions.length;
+        if (!totalQ) return;
 
-        const resultEl       = document.getElementById("quiz-result");
+        const resultBox      = document.getElementById("quiz-result");
+        const scoreNumberEl  = document.getElementById("quiz-score-number");
+        const scoreLabelEl   = document.getElementById("quiz-score-label");
         const resultTextEl   = document.getElementById("quiz-result-text");
-        const resultDetailEl = document.getElementById("quiz-result-detail");
-        const radarCanvas    = document.getElementById("quiz-radar");
+        const detailEl       = document.getElementById("quiz-result-detail");
+        const canvas         = document.getElementById("quiz-radar");
+        const quizBody       = document.getElementById("quiz-body");
+        const quizProgress   = document.getElementById("quiz-progress");
+        const btnMain        = document.getElementById("quiz-main-btn");
 
-        if (!resultEl || !resultTextEl || !radarCanvas) return;
+        if (!resultBox || !scoreNumberEl || !scoreLabelEl || !resultTextEl || !detailEl || !canvas) return;
 
-        const correctCount = quizState.answers.filter(a => a && a.correct).length;
-        const score = Math.round((correctCount / total) * 100);
+        // 按「看結果」後，隱藏題目區與按鈕，改由結果區佔據原本位置
+        if (quizBody) quizBody.classList.add("hidden");
+        if (quizProgress) quizProgress.classList.add("hidden");
+        if (btnMain) btnMain.classList.add("hidden");
 
-        resultTextEl.innerHTML =
-            `你這次的小測驗總分是 <span class="font-bold text-emerald-700 text-lg">${score} 分</span>（共 ${total} 題，答對 ${correctCount} 題）。`;
+        // 統計總得分
+        const answered = quizState.answers.filter(a => a);
+        const correctCount = answered.filter(a => a.correct).length;
+        const score = Math.round((correctCount / totalQ) * 100);
 
-        const conceptMap = {};
+        // 顯示容器
+        resultBox.classList.remove("hidden");
+
+        // 分數與等級文字
+        scoreNumberEl.innerText = `${score} 分`;
+
+        let levelText = "";
+        if (score >= 90) {
+            levelText = "概念非常扎實，可以挑戰進階題目。";
+        } else if (score >= 75) {
+            levelText = "理解不錯，再檢查看看錯的題目就更完整了。";
+        } else if (score >= 60) {
+            levelText = "有基礎概念，建議回頭複習幾個容易混淆的地方。";
+        } else {
+            levelText = "目前對這個單元還不熟悉，建議重新看一次重點整理。";
+        }
+        scoreLabelEl.innerText = levelText;
+
+        resultTextEl.innerText = `你答對 ${correctCount} 題／共 ${totalQ} 題。`;
+
+        // 依概念彙總答對率
+        const conceptStats = {};
         quizState.questions.forEach((q, idx) => {
-            const key = q.concept || `第 ${idx + 1} 題`;
-            if (!conceptMap[key]) conceptMap[key] = { total: 0, correct: 0 };
-            conceptMap[key].total += 1;
-            if (quizState.answers[idx] && quizState.answers[idx].correct) {
-                conceptMap[key].correct += 1;
+            const concept = q.concept || q.conceptName || q.topic || `第 ${idx + 1} 題`;
+            if (!conceptStats[concept]) {
+                conceptStats[concept] = { total: 0, correct: 0 };
+            }
+            conceptStats[concept].total += 1;
+            const ans = quizState.answers[idx];
+            if (ans && ans.correct) {
+                conceptStats[concept].correct += 1;
             }
         });
 
-        const labels = Object.keys(conceptMap);
-        const data = labels.map(label => {
-            const item = conceptMap[label];
-            return item.total ? Math.round((item.correct / item.total) * 100) : 0;
+        const concepts = Object.keys(conceptStats);
+        const conceptScores = concepts.map(c => {
+            const s = conceptStats[c];
+            return Math.round((s.correct / s.total) * 100);
         });
 
-        if (typeof Chart !== "undefined") {
-            const ctx = radarCanvas.getContext("2d");
-            if (quizRadarChart) {
-                quizRadarChart.destroy();
-            }
-            quizRadarChart = new Chart(ctx, {
-                type: "radar",
-                data: {
-                    labels,
-                    datasets: [{
-                        label: "各概念掌握度（％）",
-                        data,
-                        fill: true,
-                        borderWidth: 2,
-                        pointRadius: 3
-                    }]
+        // 找出強項與弱項概念
+        const pairs = concepts.map((c, i) => ({ concept: c, score: conceptScores[i] }));
+        const strong = pairs.filter(p => p.score >= 80).map(p => p.concept);
+        const weak   = pairs.filter(p => p.score <= 50).map(p => p.concept);
+
+        let detailText = "";
+        if (strong.length) {
+            detailText += `你對「${strong.join("、")}」等概念理解較清楚，可以嘗試應用到更複雜的情境中。\n`;
+        }
+        if (weak.length) {
+            detailText += `在「${weak.join("、")}」等概念上還比較不熟悉，建議回去對照課本文字與單元重點再複習一次。\n`;
+        }
+        if (!detailText) {
+            detailText = "各概念的表現相近，可以再檢查看看錯題解析，強化整體理解。";
+        }
+        detailEl.innerText = detailText;
+
+        // 畫橫向長條圖（用同一個 quizRadarChart 變數，不改名稱）
+        const ctx = canvas.getContext("2d");
+        if (quizRadarChart) {
+            quizRadarChart.destroy();
+        }
+        quizRadarChart = new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels: concepts,
+                datasets: [{
+                    label: "答對率 (％)",
+                    data: conceptScores
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: "y",
+                scales: {
+                    x: {
+                        min: 0,
+                        max: 100,
+                        ticks: { stepSize: 20 }
+                    }
                 },
-                options: {
-                    responsive: true,
-                    scales: {
-                        r: {
-                            suggestedMin: 0,
-                            suggestedMax: 100,
-                            ticks: { stepSize: 20 }
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => `答對率：${ctx.parsed.x}%`
                         }
-                    },
-                    plugins: {
-                        legend: { display: false }
                     }
                 }
-            });
-        }
-
-        if (resultDetailEl) {
-            const strongConcepts = labels.filter(label => {
-                const item = conceptMap[label];
-                return item.correct / item.total >= 0.75;
-            });
-            const weakConcepts = labels.filter(label => {
-                const item = conceptMap[label];
-                return item.correct / item.total <= 0.5;
-            });
-
-            let html = "";
-            if (strongConcepts.length) {
-                html += `<div class="mb-2"><span class="font-semibold text-emerald-700">你掌握得較好的概念：</span>${strongConcepts.join("、")}</div>`;
             }
-            if (weakConcepts.length) {
-                html += `<div class="mb-2"><span class="font-semibold text-orange-700">需要再加強的概念：</span>${weakConcepts.join("、")}</div>`;
-            }
-            if (!html) {
-                html = "本次作答相當平均，建議回到課文再複習一次各段落的重點。";
-            }
-            resultDetailEl.innerHTML = html;
-        }
-
-        resultEl.classList.remove("hidden");
-
-        const quizPanel = document.getElementById("quiz-panel");
-        if (quizPanel) {
-            quizPanel.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
+        });
     }
 
            
