@@ -1533,23 +1533,22 @@ function renderQuizResult() {
             responsive: true,
             maintainAspectRatio: false,
             indexAxis: "y",
-            scales: {
+                        scales: {
                 x: {
                     min: 0,
                     max: 100,
-                    ticks: { stepSize: 20 }
-                }
-            },
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: (ctx) => `答對率：${ctx.parsed.x}%`
+                    ticks: {
+                        stepSize: 100,   // 只出現 0 與 100 兩個刻度
+                        callback: (value) => {
+                            const v = Number(value);
+                            if (v === 0)   return "答錯";
+                            if (v === 100) return "答對";
+                            return "";
+                        }
                     }
                 }
-            }
-        }
-    });
+            },
+
 
     // ★ 新增：整體結果交給後端 AI 產生診斷文字
     try {
