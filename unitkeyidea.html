@@ -1347,6 +1347,10 @@ quizState.answers      = [];  // 清空作答紀錄
 function requestQuizAISummary(score, concepts, conceptScores, correctCount, totalQ) {
     const detailEl     = document.getElementById("quiz-result-detail");
     const scoreLabelEl = document.getElementById("quiz-score-label");
+ // ★ 完整取代原本的 requestQuizAISummary 函式
+function requestQuizAISummary(score, concepts, conceptScores, correctCount, totalQ) {
+    const detailEl     = document.getElementById("quiz-result-detail");
+    const scoreLabelEl = document.getElementById("quiz-score-label");
     if (!detailEl || !scoreLabelEl) return;
 
     const currentUser = JSON.parse(
@@ -1392,7 +1396,7 @@ function requestQuizAISummary(score, concepts, conceptScores, correctCount, tota
         contextVocab: contextVocab
     };
 
-    // ★ 先放預設文字：只顯示在右側黑字區塊
+    // 右側文字先顯示「分析中」
     detailEl.innerText = "AI 正在分析你的作答結果…";
     scoreLabelEl.innerText = "";
 
@@ -1400,10 +1404,29 @@ function requestQuizAISummary(score, concepts, conceptScores, correctCount, tota
         method: "POST",
         body: JSON.stringify(payload)
     })
-    .then(res => res.json())
-    .then(json => {
+    .then(res => res.text())
+    .then(text => {
+        if (!text) {
+            // 真的沒有任何內容，就給一段安全的預設說明
+            detailEl.innerText = "從左側的長條圖可以看出各概念的答對率，分數較低的概念可以回到課本文字與重點整理區再加強。";
+            scoreLabelEl.innerText = "";
+            return;
+        }
+
+        let json = null;
+        try {
+            json = JSON.parse(text);
+        } catch (e) {
+            // 如果後端不是回 JSON，而是直接回一小段文字，就直接顯示
+            detailEl.innerHTML = text;
+            scoreLabelEl.innerText = "";
+            return;
+        }
+
         if (!json) {
-            throw new Error("空的回應");
+            detailEl.innerText = "從左側的長條圖可以看出各概念的答對率，分數較低的概念可以回到課本文字與重點整理區再加強。";
+            scoreLabelEl.innerText = "";
+            return;
         }
 
         // ★ 放寬格式：可以是 {status,data}、也可以是 {summary,detail} 或直接是一個字串
@@ -1417,7 +1440,9 @@ function requestQuizAISummary(score, concepts, conceptScores, correctCount, tota
         }
 
         if (!d) {
-            throw new Error("找不到 AI 診斷內容");
+            detailEl.innerText = "從左側的長條圖可以看出各概念的答對率，分數較低的概念可以回到課本文字與重點整理區再加強。";
+            scoreLabelEl.innerText = "";
+            return;
         }
 
         let summaryText = "";
@@ -1441,20 +1466,20 @@ function requestQuizAISummary(score, concepts, conceptScores, correctCount, tota
         if (combined) {
             detailEl.innerHTML = combined;
         } else {
-            // 沒有文字就用原來的預設說明
             detailEl.innerText = "從左側的長條圖可以看出各概念的答對率，分數較低的概念可以回到課本文字與重點整理區再加強。";
         }
 
-        // 左邊綠字區不顯示診斷，只留空
+        // 左邊綠字區暫時不顯示額外診斷
         scoreLabelEl.innerText = "";
     })
     .catch(err => {
         console.log("quiz_ai_summary 呼叫失敗：", err);
         scoreLabelEl.innerText = "";
-        // 保留你原本看到的這句提示文字
+        // 只有網路或連線真的失敗時才會進來這裡
         detailEl.innerText = "AI 分析暫時無法提供，可以先參考圖表與逐題解析，自己歸納需要加強的地方。";
     });
 }
+
 
 
 
