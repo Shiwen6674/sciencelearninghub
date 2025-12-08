@@ -197,11 +197,7 @@
                         <i class="fa-solid fa-file-lines mr-2"></i> 
                         <span data-i18n="btn_txt">下載 TXT</span>
                     </button>
-                    <button onclick="downloadPDF()" class="bg-red-50 hover:bg-red-100 text-red-600 px-6 py-3 rounded-xl font-bold text-sm transition cursor-pointer border border-red-100 shadow-sm flex items-center active:scale-95">
-                        <i class="fa-solid fa-file-pdf mr-2"></i> 
-                        <span data-i18n="btn_pdf">下載 PDF</span>
-                    </button>
-                </div>
+                   </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start"> 
@@ -813,50 +809,107 @@ let quizRadarChart = null; // 雷達圖實例
         setTimeout(syncVocabHeight, 100);
     }
 
-    function downloadTXT() {
-        if(!currentResultData) { 
-            alert("請先生成內容後再下載！"); 
-            return; 
-        }
-        let content = `========================================\n  單元重點整理：${currentResultData.raw_content ? currentResultData.raw_content.unitName : filters.unitName}\n========================================\n\n`;
-        const summaryEl = document.getElementById("summary-text");
-        let summary = summaryEl ? summaryEl.innerText.replace(/\n\s*\n/g, '\n\n').trim() : "";
-        content += `【 核心概念摘要 】\n----------------------------------------\n${summary}\n\n\n`;
-        content += `【 科學詞彙與定義 】\n----------------------------------------\n`;
-        
-        // 唯一修改：改用 summary.vocab_list 當主要來源，對齊後端 aiResult 結構
-        let vList = currentResultData.keywords || (currentResultData.summary ? (currentResultData.summary.keywords || currentResultData.summary.vocab_list) : []) || [];
-        if (Array.isArray(vList)) {
-            vList.forEach((v, i) => {
-                const term = v.term || v;
-                const def = v.def || "";
-                content += `${i+1}. ${term}\n   說明：${def}\n\n`;
-            });
-        }
-        
-        content += `\n【 科學動動腦 】\n----------------------------------------\n`;
-        let mList = currentResultData.myths || (currentResultData.summary ? currentResultData.summary.myths : []) || [];
-        if (Array.isArray(mList)) {
-            mList.forEach((m, i) => {
-                content += `● 題目 ${i+1}：${(m.myth || "").replace(/^迷思[:：]\s*/,'')}\n   正確觀念：${m.correct || ""}\n\n`;
-            });
-        }
-
-        try {
-            const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = `${filters.unitName || 'unit'}_重點整理.txt`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-        } catch (e) {
-            console.error(e);
-            alert("TXT 下載失敗，請再試一次或換一個瀏覽器。");
-        }
+function downloadTXT() {
+    if (!currentResultData) { 
+        alert("請先生成內容後再下載！"); 
+        return; 
     }
+
+    // ＝＝＝＝＝＝＝ 單元來源資訊（學習階段、版本、年級、學期、單元名稱）＝＝＝＝＝＝＝
+    const stage   = filters.stage   || (currentResultData && currentResultData.stage)   || "";
+    const publisher = filters.publisher || (currentResultData && currentResultData.publisher) || "";
+    const grade   = filters.grade   || (currentResultData && currentResultData.grade)   || "";
+    const semRaw  = filters.semester || (currentResultData && currentResultData.semester) || "";
+    const unitName = (currentResultData.raw_content ? currentResultData.raw_content.unitName : filters.unitName) || "";
+
+    let semesterLabel = semRaw;
+    if (semRaw === "上") semesterLabel = "上學期";
+    else if (semRaw === "下") semesterLabel = "下學期";
+
+    // ＝＝＝＝＝＝＝ TXT 內容開始組裝 ＝＝＝＝＝＝＝
+    let content = "";
+
+    // 區塊 0：基本資訊（讓學生一眼看出這份筆記是哪個單元）
+    content += "【單元來源資訊】\n";
+    content += "----------------------------------------\n";
+    content += `學習階段：${stage || "-"}\n`;
+    content += `版本：${publisher || "-"}\n`;
+    content += `年級：${grade ? grade + "年級" : "-"}\n`;
+    content += `學期：${semesterLabel || "-"}\n`;
+    content += `單元名稱：${unitName || "-"}\n\n`;
+
+    // 區塊標題：統一格式，增加可視性
+    content += "========================================\n";
+    content += "  單元重點整理\n";
+    content += "========================================\n\n";
+
+    // 區塊一：核心概念摘要
+    const summaryEl = document.getElementById("summary-text");
+    let summary = summaryEl ? summaryEl.innerText.replace(/\n\s*\n/g, "\n\n").trim() : "";
+
+    content += "【一、核心概念摘要】\n";
+    content += "----------------------------------------\n";
+    content += (summary || "本單元的核心概念摘要尚未提供。") + "\n\n\n";
+
+    // 區塊二：科學詞彙與定義
+    content += "【二、科學詞彙與定義】\n";
+    content += "----------------------------------------\n";
+
+    // 這裡沿用你原本的資料來源邏輯
+    let vList = currentResultData.keywords 
+        || (currentResultData.summary ? (currentResultData.summary.keywords || currentResultData.summary.vocab_list) : []) 
+        || [];
+
+    if (Array.isArray(vList) && vList.length > 0) {
+        vList.forEach((v, i) => {
+            const term = v.term || v;
+            const def  = v.def || "";
+            content += `${i + 1}. ${term}\n`;
+            content += `   說明：${def || "（尚未提供解釋）"}\n\n`;
+        });
+    } else {
+        content += "目前尚未整理出本單元的科學詞彙與定義。\n\n";
+    }
+
+    // 區塊三：科學動動腦
+    content += "\n【三、科學動動腦】\n";
+    content += "----------------------------------------\n";
+
+    let mList = currentResultData.myths 
+        || (currentResultData.summary ? currentResultData.summary.myths : []) 
+        || [];
+
+    if (Array.isArray(mList) && mList.length > 0) {
+        mList.forEach((m, i) => {
+            const stem = (m.question || m.myth || "")
+                .replace(/^迷思[:：]\s*/, "")
+                .replace(/^常見想法[:：]\s*/, "");
+            const ans  = m.correct || m.explanation || "";
+
+            content += `● 題目 ${i + 1}：${stem}\n`;
+            content += `   正確觀念：${ans || "（尚未提供說明）"}\n\n`;
+        });
+    } else {
+        content += "本單元目前尚未設定「科學動動腦」題目。\n";
+    }
+
+    // ＝＝＝＝＝＝＝ 下載 TXT 檔案 ＝＝＝＝＝＝＝
+    try {
+        const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+        const url  = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${unitName || filters.unitName || "unit"}_重點整理.txt`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    } catch (e) {
+        console.error(e);
+        alert("TXT 下載失敗，請再試一次或換一個瀏覽器。");
+    }
+}
+
 
     function downloadPDF() {
         if (!currentResultData) { 
