@@ -1341,10 +1341,7 @@ quizState.answers      = [];  // 清空作答紀錄
                 btn.classList.add("border-green-500","bg-green-50","text-green-700");
             }
             quizFeedbackEl.className = "mt-4 text-sm rounded-xl px-3 py-2 bg-emerald-50 border border-emerald-200 text-emerald-800";
-            quizFeedbackEl.innerHTML = `
-                <div class="font-semibold mb-1">太棒了，這題你答對了！</div>
-                <div>${q.explanation || "你根據課本文字做出正確判斷，繼續保持這樣的思考方式喔。"} </div>
-                <div id="quiz-ai-explanation" class="mt-2 text-xs text-slate-600">AI 解析生成中...</div>
+            <div id="quiz-ai-explanation" class="mt-2 text-xs text-slate-600">AI 解析生成中...</div>
             `;
         } else {
             const chosenBtn = buttons[selectedIndex];
@@ -1356,10 +1353,7 @@ quizState.answers      = [];  // 清空作答紀錄
             }
             quizFeedbackEl.className = "mt-4 text-sm rounded-xl px-3 py-2 bg-orange-50 border border-orange-200 text-orange-800";
             // ★ 移除「沒關係，這題很多同學也會答錯。」這句
-            quizFeedbackEl.innerHTML = `
-                <div class="font-semibold mb-1">這一題可以再想一想。</div>
-                <div>${q.explanation || "可以對照課本中的相關重點，重新思考題目在考什麼。"} </div>
-                <div id="quiz-ai-explanation" class="mt-2 text-xs text-slate-600">AI 解析生成中...</div>
+             <div id="quiz-ai-explanation" class="mt-2 text-xs text-slate-600">AI 解析生成中...</div>
             `;
         }
 
@@ -1385,13 +1379,6 @@ quizState.answers      = [];  // 清空作答紀錄
             submitQuizLog(q, selectedIndex, correctIndex, isCorrect);
         } catch (e) {
             console.log("submitQuizLog 略過或失敗：", e);
-        }
-
-        // ★ 新增：呼叫後端 AI，根據學生作答產生「逐題解析」
-        try {
-            requestQuizAIExplanation(q, selectedIndex, isCorrect);
-        } catch (e) {
-            console.log("requestQuizAIExplanation 呼叫失敗（前端層級）：", e);
         }
     }
 // ★ 新增：呼叫後端 AI，產生「整體測驗診斷」文字回饋
