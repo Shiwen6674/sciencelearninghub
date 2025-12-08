@@ -1328,6 +1328,7 @@ quizState.answers      = [];  // 清空作答紀錄
     }
 // ★ 新增：呼叫後端 AI，產生「整體測驗診斷」文字回饋
 // ★ 完整取代原本的 requestQuizAISummary 函式
+// ★ 完整取代原本的 requestQuizAISummary 函式
 function requestQuizAISummary(score, concepts, conceptScores, correctCount, totalQ) {
     const detailEl     = document.getElementById("quiz-result-detail");
     const scoreLabelEl = document.getElementById("quiz-score-label");
@@ -1376,9 +1377,9 @@ function requestQuizAISummary(score, concepts, conceptScores, correctCount, tota
         contextVocab: contextVocab
     };
 
-    // 先放預設文字
-    detailEl.innerText = "AI 分析中…";
-    scoreLabelEl.innerText = "AI 正在分析你的作答結果…";
+    // ★ 先放預設文字：只顯示在右側黑字區塊
+    detailEl.innerText = "AI 正在分析你的作答結果…";
+    scoreLabelEl.innerText = "";
 
     fetch(GAS_API_URL, {
         method: "POST",
@@ -1389,8 +1390,9 @@ function requestQuizAISummary(score, concepts, conceptScores, correctCount, tota
     })
     .then(json => {
         if (!json || json.status !== "success" || typeof json.data === "undefined") {
-            scoreLabelEl.innerText = "AI 分析暫時無法提供。";
-            detailEl.innerText = "可以先參考圖表與逐題解析，自己歸納需要加強的地方。";
+            // ★ 失敗時也只用一段文字，顯示在黑字區
+            scoreLabelEl.innerText = "";
+            detailEl.innerText = "AI 分析暫時無法提供，可以先參考圖表與逐題解析，自己歸納需要加強的地方。";
             return;
         }
 
@@ -1398,38 +1400,45 @@ function requestQuizAISummary(score, concepts, conceptScores, correctCount, tota
         let summaryText = "";
         let detailText  = "";
 
-        // ★ ① data 是字串的情況：直接當成「上方簡短診斷」
+        // ① data 是字串：當成簡短診斷
         if (typeof d === "string") {
             summaryText = d;
         }
-        // ★ ② data 是物件的情況：照原本的欄位取值
+        // ② data 是物件：照原本欄位取值
         else if (d && typeof d === "object") {
             summaryText = d.summary || d.summary_html || d.text || d.explanation || "";
             detailText  = d.detail  || d.detail_html  || "";
         }
 
-        // 上方小字說明
+        // ★ 將「綠字」和「黑字」整合成單一段落，放在黑字區塊
+        let combined = "";
         if (summaryText) {
-            scoreLabelEl.innerHTML = summaryText;
-        } else {
-            // 若後端沒給，就至少保留一行說明
-            scoreLabelEl.innerText = "這是你本次單元小測驗的整體診斷結果。";
+            combined = summaryText;          // 原本綠字內容
+        }
+        if (detailText) {
+            combined = combined
+                ? (combined + "<br><br>" + detailText)   // 綠字 + 黑字
+                : detailText;                            // 只有黑字
         }
 
-        // 右側長文說明
-        if (detailText) {
-            detailEl.innerHTML = detailText;
+        if (combined) {
+            detailEl.innerHTML = combined;
         } else {
-            // 沒給 detail 就提供一個基本的 fallback，而不是清成空白
+            // 如果後端沒有給任何文字，就用原本黑字的預設內容
             detailEl.innerText = "從左側的長條圖可以看出各概念的答對率，分數較低的概念可以回到課本文字與重點整理區再加強。";
         }
+
+        // ★ 左邊綠字區不再顯示診斷內容
+        scoreLabelEl.innerText = "";
     })
     .catch(err => {
         console.log("quiz_ai_summary 呼叫失敗：", err);
-        scoreLabelEl.innerText = "AI 分析目前連線不穩定，稍後可以再試一次。";
-        detailEl.innerText = "可以先參考圖表與逐題解析，自己歸納需要加強的地方。";
+        // ★ 失敗時也只有右側一段說明
+        scoreLabelEl.innerText = "";
+        detailEl.innerText = "AI 分析目前連線不穩定，可以先參考圖表與逐題解析，自己歸納需要加強的地方。";
     });
 }
+
 
 
     function handleQuizMainButton() {
