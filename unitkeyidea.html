@@ -1314,76 +1314,87 @@ quizState.answers      = [];  // 清空作答紀錄
     }
 
     function handleQuizAnswer(selectedIndex) {
-        if (quizState.hasAnswered) return;
-        const q = quizState.questions[quizState.currentIndex];
-        if (!q) return;
+    if (quizState.hasAnswered) return;
+    const q = quizState.questions[quizState.currentIndex];
+    if (!q) return;
 
-        const quizOptionsEl  = document.getElementById("quiz-options");
-        const quizFeedbackEl = document.getElementById("quiz-feedback");
-        if (!quizOptionsEl || !quizFeedbackEl) return;
+    const quizOptionsEl  = document.getElementById("quiz-options");
+    const quizFeedbackEl = document.getElementById("quiz-feedback");
+    if (!quizOptionsEl || !quizFeedbackEl) return;
 
-        const buttons = Array.from(quizOptionsEl.querySelectorAll("button.quiz-option-btn"));
-        const correctIndex = typeof q.correctIndex === "number" ? q.correctIndex : -1;
+    const buttons = Array.from(quizOptionsEl.querySelectorAll("button.quiz-option-btn"));
+    const correctIndex = typeof q.correctIndex === "number" ? q.correctIndex : -1;
 
-        buttons.forEach((btn) => {
-            btn.disabled = true;
-            btn.classList.remove(
-                "border-green-500","bg-green-50","text-green-700",
-                "border-red-500","bg-red-50","text-red-700"
-            );
-        });
+    buttons.forEach((btn) => {
+        btn.disabled = true;
+        btn.classList.remove(
+            "border-green-500","bg-green-50","text-green-700",
+            "border-red-500","bg-red-50","text-red-700"
+        );
+    });
 
-        let isCorrect = (selectedIndex === correctIndex && correctIndex >= 0);
- quizState.answers[quizState.currentIndex] = {
-            concept: q.concept || q.conceptName || q.topic || `第 ${quizState.currentIndex + 1} 題`,
-            isCorrect: isCorrect
-        };
-        if (isCorrect) {
-            const btn = buttons[selectedIndex];
-            if (btn) {
-                btn.classList.add("border-green-500","bg-green-50","text-green-700");
-            }
-            quizFeedbackEl.className = "mt-4 text-sm rounded-xl px-3 py-2 bg-emerald-50 border border-emerald-200 text-emerald-800";
+    let isCorrect = (selectedIndex === correctIndex && correctIndex >= 0);
+
+    // 保留你原本先寫入 isCorrect / concept 的記錄
+    quizState.answers[quizState.currentIndex] = {
+        concept: q.concept || q.conceptName || q.topic || `第 ${quizState.currentIndex + 1} 題`,
+        isCorrect: isCorrect
+    };
+
+    if (isCorrect) {
+        const btn = buttons[selectedIndex];
+        if (btn) {
+            btn.classList.add("border-green-500","bg-green-50","text-green-700");
+        }
+        quizFeedbackEl.className = "mt-4 text-sm rounded-xl px-3 py-2 bg-emerald-50 border border-emerald-200 text-emerald-800";
+        quizFeedbackEl.innerHTML = `
+            <div class="font-semibold text-emerald-700 mb-1">恭喜答對了！你真棒！</div>
+            <div class="text-slate-700 text-sm mb-1">${q.explanation || ""}</div>
             <div id="quiz-ai-explanation" class="mt-2 text-xs text-slate-600">AI 解析生成中...</div>
-            `;
-        } else {
-            const chosenBtn = buttons[selectedIndex];
-            if (chosenBtn) {
-                chosenBtn.classList.add("border-red-500","bg-red-50","text-red-700");
-            }
-            if (correctIndex >= 0 && buttons[correctIndex]) {
-                buttons[correctIndex].classList.add("border-green-500","bg-green-50","text-green-700");
-            }
-            quizFeedbackEl.className = "mt-4 text-sm rounded-xl px-3 py-2 bg-orange-50 border border-orange-200 text-orange-800";
-            // ★ 移除「沒關係，這題很多同學也會答錯。」這句
-             <div id="quiz-ai-explanation" class="mt-2 text-xs text-slate-600">AI 解析生成中...</div>
-            `;
+        `;
+    } else {
+        const chosenBtn = buttons[selectedIndex];
+        if (chosenBtn) {
+            chosenBtn.classList.add("border-red-500","bg-red-50","text-red-700");
         }
-
-        // ★ 刪除原本「若想再確認，可以回去看本單元課本的相關段落與活動喔。」的附加文字
-
-        quizFeedbackEl.classList.remove("hidden");
-
-        quizState.hasAnswered = true;
-        quizState.answers[quizState.currentIndex] = {
-            correct: isCorrect,
-            concept: q.concept
-        };
-
-        const btnMain = document.getElementById("quiz-main-btn");
-        if (btnMain) {
-            const isLast = (quizState.currentIndex === quizState.questions.length - 1);
-            btnMain.disabled = false;
-            btnMain.classList.remove("opacity-40","cursor-not-allowed");
-            btnMain.innerText = isLast ? "看結果" : "下一題";
+        if (correctIndex >= 0 && buttons[correctIndex]) {
+            buttons[correctIndex].classList.add("border-green-500","bg-green-50","text-green-700");
         }
-
-        try {
-            submitQuizLog(q, selectedIndex, correctIndex, isCorrect);
-        } catch (e) {
-            console.log("submitQuizLog 略過或失敗：", e);
-        }
+        quizFeedbackEl.className = "mt-4 text-sm rounded-xl px-3 py-2 bg-orange-50 border border-orange-200 text-orange-800";
+        quizFeedbackEl.innerHTML = `
+            <div class="font-semibold text-orange-600 mb-1">可惜答錯了，再試試！</div>
+            <div class="text-slate-700 text-sm mb-1">${q.explanation || ""}</div>
+            <div id="quiz-ai-explanation" class="mt-2 text-xs text-slate-600">AI 解析生成中...</div>
+        `;
     }
+
+    quizFeedbackEl.classList.remove("hidden");
+
+    quizState.hasAnswered = true;
+    // 保留你原來第二次寫入的結構（correct + concept）
+    quizState.answers[quizState.currentIndex] = {
+        correct: isCorrect,
+        concept: q.concept
+    };
+
+    const btnMain = document.getElementById("quiz-main-btn");
+    if (btnMain) {
+        const isLast = (quizState.currentIndex === quizState.questions.length - 1);
+        btnMain.disabled = false;
+        btnMain.classList.remove("opacity-40","cursor-not-allowed");
+        btnMain.innerText = isLast ? "看結果" : "下一題";
+    }
+
+    try {
+        submitQuizLog(q, selectedIndex, correctIndex, isCorrect);
+    } catch (e) {
+        console.log("submitQuizLog 略過或失敗：", e);
+    }
+
+    // 之後如果你要啟用逐題 AI 解析，可以在這裡再自己加上一行：
+    // try { requestQuizAIExplanation(q, selectedIndex, isCorrect); } catch (e) { ... }
+}
+
 // ★ 新增：呼叫後端 AI，產生「整體測驗診斷」文字回饋
 // ★ 完整取代原本的 requestQuizAISummary 函式
 // ★ 完整取代原本的 requestQuizAISummary 函式
