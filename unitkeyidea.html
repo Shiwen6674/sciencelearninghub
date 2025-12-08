@@ -1347,10 +1347,6 @@ quizState.answers      = [];  // 清空作答紀錄
 function requestQuizAISummary(score, concepts, conceptScores, correctCount, totalQ) {
     const detailEl     = document.getElementById("quiz-result-detail");
     const scoreLabelEl = document.getElementById("quiz-score-label");
- // ★ 完整取代原本的 requestQuizAISummary 函式
-function requestQuizAISummary(score, concepts, conceptScores, correctCount, totalQ) {
-    const detailEl     = document.getElementById("quiz-result-detail");
-    const scoreLabelEl = document.getElementById("quiz-score-label");
     if (!detailEl || !scoreLabelEl) return;
 
     const currentUser = JSON.parse(
@@ -1404,10 +1400,10 @@ function requestQuizAISummary(score, concepts, conceptScores, correctCount, tota
         method: "POST",
         body: JSON.stringify(payload)
     })
-    .then(res => res.text())
+    .then(res => res.text())          // 先拿「純文字」，不直接 json()
     .then(text => {
         if (!text) {
-            // 真的沒有任何內容，就給一段安全的預設說明
+            // 完全沒東西 → 給一段安全預設說明
             detailEl.innerText = "從左側的長條圖可以看出各概念的答對率，分數較低的概念可以回到課本文字與重點整理區再加強。";
             scoreLabelEl.innerText = "";
             return;
@@ -1415,9 +1411,9 @@ function requestQuizAISummary(score, concepts, conceptScores, correctCount, tota
 
         let json = null;
         try {
-            json = JSON.parse(text);
+            json = JSON.parse(text);  // 能轉 JSON 就當 JSON
         } catch (e) {
-            // 如果後端不是回 JSON，而是直接回一小段文字，就直接顯示
+            // 不能轉 JSON → 直接把後端文字顯示出來（通常是你在 Apps Script 裡組好的說明）
             detailEl.innerHTML = text;
             scoreLabelEl.innerText = "";
             return;
@@ -1429,7 +1425,7 @@ function requestQuizAISummary(score, concepts, conceptScores, correctCount, tota
             return;
         }
 
-        // ★ 放寬格式：可以是 {status,data}、也可以是 {summary,detail} 或直接是一個字串
+        // ★ 放寬格式：{status,data} 或 {summary,detail} 或直接是一個字串都吃
         let d = null;
         if (typeof json.data !== "undefined") {
             d = json.data;
@@ -1456,12 +1452,8 @@ function requestQuizAISummary(score, concepts, conceptScores, correctCount, tota
         }
 
         let combined = "";
-        if (summaryText) {
-            combined = summaryText;
-        }
-        if (detailText) {
-            combined = combined ? (combined + "<br><br>" + detailText) : detailText;
-        }
+        if (summaryText) combined = summaryText;
+        if (detailText)  combined = combined ? (combined + "<br><br>" + detailText) : detailText;
 
         if (combined) {
             detailEl.innerHTML = combined;
@@ -1469,18 +1461,16 @@ function requestQuizAISummary(score, concepts, conceptScores, correctCount, tota
             detailEl.innerText = "從左側的長條圖可以看出各概念的答對率，分數較低的概念可以回到課本文字與重點整理區再加強。";
         }
 
-        // 左邊綠字區暫時不顯示額外診斷
+        // 下方綠字不另外補診斷
         scoreLabelEl.innerText = "";
     })
     .catch(err => {
         console.log("quiz_ai_summary 呼叫失敗：", err);
         scoreLabelEl.innerText = "";
-        // 只有網路或連線真的失敗時才會進來這裡
+        // ★ 只有「真的連不上 Apps Script」時才會到這裡
         detailEl.innerText = "AI 分析暫時無法提供，可以先參考圖表與逐題解析，自己歸納需要加強的地方。";
     });
 }
-
-
 
 
     function handleQuizMainButton() {
