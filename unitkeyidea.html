@@ -1350,8 +1350,7 @@ quizState.answers      = [];  // 清空作答紀錄
         quizFeedbackEl.innerHTML = `
             <div class="font-semibold text-emerald-700 mb-1">恭喜答對了！你真棒！</div>
             <div class="text-slate-700 text-sm mb-1">${q.explanation || ""}</div>
-            <div id="quiz-ai-explanation" class="mt-2 text-xs text-slate-600">AI 解析生成中...</div>
-        `;
+                    `;
     } else {
         const chosenBtn = buttons[selectedIndex];
         if (chosenBtn) {
@@ -1364,8 +1363,7 @@ quizState.answers      = [];  // 清空作答紀錄
         quizFeedbackEl.innerHTML = `
             <div class="font-semibold text-orange-600 mb-1">可惜答錯了，再試試！</div>
             <div class="text-slate-700 text-sm mb-1">${q.explanation || ""}</div>
-            <div id="quiz-ai-explanation" class="mt-2 text-xs text-slate-600">AI 解析生成中...</div>
-        `;
+             `;
     }
 
     quizFeedbackEl.classList.remove("hidden");
