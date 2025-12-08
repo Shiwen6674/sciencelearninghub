@@ -1400,57 +1400,59 @@ function requestQuizAISummary(score, concepts, conceptScores, correctCount, tota
         method: "POST",
         body: JSON.stringify(payload)
     })
-    .then(res => {
-        return res.json();
-    })
+    .then(res => res.json())
     .then(json => {
-        if (!json || json.status !== "success" || typeof json.data === "undefined") {
-            // ★ 失敗時也只用一段文字，顯示在黑字區
-            scoreLabelEl.innerText = "";
-            detailEl.innerText = "AI 分析暫時無法提供，可以先參考圖表與逐題解析，自己歸納需要加強的地方。";
-            return;
+        if (!json) {
+            throw new Error("空的回應");
         }
 
-        const d = json.data;
+        // ★ 放寬格式：可以是 {status,data}、也可以是 {summary,detail} 或直接是一個字串
+        let d = null;
+        if (typeof json.data !== "undefined") {
+            d = json.data;
+        } else if (json.summary || json.detail || json.text) {
+            d = json;
+        } else if (typeof json === "string") {
+            d = json;
+        }
+
+        if (!d) {
+            throw new Error("找不到 AI 診斷內容");
+        }
+
         let summaryText = "";
         let detailText  = "";
 
-        // ① data 是字串：當成簡短診斷
         if (typeof d === "string") {
             summaryText = d;
-        }
-        // ② data 是物件：照原本欄位取值
-        else if (d && typeof d === "object") {
+        } else if (d && typeof d === "object") {
             summaryText = d.summary || d.summary_html || d.text || d.explanation || "";
             detailText  = d.detail  || d.detail_html  || "";
         }
 
-        // ★ 將「綠字」和「黑字」整合成單一段落，放在黑字區塊
         let combined = "";
         if (summaryText) {
-            combined = summaryText;          // 原本綠字內容
+            combined = summaryText;
         }
         if (detailText) {
-            combined = combined
-                ? (combined + "<br><br>" + detailText)   // 綠字 + 黑字
-                : detailText;                            // 只有黑字
+            combined = combined ? (combined + "<br><br>" + detailText) : detailText;
         }
 
         if (combined) {
             detailEl.innerHTML = combined;
         } else {
-            // 如果後端沒有給任何文字，就用原本黑字的預設內容
+            // 沒有文字就用原來的預設說明
             detailEl.innerText = "從左側的長條圖可以看出各概念的答對率，分數較低的概念可以回到課本文字與重點整理區再加強。";
         }
 
-        // ★ 左邊綠字區不再顯示診斷內容
+        // 左邊綠字區不顯示診斷，只留空
         scoreLabelEl.innerText = "";
     })
     .catch(err => {
         console.log("quiz_ai_summary 呼叫失敗：", err);
-        // ★ 失敗時也只有右側一段說明
         scoreLabelEl.innerText = "";
-        detailEl.innerText = "AI 分析目前連線不穩定，可以先參考圖表與逐題解析，自己歸納需要加強的地方。";
+        // 保留你原本看到的這句提示文字
+        detailEl.innerText = "AI 分析暫時無法提供，可以先參考圖表與逐題解析，自己歸納需要加強的地方。";
     });
 }
 
@@ -1561,18 +1563,25 @@ function renderQuizResult() {
                             return "";
                         }
                     }
+                },
+                // ★ 這裡是關鍵：不要 autoSkip，就會顯示每一題
+                y: {
+                    ticks: {
+                        autoSkip: false
+                    }
                 }
             }
         }
     });
 
-    // ★ 新增：整體結果交給後端 AI 產生診斷文字
+    // ★ 整體結果交給後端 AI 產生診斷文字
     try {
         requestQuizAISummary(score, concepts, conceptScores, correctCount, totalQ);
     } catch (e) {
         console.log("requestQuizAISummary 呼叫失敗（前端層級）：", e);
     }
 }
+
 
 
            
