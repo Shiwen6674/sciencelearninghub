@@ -1533,7 +1533,7 @@ function renderQuizResult() {
             responsive: true,
             maintainAspectRatio: false,
             indexAxis: "y",
-                        scales: {
+            scales: {
                 x: {
                     min: 0,
                     max: 100,
@@ -1547,8 +1547,9 @@ function renderQuizResult() {
                         }
                     }
                 }
-            },
-
+            }
+        }
+    });
 
     // ★ 新增：整體結果交給後端 AI 產生診斷文字
     try {
