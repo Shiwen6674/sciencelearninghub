@@ -995,30 +995,45 @@ let quizRadarChart = null; // 雷達圖實例
         }
     }
 
-    function openModal() {
-        const chartDiv = document.getElementById("mermaid-chart");
-        if (!chartDiv || !chartDiv.innerHTML.trim() || chartDiv.innerHTML.includes("錯誤")) {
-            return;
-        }
-        const modal = document.getElementById("image-modal");
-        const content = document.getElementById("modal-content");
-        if (!modal || !content) return;
-
-        content.innerHTML = chartDiv.innerHTML;
-        
-        const svg = content.querySelector('svg');
-        if (svg) {
-            svg.removeAttribute('style');
-            svg.style.width = '100%';      
-            svg.style.height = 'auto';    
-            svg.style.minWidth = '100%';  
-            svg.style.maxWidth = '1500px';  
-            svg.style.pointerEvents = 'auto';
-        }
-        
-        modal.classList.remove("hidden");
-        modal.classList.add("flex");
+   function openModal() {
+    const chartDiv = document.getElementById("mermaid-chart");
+    if (!chartDiv || !chartDiv.innerHTML.trim() || chartDiv.innerText.includes("錯誤")) {
+        return;
     }
+
+    const modal   = document.getElementById("image-modal");
+    const content = document.getElementById("modal-content");
+    if (!modal || !content) return;
+
+    // 把頁面上的圖 copy 進來
+    content.innerHTML = chartDiv.innerHTML;
+
+    // 讓 wrapper 可以捲動
+    const wrapper = content.querySelector(".mermaid");
+    if (wrapper) {
+        wrapper.style.width = "100%";
+        wrapper.style.overflow = "auto";
+    }
+
+    // 燈箱裡的 svg 強制放大
+    const svg = content.querySelector("svg");
+    if (svg) {
+        svg.removeAttribute("style");
+        svg.removeAttribute("width");
+        svg.removeAttribute("height");
+
+        svg.style.display = "block";
+        svg.style.margin  = "0 auto";
+
+        // 這裡就是放大的倍率，可以自己微調
+        svg.style.width  = "1600px";   // 比視窗寬，會出現橫向捲軸
+        svg.style.height = "auto";
+    }
+
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+}
+
 
     function closeModal() {
         const modal = document.getElementById("image-modal");
