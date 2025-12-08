@@ -100,6 +100,23 @@
         /* 科學動動腦、單元小測驗互動按鈕 */
         .myth-option-btn { transition: all 0.18s ease; }
         .quiz-option-btn { transition: all 0.18s ease; }
+        @media (max-width: 768px) {
+    #chart-container .click-mask {
+        pointer-events: none;
+    }
+}
+        /* 小螢幕時，調整 chat 浮動按鈕，不要蓋住右下角主要功能按鈕 */
+@media (max-width: 640px) {
+    #floating-chat {
+        right: 10px;
+        bottom: 10px;
+    }
+
+    #floating-chat > button {
+        width: 52px;
+        height: 52px;
+    }
+}
     </style>
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col">
