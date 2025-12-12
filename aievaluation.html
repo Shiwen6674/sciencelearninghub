@@ -2,1377 +2,659 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI 單元評量與診斷</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Science Learning Hub | CAT 適性測驗</title>
 
-  <!-- Tailwind CSS -->
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Font Awesome -->
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-  />
 
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            primary: {
-              light: "#bfdbfe",
-              DEFAULT: "#2563eb",
-              dark: "#1d4ed8",
-            },
-          },
-        },
-      },
-    };
-  </script>
+  <!-- Fonts (選用：你可改成你整個系統一致的字體) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&display=swap" rel="stylesheet">
 
   <style>
-    body {
-      background: radial-gradient(circle at top left, #e0f2fe 0%, #f9fafb 45%, #e5e7eb 100%);
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-
-    .glass-panel {
-      background: rgba(255, 255, 255, 0.9);
-      backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.7);
-      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.375rem;
-      padding: 0.15rem 0.55rem;
-      border-radius: 9999px;
-      font-size: 0.72rem;
-      font-weight: 600;
-    }
-
-    .scroll-y-soft {
-      scrollbar-width: thin;
-      scrollbar-color: #9ca3af transparent;
-    }
-
-    .scroll-y-soft::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    .scroll-y-soft::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    .scroll-y-soft::-webkit-scrollbar-thumb {
-      background: #cbd5f5;
-      border-radius: 999px;
-    }
-
-    .pill-step.active {
-      background: #2563eb;
-      color: white;
-      box-shadow: 0 8px 16px rgba(37, 99, 235, 0.35);
-    }
-
-    .pill-step.done {
-      background: #22c55e;
-      color: white;
-    }
-
-    .pill-step.upcoming {
-      background: white;
-      color: #4b5563;
-    }
-
-    .pill-step {
-      border-radius: 9999px;
-      padding: 0.45rem 0.9rem;
-      font-size: 0.75rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      border: 1px solid rgba(148, 163, 184, 0.45);
-      transition: all 0.18s ease;
-    }
-
-    .answer-pill {
-      border-radius: 0.75rem;
-      border-width: 1px;
-      padding: 0.5rem 0.75rem;
-      font-size: 0.875rem;
-      cursor: pointer;
-      display: flex;
-      gap: 0.5rem;
-      align-items: flex-start;
-      transition: all 0.12s ease-in-out;
-    }
-
-    .answer-pill input {
-      margin-top: 4px;
-    }
-
-    .answer-pill:hover {
-      background: #eff6ff;
-      border-color: #93c5fd;
-    }
-
-    .answer-pill.selected {
-      background: #2563eb;
-      border-color: #1d4ed8;
-      color: white;
-      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.3);
-    }
-
-    .answer-pill.selected label {
-      color: white;
-    }
-
-    .tag-concept {
-      font-size: 0.7rem;
-      padding: 0.12rem 0.5rem;
-      border-radius: 9999px;
-      background: #eff6ff;
-      color: #1d4ed8;
-      border: 1px solid rgba(129, 140, 248, 0.3);
-    }
-
-    .result-card {
-      border-radius: 1rem;
-      border: 1px solid #e5e7eb;
-      background: white;
-      padding: 1rem 1.1rem;
-    }
-
-    .feedback-block-green {
-      border-radius: 0.75rem;
-      border: 1px solid #16a34a;
-      background: #ecfdf3;
-      padding: 0.75rem 0.85rem;
-      font-size: 0.85rem;
-      white-space: pre-wrap;
-    }
-
-    .feedback-block-red {
-      border-radius: 0.75rem;
-      border: 1px solid #dc2626;
-      background: #fef2f2;
-      padding: 0.75rem 0.85rem;
-      font-size: 0.85rem;
-      white-space: pre-wrap;
-    }
-
-    .fade-in {
-      animation: fadein 0.22s ease-out;
-    }
-
-    @keyframes fadein {
-      from {
-        opacity: 0;
-        transform: translateY(6px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
+    body { font-family: "Noto Serif TC", ui-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Microsoft JhengHei", sans-serif; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
   </style>
 </head>
 
-<body class="min-h-screen flex flex-col text-slate-800">
-  <!-- Top navbar -->
-  <nav class="glass-panel sticky top-0 z-40 px-5 md:px-8 py-3.5 flex items-center justify-between">
-    <div class="flex items-center gap-4">
-      <a
-        href="student.html"
-        class="group flex items-center gap-2 text-slate-500 hover:text-primary transition decoration-0"
-      >
-        <div
-          class="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow group-hover:shadow-md transition"
-        >
-          <i class="fa-solid fa-arrow-left text-sm"></i>
+<body class="bg-slate-50 text-slate-900">
+  <div class="max-w-5xl mx-auto p-4 md:p-6">
+
+    <!-- Header -->
+    <header class="mb-4">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <h1 class="text-xl md:text-2xl font-semibold">CAT 適性測驗（子頁）</h1>
+          <p class="text-sm text-slate-600">本頁只負責：選單元 → CAT 作答 → 結果回饋（不含 AI 摘要頁）。</p>
         </div>
-        <span class="font-semibold text-xs sm:text-sm hidden md:block">返回學習中心</span>
-      </a>
-
-      <a
-        href="unitsummary.html"
-        class="group flex items-center gap-2 text-slate-500 hover:text-purple-600 transition decoration-0"
-      >
-        <div
-          class="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow group-hover:shadow-md transition"
-        >
-          <i class="fa-solid fa-book-open text-xs"></i>
-        </div>
-        <span class="font-semibold text-xs sm:text-sm hidden md:block">單元重點整理</span>
-      </a>
-
-      <div class="hidden sm:block h-7 w-px bg-slate-200 mx-1"></div>
-
-      <div>
-        <h1 class="font-black text-base sm:text-lg tracking-tight">
-          AI 單元評量與診斷
-        </h1>
-        <p class="text-[0.7rem] text-slate-500">
-          依據課文與科學詞彙的素養導向測驗
-        </p>
-      </div>
-    </div>
-
-    <div class="flex items-center gap-3">
-      <div class="hidden sm:flex items-center gap-2 text-xs text-slate-500 mr-1">
-        <i class="fa-regular fa-circle-question"></i>
-        <span>作答完請按「送出批改」取得 AI 診斷</span>
-      </div>
-
-      <div class="flex items-center gap-2 pl-2 border-l border-slate-200">
-        <img
-          src="https://raw.githubusercontent.com/Shiwen6674/sciencelearninghub/main/irob.png"
-          class="w-8 h-8 rounded-full border border-blue-200 object-cover bg-white"
-          alt="小科"
-        />
-        <div class="text-xs leading-tight">
-          <div class="font-semibold text-blue-700 text-[0.78rem]">
-            小科 AI 評量助手
-          </div>
-          <div id="user-name-slot" class="text-[0.7rem] text-slate-500">
-            訪客模式
-          </div>
+        <div class="flex gap-2">
+          <button id="btnBack" class="text-sm px-3 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-100">
+            回主頁
+          </button>
+          <button id="btnLogout" class="text-sm px-3 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-100">
+            登出
+          </button>
         </div>
       </div>
-    </div>
-  </nav>
+    </header>
 
-  <!-- Main -->
-  <main class="max-w-6xl w-full mx-auto px-3 sm:px-6 py-6 sm:py-8 flex-1">
-    <!-- Step indicator -->
-    <section class="mb-5 flex flex-wrap items-center justify-between gap-3">
-      <div class="flex flex-wrap gap-2">
-        <div id="step-pill-1" class="pill-step active">
-          <span
-            class="flex items-center justify-center w-5 h-5 rounded-full bg-white/20 border border-white/40 text-[0.7rem]"
-            >1</span
-          >
-          <span>選擇單元與測驗設定</span>
+    <!-- User Card -->
+    <section class="bg-white border border-slate-200 rounded-2xl p-4 md:p-5 shadow-sm mb-4">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div>
+          <div class="text-sm text-slate-500">登入學生</div>
+          <div id="userLine" class="text-base font-semibold">讀取中…</div>
+          <div id="userSub" class="text-sm text-slate-600 mt-1"></div>
         </div>
-        <div id="step-pill-2" class="pill-step upcoming">
-          <span
-            class="flex items-center justify-center w-5 h-5 rounded-full bg-white/60 border border-slate-200 text-[0.7rem]"
-            >2</span
-          >
-          <span>作答中</span>
-        </div>
-        <div id="step-pill-3" class="pill-step upcoming">
-          <span
-            class="flex items-center justify-center w-5 h-5 rounded-full bg-white/60 border border-slate-200 text-[0.7rem]"
-            >3</span
-          >
-          <span>AI 診斷報告</span>
+        <div class="flex flex-wrap gap-2">
+          <span id="badgeRole" class="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">role</span>
+          <span id="badgeGrade" class="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">grade</span>
+          <span id="badgeClass" class="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">class</span>
+          <span id="badgeStudentID" class="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">student_id</span>
         </div>
       </div>
-
-      <div class="flex items-center gap-1 text-[0.7rem] text-slate-500">
-        <i class="fa-solid fa-database mr-1"></i>
-        <span id="status-label">尚未產生測驗</span>
-      </div>
+      <div id="authWarn" class="hidden mt-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl p-3"></div>
     </section>
 
-    <!-- Step 1: Setup -->
-    <section id="setup-view" class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-7">
-      <!-- Unit info -->
-      <div class="glass-panel rounded-2xl p-5 lg:col-span-2">
-        <div class="flex items-center justify-between mb-4">
-          <div>
-            <div class="badge bg-blue-50 text-blue-700">
-              <i class="fa-solid fa-flask"></i>
-              <span class="tracking-wide">選擇評量單元</span>
-            </div>
-            <h2 class="mt-2 text-lg font-bold tracking-tight">
-              單元與版本設定
-            </h2>
-            <p class="mt-1 text-xs text-slate-500">
-              建議與「單元重點整理」頁面相同的
-              學習階段／出版社／年級／學期／單元名稱。
-            </p>
-          </div>
+    <!-- Unit Selector -->
+    <section class="bg-white border border-slate-200 rounded-2xl p-4 md:p-5 shadow-sm mb-4">
+      <div class="flex items-center justify-between gap-3">
+        <h2 class="text-base font-semibold">1) 選擇教材單元（Sheet1 / CATItemBank）</h2>
+        <div id="unitLoading" class="hidden text-sm text-slate-500">載入中…</div>
+      </div>
 
-          <button
-            id="btn-load-from-session"
-            class="hidden text-[0.72rem] px-2 py-1 rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50"
-          >
-            從上一頁載入
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-3 mt-4">
+        <div>
+          <label class="block text-xs text-slate-600 mb-1">中小學（Sheet1: 中小學）</label>
+          <select id="selStage" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white">
+            <option value="國小">國小</option>
+            <option value="國中">國中</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs text-slate-600 mb-1">年級（Sheet1: 年級 / ItemBank: grade）</label>
+          <select id="selGrade" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white"></select>
+        </div>
+        <div>
+          <label class="block text-xs text-slate-600 mb-1">學期（Sheet1: 學期 / ItemBank: semester）</label>
+          <select id="selSemester" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white">
+            <option value="上">上</option>
+            <option value="下">下</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs text-slate-600 mb-1">出版社/版本（Sheet1: 出版社 / ItemBank: textbook_version）</label>
+          <select id="selPublisher" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white">
+            <option value="">（請先載入）</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs text-slate-600 mb-1">單元（ItemBank: unit_name）</label>
+          <select id="selUnit" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white">
+            <option value="">（請先載入）</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mt-4">
+        <div class="text-sm text-slate-600">
+          <span class="font-semibold">提醒：</span>單元摘要在另一頁已完成；本頁只進行 CAT 測驗與回饋。
+        </div>
+        <div class="flex gap-2">
+          <button id="btnLoadUnits" class="px-4 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-100">
+            載入單元清單
+          </button>
+          <button id="btnStart" class="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800">
+            開始 CAT 測驗
+          </button>
+        </div>
+      </div>
+
+      <div id="unitMsg" class="hidden mt-3 text-sm rounded-xl p-3"></div>
+    </section>
+
+    <!-- CAT Area -->
+    <section class="bg-white border border-slate-200 rounded-2xl p-4 md:p-5 shadow-sm mb-4">
+      <div class="flex items-center justify-between gap-3">
+        <h2 class="text-base font-semibold">2) CAT 作答</h2>
+        <div class="text-sm text-slate-600">
+          場次：<span id="testId" class="mono">—</span>
+        </div>
+      </div>
+
+      <div class="mt-3 flex items-center justify-between gap-3">
+        <div class="text-sm text-slate-600">
+          進度：<span id="progress" class="font-semibold">0 / 0</span>
+        </div>
+        <div class="text-sm text-slate-600">
+          作答時間：<span id="timer" class="mono">—</span>
+        </div>
+      </div>
+
+      <div id="qBox" class="mt-4 border border-slate-200 rounded-2xl p-4 bg-white">
+        <div class="text-xs text-slate-500">題目（CATItemBank: stem / item_format）</div>
+        <div id="qStem" class="mt-2 text-base leading-relaxed">尚未開始測驗。</div>
+
+        <!-- MCQ options -->
+        <div id="optBox" class="mt-4 space-y-2"></div>
+
+        <!-- Open response (fallback) -->
+        <div id="openBox" class="hidden mt-4">
+          <label class="block text-xs text-slate-600 mb-1">作答（若此題非選擇題）</label>
+          <input id="openInput" type="text"
+                 class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white"
+                 placeholder="請輸入你的答案（系統會寫入 CATresponse.response_option）" />
+        </div>
+
+        <div class="mt-4 flex items-center justify-between gap-2">
+          <div class="text-xs text-slate-500">
+            item_id：<span id="itemId" class="mono">—</span>
+            <span class="mx-2">|</span>
+            item_format：<span id="itemFormat" class="mono">—</span>
+          </div>
+          <button id="btnNext"
+                  class="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-40"
+                  disabled>
+            下一題
           </button>
         </div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
-          <div>
-            <label class="block text-xs font-semibold text-slate-500 mb-1"
-              >學習階段</label
-            >
-            <input
-              id="field-stage"
-              type="text"
-              placeholder="例：國小 / 國中"
-              class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none bg-white/70"
-            />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-500 mb-1"
-              >出版社</label
-            >
-            <input
-              id="field-publisher"
-              type="text"
-              placeholder="例：南一"
-              class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none bg-white/70"
-            />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-500 mb-1"
-              >年級</label
-            >
-            <input
-              id="field-grade"
-              type="number"
-              min="1"
-              max="9"
-              placeholder="例：3"
-              class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none bg-white/70"
-            />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-500 mb-1"
-              >學期</label
-            >
-            <input
-              id="field-semester"
-              type="text"
-              placeholder="例：上 / 下"
-              class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none bg-white/70"
-            />
-          </div>
-          <div class="sm:col-span-2">
-            <label class="block text-xs font-semibold text-slate-500 mb-1"
-              >單元名稱</label
-            >
-            <input
-              id="field-unitName"
-              type="text"
-              placeholder="例：認識植物"
-              class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none bg-white/70"
-            />
-          </div>
-        </div>
-      </div>
-
-      <!-- Exam config -->
-      <div class="glass-panel rounded-2xl p-5">
-        <div class="flex items-center justify-between mb-3">
-          <div>
-            <div class="badge bg-emerald-50 text-emerald-700">
-              <i class="fa-solid fa-clipboard-check"></i>
-              <span>測驗設定</span>
-            </div>
-            <h3 class="mt-2 text-sm font-bold">題型與題數</h3>
-          </div>
-        </div>
-
-        <p class="text-[0.72rem] text-slate-500 mb-3">
-          第一版先採用「是非＋單選」題型，AI 會依照課文與科學詞彙命題，總分固定為 100 分。
-        </p>
-
-        <div class="space-y-3 text-xs">
-          <div class="flex items-center justify-between gap-3">
-            <div class="flex flex-col">
-              <span class="font-semibold text-slate-600">是非題</span>
-              <span class="text-[0.7rem] text-slate-400"
-                >檢查基礎概念是否正確</span
-              >
-            </div>
-            <div class="flex items-center gap-2">
-              <input
-                id="field-numTF"
-                type="range"
-                min="0"
-                max="6"
-                value="2"
-                class="w-24 accent-primary"
-                oninput="document.getElementById('label-numTF').innerText = this.value"
-              />
-              <span id="label-numTF" class="w-5 text-right">2</span>
-              <span>題</span>
-            </div>
-          </div>
-
-          <div class="flex items-center justify-between gap-3">
-            <div class="flex flex-col">
-              <span class="font-semibold text-slate-600">單選題</span>
-              <span class="text-[0.7rem] text-slate-400"
-                >類似會考自然科素養題的核心選擇題</span
-              >
-            </div>
-            <div class="flex items-center gap-2">
-              <input
-                id="field-numSC"
-                type="range"
-                min="4"
-                max="12"
-                value="8"
-                class="w-24 accent-primary"
-                oninput="document.getElementById('label-numSC').innerText = this.value"
-              />
-              <span id="label-numSC" class="w-5 text-right">8</span>
-              <span>題</span>
-            </div>
-          </div>
-
-          <div class="pt-1 border-t border-dashed border-slate-200 mt-2">
-            <p class="text-[0.7rem] text-slate-500 mt-2">
-              高階題型（多選、題組、排序、配對、簡答）之後可再開啟；目前會固定關閉，讓系統穩定運作。
-            </p>
-          </div>
-        </div>
-
-        <button
-          id="btn-generate-exam"
-          class="mt-4 w-full flex items-center justify-center gap-2 rounded-xl bg-primary text-white text-sm font-semibold py-2.5 shadow hover:bg-primary-dark transition disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <i class="fa-solid fa-wand-magic-sparkles text-xs"></i>
-          <span>AI 產生測驗</span>
-        </button>
+        <div id="catMsg" class="hidden mt-3 text-sm rounded-xl p-3"></div>
       </div>
     </section>
 
-    <!-- Step 2: Exam view -->
-    <section id="exam-view" class="hidden fade-in">
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start mb-6">
-        <!-- Question panel -->
-        <div class="glass-panel rounded-2xl p-5 lg:col-span-2">
-          <div class="flex items-center justify-between mb-3 gap-3">
-            <div class="flex flex-col gap-1">
-              <div class="flex items-center gap-2">
-                <span
-                  class="inline-flex items-center justify-center px-2 py-1 text-[0.7rem] rounded-full bg-blue-50 text-blue-700 border border-blue-100 font-semibold"
-                >
-                  <i class="fa-solid fa-list-check mr-1"></i> 單元測驗
-                </span>
-                <span
-                  id="exam-unit-label"
-                  class="text-[0.7rem] text-slate-500 truncate max-w-[14rem] sm:max-w-xs"
-                ></span>
-              </div>
-
-              <h2 id="question-title-label" class="text-sm font-bold tracking-tight mt-1">
-                題目
-              </h2>
-            </div>
-
-            <div class="text-right">
-              <div class="text-xs text-slate-500 mb-1">
-                <span id="question-index-label">第 1 題</span>
-                <span class="mx-1 text-slate-300">｜</span>
-                <span id="question-progress-label">0 / 0 已作答</span>
-              </div>
-              <div class="w-40 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                <div
-                  id="question-progress-bar"
-                  class="h-full bg-gradient-to-r from-primary to-indigo-500 rounded-full"
-                  style="width: 0%"
-                ></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Question body -->
-          <div id="question-body" class="mt-3">
-            <!-- Filled by JS -->
-          </div>
-
-          <!-- Navigation -->
-          <div class="mt-5 flex items-center justify-between">
-            <button
-              id="btn-prev-question"
-              class="flex items-center gap-1.5 text-xs sm:text-[0.8rem] px-3 py-1.5 rounded-full border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              <i class="fa-solid fa-chevron-left text-[0.65rem]"></i>
-              上一題
-            </button>
-
-            <div class="flex items-center gap-2 text-[0.72rem] text-slate-500">
-              <span id="answered-count-label">尚未作答</span>
-            </div>
-
-            <button
-              id="btn-next-question"
-              class="flex items-center gap-1.5 text-xs sm:text-[0.8rem] px-3 py-1.5 rounded-full border border-transparent bg-primary text-white hover:bg-primary-dark disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              下一題
-              <i class="fa-solid fa-chevron-right text-[0.65rem]"></i>
-            </button>
-          </div>
-
-          <!-- Submit -->
-          <div class="mt-5 border-t border-dashed border-slate-200 pt-4 flex items-center justify-between">
-            <button
-              id="btn-start-over"
-              class="text-[0.75rem] text-slate-400 hover:text-slate-600 flex items-center gap-1"
-            >
-              <i class="fa-solid fa-rotate-left text-xs"></i>
-              重新選擇單元
-            </button>
-
-            <button
-              id="btn-submit-exam"
-              class="flex items-center gap-2 text-xs sm:text-sm px-4 py-2 rounded-xl bg-emerald-500 text-white font-semibold shadow hover:bg-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              <i class="fa-solid fa-paper-plane-top text-[0.7rem]"></i>
-              <span>送出批改，取得 AI 診斷</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Right side info -->
-        <aside class="glass-panel rounded-2xl p-5 space-y-4">
-          <div>
-            <div class="flex items-center justify-between mb-2">
-              <div class="badge bg-slate-100 text-slate-700">
-                <i class="fa-solid fa-bullseye"></i>
-                <span>測驗配置</span>
-              </div>
-              <span id="exam-score-label" class="text-[0.7rem] text-slate-500"></span>
-            </div>
-            <ul id="exam-config-list" class="text-[0.75rem] text-slate-600 space-y-1.5"></ul>
-          </div>
-
-          <div class="border-t border-dashed border-slate-200 pt-4">
-            <h3 class="text-xs font-semibold text-slate-500 mb-2">題目清單</h3>
-            <div
-              id="question-list"
-              class="scroll-y-soft max-h-60 space-y-1 text-[0.75rem]"
-            ></div>
-          </div>
-
-          <div class="border-t border-dashed border-slate-200 pt-4">
-            <h3 class="text-xs font-semibold text-slate-500 mb-2">
-              提示
-            </h3>
-            <ul class="text-[0.72rem] text-slate-500 space-y-1 list-disc pl-4">
-              <li>這是一份形成性評量，不會影響正式成績。</li>
-              <li>若不確定答案，可以先依直覺作答，AI 會協助找出觀念盲點。</li>
-              <li>送出批改後，才能看到 NotebookLM 風格的綠／紅色回饋框。</li>
-            </ul>
-          </div>
-        </aside>
+    <!-- Result -->
+    <section class="bg-white border border-slate-200 rounded-2xl p-4 md:p-5 shadow-sm">
+      <h2 class="text-base font-semibold">3) 測驗結果與回饋（finishCAT）</h2>
+      <div id="resultBox" class="mt-3 text-sm text-slate-600">
+        尚未完成測驗。
       </div>
     </section>
 
-    <!-- Step 3: Result view -->
-    <section id="result-view" class="hidden fade-in mb-10">
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
-        <!-- Summary -->
-        <div class="glass-panel rounded-2xl p-5 lg:col-span-1">
-          <div class="flex items-center justify-between mb-2">
-            <div class="badge bg-indigo-50 text-indigo-700">
-              <i class="fa-solid fa-chart-line"></i>
-              <span>整體表現</span>
-            </div>
-            <span id="result-attempt-id" class="text-[0.65rem] text-slate-400"></span>
-          </div>
-
-          <h2 id="result-score-label" class="mt-1 text-xl font-extrabold text-slate-800">
-            分數
-          </h2>
-          <p id="result-remark" class="mt-1 text-[0.8rem] text-slate-500">
-            AI 診斷中…
-          </p>
-
-          <div class="mt-4 space-y-3 text-[0.78rem]">
-            <div>
-              <div class="flex items-center justify-between mb-1">
-                <span class="text-slate-600">答對率</span>
-                <span id="result-rate-label" class="font-semibold"></span>
-              </div>
-              <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                <div
-                  id="result-rate-bar"
-                  class="h-full bg-gradient-to-r from-emerald-400 to-lime-500 rounded-full"
-                  style="width: 0%"
-                ></div>
-              </div>
-            </div>
-
-            <div>
-              <h3 class="text-xs font-semibold text-slate-500 mb-1">
-                依概念的掌握度
-              </h3>
-              <div
-                id="result-concept-list"
-                class="scroll-y-soft max-h-52 space-y-1.5 pr-1"
-              >
-                <!-- filled by JS -->
-              </div>
-            </div>
-          </div>
-
-          <div class="mt-5 pt-4 border-t border-dashed border-slate-200">
-            <h3 class="text-xs font-semibold text-slate-500 mb-2">
-              下一步建議
-            </h3>
-            <p id="result-next-suggestion" class="text-[0.75rem] text-slate-600 leading-relaxed">
-              依據本次測驗結果，AI 會建議你回到哪些課文段落重新閱讀，並可再進行一次針對弱點概念的迷你測驗。
-            </p>
-
-            <div class="mt-3 flex flex-wrap gap-2">
-              <button
-                id="btn-back-to-exam"
-                class="px-3 py-1.5 rounded-full border border-slate-200 text-[0.75rem] text-slate-600 hover:bg-slate-50 flex items-center gap-1"
-              >
-                <i class="fa-solid fa-rotate-left text-[0.65rem]"></i>
-                回到題目檢視
-              </button>
-              <button
-                id="btn-new-exam"
-                class="px-3 py-1.5 rounded-full bg-primary text-white text-[0.75rem] hover:bg-primary-dark flex items-center gap-1"
-              >
-                <i class="fa-solid fa-wand-magic-sparkles text-[0.65rem]"></i>
-                針對弱點再生成一份迷你測驗
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Per-question feedback -->
-        <div class="glass-panel rounded-2xl p-5 lg:col-span-2">
-          <div class="flex items-center justify-between mb-3 gap-3">
-            <div>
-              <div class="badge bg-rose-50 text-rose-700">
-                <i class="fa-solid fa-notes-medical"></i>
-                <span>逐題診斷（NotebookLM 風格）</span>
-              </div>
-              <p class="mt-2 text-[0.75rem] text-slate-500">
-                每一題會以紅色框說明錯誤觀念，以綠色框說明正確答案與理由，並對應到課文段落。
-              </p>
-            </div>
-          </div>
-
-          <div
-            id="result-question-list"
-            class="mt-3 space-y-3 max-h-[520px] scroll-y-soft pr-1"
-          ></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Simple overlay loader -->
-    <div
-      id="global-loader"
-      class="fixed inset-0 bg-white/40 backdrop-blur-[2px] flex items-center justify-center z-50 hidden"
-    >
-      <div class="glass-panel rounded-2xl px-6 py-4 flex flex-col items-center gap-2">
-        <div
-          class="w-8 h-8 rounded-full border-[3px] border-slate-200 border-t-primary animate-spin"
-        ></div>
-        <p id="loader-text" class="text-xs text-slate-600">
-          AI 處理中，請稍候…
-        </p>
-      </div>
-    </div>
-  </main>
-
-  <script>
-    // === 必填：在這裡貼上你部署好的 Web App URL ===
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzCw1wRft20zUAeN1j2RawJEhBWWJQyL_M5v7a5RwIqayHKQTN6tT7mB7YghzdB_aG_/exec";
-
-    let currentExam = null; // {examId, unitKey, config, questions}
-    let currentQuestionIndex = 0;
-    let studentAnswers = {}; // { [questionId]: {choiceIndex / choiceIndices} }
-    let evaluationResult = null; // submit_exam 回傳
-
-    function $(id) {
-      return document.getElementById(id);
-    }
-
-    function setStep(step) {
-      const pills = [
-        { id: "step-pill-1", num: 1 },
-        { id: "step-pill-2", num: 2 },
-        { id: "step-pill-3", num: 3 },
-      ];
-      pills.forEach((p) => {
-        const el = $(p.id);
-        el.classList.remove("active", "done", "upcoming");
-        if (p.num < step) el.classList.add("done");
-        else if (p.num === step) el.classList.add("active");
-        else el.classList.add("upcoming");
-      });
-    }
-
-    function showView(view) {
-      // view: 'setup' | 'exam' | 'result'
-      $("setup-view").classList.add("hidden");
-      $("exam-view").classList.add("hidden");
-      $("result-view").classList.add("hidden");
-
-      if (view === "setup") $("setup-view").classList.remove("hidden");
-      if (view === "exam") $("exam-view").classList.remove("hidden");
-      if (view === "result") $("result-view").classList.remove("hidden");
-    }
-
-    function showLoader(show, text) {
-      const loader = $("global-loader");
-      if (show) {
-        $("loader-text").innerText = text || "AI 處理中，請稍候…";
-        loader.classList.remove("hidden");
-      } else {
-        loader.classList.add("hidden");
-      }
-    }
-
-    function readFiltersFromForm() {
-      return {
-        stage: $("field-stage").value.trim(),
-        publisher: $("field-publisher").value.trim(),
-        grade: $("field-grade").value.trim(),
-        semester: $("field-semester").value.trim(),
-        unitName: $("field-unitName").value.trim(),
-      };
-    }
-
-    function validateFilters(filters) {
-      if (!filters.stage || !filters.publisher || !filters.grade || !filters.semester || !filters.unitName) {
-        alert("請完整填寫：學習階段、出版社、年級、學期、單元名稱。");
-        return false;
-      }
-      return true;
-    }
-
-    function getStudentId() {
-      try {
-        const user = JSON.parse(sessionStorage.getItem("currentUser") || "{}");
-        if (user && user.email) return user.email;
-        if (user && user.name) return user.name;
-      } catch (e) {}
-      return "訪客";
-    }
-
-    function loadUserName() {
-      try {
-        const user = JSON.parse(sessionStorage.getItem("currentUser") || "{}");
-        if (user && user.name) $("user-name-slot").innerText = user.name;
-      } catch (e) {}
-    }
-
-    function maybeLoadFiltersFromSession() {
-      try {
-        const raw = sessionStorage.getItem("currentExamFilters");
-        if (!raw) return;
-        const f = JSON.parse(raw);
-        if (f.stage) $("field-stage").value = f.stage;
-        if (f.publisher) $("field-publisher").value = f.publisher;
-        if (f.grade) $("field-grade").value = f.grade;
-        if (f.semester) $("field-semester").value = f.semester;
-        if (f.unitName) $("field-unitName").value = f.unitName;
-      } catch (e) {}
-    }
-
-    function updateStatusLabel(text) {
-      $("status-label").innerText = text;
-    }
-
-    // === 產生測驗 ===
-    async function handleGenerateExam() {
-      const filters = readFiltersFromForm();
-      if (!validateFilters(filters)) return;
-
-      const numTF = Number($("field-numTF").value || "0");
-      const numSC = Number($("field-numSC").value || "0");
-
-      const config = {
-        totalScore: 100,
-        numTF: numTF,
-        numSC: numSC,
-        numMC: 0,
-        numSET: 0,
-        numORD: 0,
-        numMATCH: 0,
-        numCR: 0,
-        selectedConcepts: [],
-      };
-
-      showLoader(true, "AI 正在依照課文與科學詞彙命題，請稍候…");
-      updateStatusLabel("AI 命題中…");
-
-      try {
-        const res = await fetch(GAS_API_URL, {
-          method: "POST",
-          body: JSON.stringify({
-            action: "generate_exam",
-            filters,
-            config,
-          }),
-        });
-
-        const json = await res.json();
-        if (json.status !== "success") {
-          throw new Error(json.message || "產生測驗失敗");
-        }
-
-        currentExam = json.data;
-        evaluationResult = null;
-        currentQuestionIndex = 0;
-        studentAnswers = {};
-
-        if (!currentExam.questions || !currentExam.questions.length) {
-          throw new Error("AI 未產生任何題目，請稍後再試或調整課文內容。");
-        }
-
-        // 預設 studentAnswers
-        currentExam.questions.forEach((q) => {
-          if (q.type === "TF" || q.type === "SC") {
-            studentAnswers[q.id] = { choiceIndex: null };
-          } else if (q.type === "MC") {
-            studentAnswers[q.id] = { choiceIndices: [] };
-          } else {
-            studentAnswers[q.id] = {};
-          }
-        });
-
-        // 更新右側摘要
-        renderExamSidebar();
-
-        // 儲存 filters 供之後快速載入
-        sessionStorage.setItem(
-          "currentExamFilters",
-          JSON.stringify(filters)
-        );
-
-        // 顯示題目
-        setStep(2);
-        showView("exam");
-        renderCurrentQuestion();
-        updateStatusLabel("已產生測驗，正在作答");
-
-      } catch (err) {
-        console.error(err);
-        alert("產生測驗時發生錯誤：" + err.message);
-        updateStatusLabel("產生測驗失敗");
-      } finally {
-        showLoader(false);
-      }
-    }
-
-    function renderExamSidebar() {
-      if (!currentExam) return;
-      const f = readFiltersFromForm();
-
-      $("exam-unit-label").innerText =
-        f.publisher +
-        "｜" +
-        f.grade +
-        "年級" +
-        f.semester +
-        "學期｜" +
-        f.unitName;
-
-      $("exam-score-label").innerText =
-        "滿分 " + (currentExam.config.totalScore || 100) + " 分";
-
-      const cfg = currentExam.config || {};
-      const lines = [];
-      if (cfg.numTF) lines.push("是非題 " + cfg.numTF + " 題");
-      if (cfg.numSC) lines.push("單選題 " + cfg.numSC + " 題");
-      if (cfg.numMC) lines.push("多選題 " + cfg.numMC + " 題");
-      if (cfg.numSET) lines.push("題組題 " + cfg.numSET + " 組");
-      if (cfg.numORD) lines.push("排序題 " + cfg.numORD + " 題");
-      if (cfg.numMATCH) lines.push("配對題 " + cfg.numMATCH + " 題");
-      if (cfg.numCR) lines.push("簡答題 " + cfg.numCR + " 題");
-
-      const ul = $("exam-config-list");
-      ul.innerHTML = "";
-      lines.forEach((t) => {
-        const li = document.createElement("li");
-        li.textContent = "• " + t;
-        ul.appendChild(li);
-      });
-
-      const qList = $("question-list");
-      qList.innerHTML = "";
-      currentExam.questions.forEach((q, idx) => {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className =
-          "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left border border-transparent text-[0.75rem] hover:bg-slate-50";
-        btn.innerHTML =
-          '<span class="flex items-center gap-1"><span class="text-slate-400">Q' +
-          (idx + 1) +
-          "</span><span class=\"truncate max-w-[10rem]\">" +
-          (q.stem || "").slice(0, 24) +
-          "</span></span>" +
-          '<span class="text-[0.7rem] text-slate-400" id="q-status-' +
-          q.id +
-          '">未作答</span>';
-
-        btn.addEventListener("click", () => {
-          currentQuestionIndex = idx;
-          renderCurrentQuestion();
-        });
-
-        qList.appendChild(btn);
-      });
-    }
-
-    function renderCurrentQuestion() {
-      if (!currentExam) return;
-      const q = currentExam.questions[currentQuestionIndex];
-      const total = currentExam.questions.length;
-
-      $("question-title-label").innerText =
-        "第 " + (currentQuestionIndex + 1) + " 題（" + q.type + "）";
-
-      $("question-index-label").innerText =
-        "第 " + (currentQuestionIndex + 1) + " 題 / 共 " + total + " 題";
-
-      const answeredCount = Object.values(studentAnswers).filter((a) => {
-        if (a.choiceIndex != null) return true;
-        if (a.choiceIndices && a.choiceIndices.length) return true;
-        return false;
-      }).length;
-
-      $("question-progress-label").innerText =
-        answeredCount + " / " + total + " 題已作答";
-
-      $("answered-count-label").innerText =
-        answeredCount === 0
-          ? "尚未作答"
-          : "已完成 " + answeredCount + " 題，尚有 " + (total - answeredCount) + " 題";
-
-      const pct = total > 0 ? (answeredCount / total) * 100 : 0;
-      $("question-progress-bar").style.width = pct.toFixed(1) + "%";
-
-      // 更新題目清單的小標籤
-      currentExam.questions.forEach((q2) => {
-        const el = $("q-status-" + q2.id);
-        if (!el) return;
-        const ans = studentAnswers[q2.id];
-        const answered =
-          ans && (ans.choiceIndex != null || (ans.choiceIndices || []).length);
-        el.textContent = answered ? "已作答" : "未作答";
-        el.className =
-          "text-[0.7rem] " + (answered ? "text-emerald-500" : "text-slate-400");
-      });
-
-      $("btn-prev-question").disabled = currentQuestionIndex === 0;
-      $("btn-next-question").disabled = currentQuestionIndex === total - 1;
-
-      const container = $("question-body");
-      container.innerHTML = "";
-
-      const stemDiv = document.createElement("div");
-      stemDiv.className = "mb-3";
-      stemDiv.innerHTML =
-        '<p class="text-[0.9rem] leading-relaxed text-slate-800 whitespace-pre-wrap">' +
-        (q.stem || "") +
-        "</p>";
-
-      // concept tags
-      const cts = document.createElement("div");
-      cts.className = "mt-2 flex flex-wrap gap-1.5";
-      (q.concepts || []).forEach((c) => {
-        const span = document.createElement("span");
-        span.className = "tag-concept";
-        span.textContent = c;
-        cts.appendChild(span);
-      });
-
-      stemDiv.appendChild(cts);
-      container.appendChild(stemDiv);
-
-      const ansArea = document.createElement("div");
-      ansArea.className = "mt-4 space-y-2";
-
-      const currentAns = studentAnswers[q.id] || {};
-
-      if (q.type === "TF" || q.type === "SC") {
-        (q.options || []).forEach((opt, idx) => {
-          const pill = document.createElement("label");
-          pill.className = "answer-pill border-slate-200 bg-white";
-
-          const input = document.createElement("input");
-          input.type = "radio";
-          input.name = "current-question";
-          input.value = idx;
-
-          if (currentAns.choiceIndex === idx) {
-            input.checked = true;
-            pill.classList.add("selected");
-          }
-
-          input.addEventListener("change", () => {
-            studentAnswers[q.id] = { choiceIndex: idx };
-            document
-              .querySelectorAll(".answer-pill")
-              .forEach((el) => el.classList.remove("selected"));
-            pill.classList.add("selected");
-            renderCurrentQuestion(); // 更新右側進度
-          });
-
-          const spanText = document.createElement("div");
-          spanText.className = "flex-1";
-          spanText.innerHTML =
-            '<div class="text-[0.86rem] leading-snug">' + opt + "</div>";
-
-          pill.appendChild(input);
-          pill.appendChild(spanText);
-          ansArea.appendChild(pill);
-        });
-      } else if (q.type === "MC") {
-        (q.options || []).forEach((opt, idx) => {
-          const pill = document.createElement("label");
-          pill.className = "answer-pill border-slate-200 bg-white";
-
-          const input = document.createElement("input");
-          input.type = "checkbox";
-          input.value = idx;
-
-          if ((currentAns.choiceIndices || []).includes(idx)) {
-            input.checked = true;
-            pill.classList.add("selected");
-          }
-
-          input.addEventListener("change", () => {
-            let arr = currentAns.choiceIndices || [];
-            if (input.checked) {
-              if (!arr.includes(idx)) arr.push(idx);
-            } else {
-              arr = arr.filter((v) => v !== idx);
-            }
-            studentAnswers[q.id] = { choiceIndices: arr };
-            document
-              .querySelectorAll(".answer-pill")
-              .forEach((el) => (el.classList.remove("selected")));
-            arr.forEach((k) => {
-              const found = Array.from(
-                document.querySelectorAll(".answer-pill input")
-              ).find((x) => Number(x.value) === k);
-              if (found && found.parentElement) {
-                found.parentElement.classList.add("selected");
-              }
-            });
-            renderCurrentQuestion();
-          });
-
-          const spanText = document.createElement("div");
-          spanText.className = "flex-1";
-          spanText.innerHTML =
-            '<div class="text-[0.86rem] leading-snug">' + opt + "</div>";
-
-          pill.appendChild(input);
-          pill.appendChild(spanText);
-          ansArea.appendChild(pill);
-        });
-      } else {
-        const info = document.createElement("p");
-        info.className = "text-[0.8rem] text-slate-500";
-        info.textContent =
-          "此題型（" +
-          q.type +
-          "）目前僅作為展示，第一版暫不開放學生作答。";
-        ansArea.appendChild(info);
-      }
-
-      container.appendChild(ansArea);
-    }
-
-    // === 送出批改 ===
-    async function handleSubmitExam() {
-      if (!currentExam) return;
-      const total = currentExam.questions.length;
-
-      const unanswered = currentExam.questions.filter((q) => {
-        const a = studentAnswers[q.id];
-        if (!a) return true;
-        if (a.choiceIndex != null) return false;
-        if (a.choiceIndices && a.choiceIndices.length) return false;
-        return true;
-      });
-
-      if (unanswered.length > 0) {
-        const ok = confirm(
-          "尚有 " +
-            unanswered.length +
-            " 題未作答，確定要送出批改嗎？"
-        );
-        if (!ok) return;
-      }
-
-      const answersArray = currentExam.questions.map((q) => ({
-        questionId: q.id,
-        answer: studentAnswers[q.id] || {},
-      }));
-
-      showLoader(true, "AI 正在批改並產生診斷報告…");
-      updateStatusLabel("AI 批改中…");
-
-      try {
-        const res = await fetch(GAS_API_URL, {
-          method: "POST",
-          body: JSON.stringify({
-            action: "submit_exam",
-            examId: currentExam.examId,
-            studentId: getStudentId(),
-            answers: answersArray,
-          }),
-        });
-
-        const json = await res.json();
-        if (json.status !== "success") {
-          throw new Error(json.message || "批改失敗");
-        }
-
-        evaluationResult = json.data;
-        renderResultView();
-        setStep(3);
-        showView("result");
-        updateStatusLabel("已完成批改與診斷");
-
-      } catch (err) {
-        console.error(err);
-        alert("批改時發生錯誤：" + err.message);
-        updateStatusLabel("批改失敗");
-      } finally {
-        showLoader(false);
-      }
-    }
-
-    function renderResultView() {
-      if (!evaluationResult) return;
-
-      const totalScore = evaluationResult.totalScore || 0;
-      const maxScore = evaluationResult.maxScore || 100;
-      const rate = maxScore > 0 ? (totalScore / maxScore) * 100 : 0;
-
-      $("result-attempt-id").innerText =
-        "作答紀錄：" + (evaluationResult.attemptId || "");
-      $("result-score-label").innerText =
-        "本次得分 " + totalScore.toFixed(1) + " / " + maxScore.toFixed(1);
-
-      $("result-rate-label").innerText = rate.toFixed(1) + " %";
-      $("result-rate-bar").style.width = rate.toFixed(1) + "%";
-
-      let remark = "";
-      if (rate >= 85) remark = "表現非常好！大部分概念已相當穩固，可以嘗試挑戰更多素養題。";
-      else if (rate >= 70)
-        remark =
-          "整體理解不錯，但有少數關鍵概念尚未完全穩固，建議針對紅色概念再練習。";
-      else if (rate >= 50)
-        remark =
-          "已有初步概念，但重要觀念仍較不穩定，建議重新閱讀課文並搭配 AI 診斷逐題檢視。";
-      else
-        remark =
-          "本次得分偏低，不代表你不會，而是這個單元的概念需要更有系統地重建。建議依照報告中的建議重新學習。";
-
-      $("result-remark").innerText = remark;
-
-      // 概念掌握度
-      const clist = $("result-concept-list");
-      clist.innerHTML = "";
-      const mastery = evaluationResult.conceptMastery || {};
-      const entries = Object.entries(mastery).sort((a, b) => a[0].localeCompare(b[0]));
-
-      entries.forEach(([concept, val]) => {
-        const pct = (val * 100) || 0;
-        let color = "bg-emerald-500";
-        if (pct < 50) color = "bg-rose-500";
-        else if (pct < 80) color = "bg-amber-500";
-
-        const row = document.createElement("div");
-        row.className = "flex items-center gap-2";
-
-        row.innerHTML =
-          '<div class="w-20 text-[0.72rem] text-slate-600 truncate">' +
-          concept +
-          '</div>' +
-          '<div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">' +
-          '<div class="h-full ' +
-          color +
-          ' rounded-full" style="width:' +
-          pct.toFixed(1) +
-          '%"></div>' +
-          "</div>" +
-          '<div class="w-10 text-right text-[0.7rem] text-slate-500">' +
-          pct.toFixed(0) +
-          "%</div>";
-
-        clist.appendChild(row);
-      });
-
-      // 下一步建議（以最弱的 2~3 個概念為主）
-      const weakest = entries
-        .slice()
-        .sort((a, b) => a[1] - b[1])
-        .slice(0, 3)
-        .map((x) => x[0]);
-
-      if (weakest.length > 0) {
-        $("result-next-suggestion").innerText =
-          "本次測驗中，以下概念的表現相對較弱：「" +
-          weakest.join("、") +
-          "」。建議你回到課文中相關段落，再搭配 AI 提示，重新閱讀與整理重點，之後可以針對這些概念再生成一份迷你測驗。";
-      }
-
-      // 逐題診斷
-      const qContainer = $("result-question-list");
-      qContainer.innerHTML = "";
-      (evaluationResult.questions || []).forEach((q, idx) => {
-        const card = document.createElement("div");
-        card.className = "result-card";
-
-        const header =
-          '<div class="flex items-center justify-between mb-2">' +
-          '<div class="flex items-center gap-2">' +
-          '<span class="text-[0.75rem] text-slate-400">Q' +
-          (idx + 1) +
-          "</span>" +
-          '<span class="text-[0.75rem] font-semibold text-slate-700">' +
-          q.type +
-          "</span>" +
-          "</div>" +
-          '<div class="text-[0.7rem] text-slate-500">得分 ' +
-          (q.score || 0).toFixed(1) +
-          " ／ " +
-          (q.maxScore || 0).toFixed(1) +
-          "</div>" +
-          "</div>";
-
-        const stem =
-          '<p class="text-[0.86rem] text-slate-800 leading-relaxed mb-2 whitespace-pre-wrap">' +
-          (q.stem || "") +
-          "</p>";
-
-        let studentAnsText = "";
-        if (q.type === "TF" || q.type === "SC") {
-          const idxSel =
-            q.studentAnswer && q.studentAnswer.choiceIndex != null
-              ? Number(q.studentAnswer.choiceIndex)
-              : null;
-          if (idxSel != null && q.options && q.options[idxSel] != null) {
-            studentAnsText = q.options[idxSel];
-          } else studentAnsText = "未作答";
-        } else if (q.type === "MC") {
-          const arr = (q.studentAnswer && q.studentAnswer.choiceIndices) || [];
-          if (arr.length && q.options) {
-            studentAnsText = arr
-              .map((i) => q.options[i] || "")
-              .filter((s) => s)
-              .join("、");
-          } else studentAnsText = "未作答";
-        }
-
-        let correctAnsText = "";
-        if (q.correctOptions && q.correctOptions.length && q.options) {
-          correctAnsText = q.correctOptions
-            .map((i) => q.options[i] || "")
-            .filter((s) => s)
-            .join("、");
-        }
-
-        const answerLine =
-          '<p class="text-[0.78rem] text-slate-600 mb-2">' +
-          "<span class=\"font-semibold\">你的答案：</span>" +
-          studentAnsText +
-          (correctAnsText
-            ? '　<span class="ml-2 font-semibold text-slate-500">正確答案：</span>' +
-              correctAnsText
-            : "") +
-          "</p>";
-
-        const conceptLine =
-          '<p class="text-[0.72rem] text-slate-400 mb-2">' +
-          "概念：" +
-          (q.concepts || []).join("、") +
-          (q.paragraphRefs && q.paragraphRefs.length
-            ? "　｜　課文段落：" + q.paragraphRefs.join("、")
-            : "") +
-          "</p>";
-
-        let feedbackBlock = "";
-        if (q.correctness === "correct") {
-          feedbackBlock =
-            '<div class="feedback-block-green mt-1"><strong>✅ 解析：</strong>\n' +
-            (q.aiFeedbackDetail || q.aiFeedbackShort || "") +
-            "</div>";
-        } else {
-          feedbackBlock =
-            '<div class="space-y-2 mt-1">' +
-            '<div class="feedback-block-red"><strong>❌ 錯誤原因：</strong>\n' +
-            (q.aiFeedbackShort || "") +
-            "</div>" +
-            '<div class="feedback-block-green"><strong>✅ 正確觀念：</strong>\n' +
-            (q.aiFeedbackDetail || "") +
-            "</div>" +
-            "</div>";
-        }
-
-        card.innerHTML = header + stem + answerLine + conceptLine + feedbackBlock;
-        qContainer.appendChild(card);
-      });
-    }
-
-    // === Event binding ===
-    document.addEventListener("DOMContentLoaded", () => {
-      loadUserName();
-      maybeLoadFiltersFromSession();
-
-      $("btn-generate-exam").addEventListener("click", handleGenerateExam);
-      $("btn-prev-question").addEventListener("click", () => {
-        if (!currentExam) return;
-        if (currentQuestionIndex > 0) {
-          currentQuestionIndex--;
-          renderCurrentQuestion();
-        }
-      });
-      $("btn-next-question").addEventListener("click", () => {
-        if (!currentExam) return;
-        if (currentQuestionIndex < currentExam.questions.length - 1) {
-          currentQuestionIndex++;
-          renderCurrentQuestion();
-        }
-      });
-      $("btn-submit-exam").addEventListener("click", handleSubmitExam);
-
-      $("btn-start-over").addEventListener("click", () => {
-        currentExam = null;
-        evaluationResult = null;
-        studentAnswers = {};
-        currentQuestionIndex = 0;
-        setStep(1);
-        showView("setup");
-        updateStatusLabel("尚未產生測驗");
-      });
-
-      $("btn-back-to-exam").addEventListener("click", () => {
-        if (!currentExam) return;
-        setStep(2);
-        showView("exam");
-        renderCurrentQuestion();
-      });
-
-      $("btn-new-exam").addEventListener("click", () => {
-        // 針對弱點概念再生成一份新的測驗：這裡先沿用同一設定
-        setStep(1);
-        showView("setup");
-        updateStatusLabel("可根據報告調整題數後重新產生測驗");
-      });
-
-      // 如果上一頁有設定 currentExamFilters，就顯示按鈕提示
-      if (sessionStorage.getItem("currentExamFilters")) {
-        $("btn-load-from-session").classList.remove("hidden");
-        $("btn-load-from-session").addEventListener("click", () => {
-          maybeLoadFiltersFromSession();
-        });
-      }
+  </div>
+
+<script>
+  /********************
+   * 你只需要修改：GAS_API_URL
+   ********************/
+  const GAS_API_URL = "PASTE_YOUR_GAS_WEB_APP_EXEC_URL_HERE";
+
+  /********************
+   * 登入資料存放 Key
+   * 你如果登入頁用不同 key，就改這裡
+   ********************/
+  const USER_KEY_CANDIDATES = ["SCI_HUB_USER", "studentUser", "USER", "loggedInUser"];
+
+  /********************
+   * CAT session（可選：避免刷新頁面丟失）
+   ********************/
+  const CAT_SESSION_KEY = "SCI_HUB_CAT_SESSION";
+
+  let user = null;
+  let testId = null;
+  let currentItem = null;
+  let t0 = null;
+  let timerHandle = null;
+
+  /* ---------- utils ---------- */
+  function safeParseJSON(s) { try { return JSON.parse(s); } catch { return null; } }
+  function escapeHTML(s) {
+    return String(s)
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+  function showMsg(el, text, type="info") {
+    el.classList.remove("hidden");
+    el.textContent = text;
+    el.classList.remove(
+      "bg-red-50","border-red-200","text-red-700",
+      "bg-emerald-50","border-emerald-200","text-emerald-700",
+      "bg-slate-50","border-slate-200","text-slate-700"
+    );
+    if (type === "error") el.classList.add("bg-red-50","border","border-red-200","text-red-700");
+    else if (type === "success") el.classList.add("bg-emerald-50","border","border-emerald-200","text-emerald-700");
+    else el.classList.add("bg-slate-50","border","border-slate-200","text-slate-700");
+  }
+  function hideMsg(el){ el.classList.add("hidden"); }
+
+  async function postAPI(payload) {
+    const res = await fetch(GAS_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload),
     });
-  </script>
+    const text = await res.text();
+    const data = safeParseJSON(text);
+    if (!data) throw new Error("後端未回傳 JSON。前 200 字：" + text.slice(0, 200));
+    if (data.ok === false) throw new Error(data.error || "後端回傳 ok=false");
+    return data;
+  }
+
+  function setLoading(isLoading) {
+    document.getElementById("unitLoading").classList.toggle("hidden", !isLoading);
+    document.getElementById("btnLoadUnits").disabled = isLoading;
+    document.getElementById("btnStart").disabled = isLoading;
+    document.getElementById("btnNext").disabled = isLoading || document.getElementById("btnNext").disabled;
+  }
+
+  // Grade code: TW_grade_tw_E_3 / TW_grade_tw_J_7
+  function parseGradeCode(code) {
+    if (!code || typeof code !== "string") return { stage: "國小", grade: 3 };
+    const parts = code.split("_");
+    const stageCode = parts[3]; // E / J
+    const gradeNum = parseInt(parts[4], 10);
+    const stage = (stageCode === "J") ? "國中" : "國小";
+    return { stage, grade: Number.isFinite(gradeNum) ? gradeNum : 3 };
+  }
+
+  function initGradeOptions(stage, gradeDefault) {
+    const sel = document.getElementById("selGrade");
+    sel.innerHTML = "";
+    const grades = (stage === "國中") ? [7,8,9] : [1,2,3,4,5,6];
+    grades.forEach(g => {
+      const opt = document.createElement("option");
+      opt.value = String(g);
+      opt.textContent = String(g);
+      if (g === gradeDefault) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
+
+  function getStoredUser() {
+    for (const k of USER_KEY_CANDIDATES) {
+      const raw = localStorage.getItem(k);
+      const obj = safeParseJSON(raw);
+      if (obj && obj.Role) return { key: k, obj };
+    }
+    return null;
+  }
+
+  function saveCatSession() {
+    const payload = {
+      testId,
+      currentItemId: currentItem?.item_id || null,
+      unit: {
+        stage: document.getElementById("selStage").value,
+        grade: document.getElementById("selGrade").value,
+        semester: document.getElementById("selSemester").value,
+        textbook_version: document.getElementById("selPublisher").value,
+        unit_name: document.getElementById("selUnit").value
+      }
+    };
+    localStorage.setItem(CAT_SESSION_KEY, JSON.stringify(payload));
+  }
+  function clearCatSession() {
+    localStorage.removeItem(CAT_SESSION_KEY);
+  }
+
+  /* ---------- options parsing fallback (若後端只回 stem) ---------- */
+  function parseOptionsFromStem(stem) {
+    // 嘗試從 stem 解析 A/B/C/D 選項：支援 "A." "A：" "A)" 以及換行分隔
+    if (!stem) return null;
+    const lines = String(stem).split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+    const opt = {};
+    for (const ln of lines) {
+      const m = ln.match(/^([A-D])\s*[\.\)\:：]\s*(.+)$/);
+      if (m) opt[m[1]] = m[2].trim();
+    }
+    const keys = Object.keys(opt);
+    if (keys.length >= 2) return opt; // 至少兩個選項才當作 MCQ
+    return null;
+  }
+
+  /* ---------- render item ---------- */
+  function renderItem(item) {
+    currentItem = item || null;
+
+    document.getElementById("itemId").textContent = item?.item_id || "—";
+    document.getElementById("itemFormat").textContent = item?.item_format || "—";
+    document.getElementById("qStem").textContent = item?.stem || "—";
+    document.getElementById("btnNext").disabled = true;
+
+    // reset UI blocks
+    const optBox = document.getElementById("optBox");
+    const openBox = document.getElementById("openBox");
+    optBox.innerHTML = "";
+    openBox.classList.add("hidden");
+    document.getElementById("openInput").value = "";
+
+    // Decide options
+    const options = item?.options || parseOptionsFromStem(item?.stem) || null;
+
+    if (options && typeof options === "object") {
+      // MCQ
+      for (const k of ["A","B","C","D"]) {
+        if (!(k in options)) continue;
+        const id = `opt_${k}`;
+        const row = document.createElement("label");
+        row.className = "flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer";
+        row.innerHTML = `
+          <input type="radio" name="opt" id="${id}" value="${k}" class="mt-1" />
+          <div class="text-sm">
+            <div class="font-semibold">${k}</div>
+            <div class="text-slate-700 mt-1 leading-relaxed">${escapeHTML(options[k])}</div>
+          </div>
+        `;
+        optBox.appendChild(row);
+      }
+
+      optBox.querySelectorAll('input[name="opt"]').forEach(r => {
+        r.addEventListener("change", () => {
+          document.getElementById("btnNext").disabled = false;
+        });
+      });
+    } else {
+      // Open response
+      openBox.classList.remove("hidden");
+      const inp = document.getElementById("openInput");
+      inp.addEventListener("input", () => {
+        document.getElementById("btnNext").disabled = inp.value.trim().length === 0;
+      }, { once: true });
+    }
+
+    // timer
+    t0 = Date.now();
+    if (timerHandle) clearInterval(timerHandle);
+    timerHandle = setInterval(() => {
+      if (!t0) return;
+      const sec = Math.floor((Date.now() - t0) / 1000);
+      document.getElementById("timer").textContent = `${sec}s`;
+    }, 500);
+
+    saveCatSession();
+  }
+
+  function renderResult(fin) {
+    clearCatSession();
+
+    const theta = (fin.theta !== undefined) ? fin.theta : "—";
+    const se = (fin.se !== undefined) ? fin.se : "—";
+    const score = (fin.score !== undefined) ? fin.score : "—";
+    const fb = fin.feedback_student || fin.feedback || "";
+
+    const strong = Array.isArray(fin.strong_concepts) ? fin.strong_concepts : [];
+    const weak = Array.isArray(fin.weak_concepts) ? fin.weak_concepts : [];
+
+    document.getElementById("resultBox").innerHTML = `
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div class="p-3 rounded-xl border border-slate-200 bg-slate-50">
+          <div class="text-xs text-slate-500">θ_snapshot（能力估計）</div>
+          <div class="text-lg font-semibold mt-1">${escapeHTML(theta)}</div>
+        </div>
+        <div class="p-3 rounded-xl border border-slate-200 bg-slate-50">
+          <div class="text-xs text-slate-500">SE（測量精度）</div>
+          <div class="text-lg font-semibold mt-1">${escapeHTML(se)}</div>
+        </div>
+        <div class="p-3 rounded-xl border border-slate-200 bg-slate-50">
+          <div class="text-xs text-slate-500">表現</div>
+          <div class="text-lg font-semibold mt-1">${escapeHTML(score)}</div>
+        </div>
+      </div>
+
+      <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div class="p-3 rounded-xl border border-slate-200">
+          <div class="text-sm font-semibold">相對優勢概念（concept_tag）</div>
+          <div class="mt-2 text-sm text-slate-700">${strong.length ? strong.map(escapeHTML).join("、") : "—"}</div>
+        </div>
+        <div class="p-3 rounded-xl border border-slate-200">
+          <div class="text-sm font-semibold">需要補強概念（concept_tag）</div>
+          <div class="mt-2 text-sm text-slate-700">${weak.length ? weak.map(escapeHTML).join("、") : "—"}</div>
+        </div>
+      </div>
+
+      <div class="mt-4 p-3 rounded-xl border border-slate-200">
+        <div class="text-sm font-semibold">學習回饋</div>
+        <div class="mt-2 text-sm text-slate-700 leading-relaxed whitespace-pre-line">${escapeHTML(fb || "—")}</div>
+      </div>
+    `;
+  }
+
+  /* ---------- events ---------- */
+  async function loadUnits() {
+    hideMsg(document.getElementById("unitMsg"));
+    setLoading(true);
+
+    try {
+      const stage = document.getElementById("selStage").value;
+      const grade = parseInt(document.getElementById("selGrade").value, 10);
+      const semester = document.getElementById("selSemester").value;
+
+      // 後端建議用 Sheet1 / CATItemBank 彙整選單
+      // 回傳格式建議：{ ok:true, publishers:[...], unitsByPublisher:{ "南一":[...], ... } }
+      const data = await postAPI({
+        action: "getUnitOptions",
+        stage, grade, semester,
+        subject: "自然科學",
+        // 也把學生資訊帶上（可選，方便後端記錄/限制）
+        student_id: user.StudentID,
+        school: user.SchoolName
+      });
+
+      const selPub = document.getElementById("selPublisher");
+      const selUnit = document.getElementById("selUnit");
+      selPub.innerHTML = "";
+      selUnit.innerHTML = "";
+
+      const pubs = data.publishers || [];
+      if (pubs.length === 0) {
+        selPub.innerHTML = `<option value="">（查無出版社/版本）</option>`;
+        selUnit.innerHTML = `<option value="">（請調整條件後重試）</option>`;
+        showMsg(document.getElementById("unitMsg"), "查無符合條件的單元清單。請確認後端已可從 Sheet1/CATItemBank 彙整資料。", "error");
+        return;
+      }
+
+      pubs.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p;
+        opt.textContent = p;
+        selPub.appendChild(opt);
+      });
+
+      function refreshUnits() {
+        const p = selPub.value;
+        const units = (data.unitsByPublisher && data.unitsByPublisher[p]) ? data.unitsByPublisher[p] : [];
+        selUnit.innerHTML = "";
+        if (units.length === 0) {
+          selUnit.innerHTML = `<option value="">（此版本無單元）</option>`;
+          return;
+        }
+        units.forEach(u => {
+          const opt = document.createElement("option");
+          opt.value = u;
+          opt.textContent = u;
+          selUnit.appendChild(opt);
+        });
+      }
+
+      selPub.onchange = refreshUnits;
+      refreshUnits();
+
+      showMsg(document.getElementById("unitMsg"), "單元清單已載入。", "success");
+    } catch (err) {
+      showMsg(document.getElementById("unitMsg"), "載入單元清單失敗：" + err.message, "error");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function startCAT() {
+    hideMsg(document.getElementById("catMsg"));
+    hideMsg(document.getElementById("unitMsg"));
+
+    const stage = document.getElementById("selStage").value;
+    const grade = parseInt(document.getElementById("selGrade").value, 10);
+    const semester = document.getElementById("selSemester").value;
+    const textbook_version = document.getElementById("selPublisher").value;
+    const unit_name = document.getElementById("selUnit").value;
+
+    if (!textbook_version || !unit_name) {
+      showMsg(document.getElementById("unitMsg"), "請先載入單元清單並選擇『出版社/版本』與『單元』。", "error");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const data = await postAPI({
+        action: "startCAT",
+        student: {
+          student_id: user.StudentID,          // USER_DB: StudentID
+          name: user.Name,
+          email: user.Email,
+          grade_code: user.Grade,              // USER_DB: Grade（例如 TW_grade_tw_E_3）
+          class: user.Class,                   // USER_DB: Class
+          school: user.SchoolName              // USER_DB: SchoolName
+        },
+        unit: {
+          stage,                               // Sheet1: 中小學
+          subject: "自然科學",                 // Sheet1: 科目 / ItemBank: subject
+          grade,                               // Sheet1: 年級 / ItemBank: grade
+          semester,                            // Sheet1: 學期 / ItemBank: semester
+          textbook_version,                    // Sheet1: 出版社 / ItemBank: textbook_version
+          unit_name                            // ItemBank: unit_name（後端可映射 Sheet1: 課名/課別/課名）
+        },
+        settings: {
+          max_items: 15,
+          stop_se: 0.35
+        }
+      });
+
+      testId = data.test_id;
+      document.getElementById("testId").textContent = testId || "—";
+      document.getElementById("progress").textContent = `${data.progress?.n_admin ?? 0} / ${data.progress?.max_items ?? 0}`;
+
+      renderItem(data.item);
+      showMsg(document.getElementById("catMsg"), "測驗開始。請作答。", "success");
+
+      // reset result box
+      document.getElementById("resultBox").textContent = "測驗進行中…";
+    } catch (err) {
+      showMsg(document.getElementById("catMsg"), "開始測驗失敗：" + err.message, "error");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function getResponseOption() {
+    const checked = document.querySelector('input[name="opt"]:checked');
+    if (checked) return checked.value; // A/B/C/D
+    const open = document.getElementById("openInput");
+    if (!open.classList.contains("hidden") && open.value.trim()) return open.value.trim();
+    return "";
+  }
+
+  async function submitAndNext() {
+    hideMsg(document.getElementById("catMsg"));
+
+    if (!testId || !currentItem?.item_id) {
+      showMsg(document.getElementById("catMsg"), "測驗尚未開始或題目遺失。請重新開始測驗。", "error");
+      return;
+    }
+
+    const response_option = getResponseOption();
+    if (!response_option) return;
+
+    const time_ms = t0 ? (Date.now() - t0) : null;
+    document.getElementById("btnNext").disabled = true;
+
+    try {
+      const data = await postAPI({
+        action: "submitAndNext",
+        test_id: testId,
+        student_id: user.StudentID,            // CATresponse: student_id
+        item_id: currentItem.item_id,          // CATresponse: item_id
+        response_option,                       // CATresponse: response_option
+        time_ms,                               // 若你後端不寫，可忽略
+        // 下面三個是你 CATresponse 表上有的欄位（grade/class/school）
+        grade: user.Grade,                     // 直接寫 grade code 或你也可改成數字年級（由後端統一）
+        class: user.Class,
+        school: user.SchoolName
+      });
+
+      document.getElementById("progress").textContent = `${data.progress?.n_admin ?? 0} / ${data.progress?.max_items ?? 0}`;
+
+      if (data.done) {
+        // finishCAT：後端負責彙整 CATresponse + CATItemBank（IRT_a/b/c、concept_tag、correct_key 等）
+        const fin = await postAPI({ action: "finishCAT", test_id: testId, student_id: user.StudentID });
+        renderResult(fin);
+
+        // clear question area
+        document.getElementById("qStem").textContent = "測驗已完成。";
+        document.getElementById("optBox").innerHTML = "";
+        document.getElementById("openBox").classList.add("hidden");
+        document.getElementById("timer").textContent = "—";
+        document.getElementById("itemId").textContent = "—";
+        document.getElementById("itemFormat").textContent = "—";
+        showMsg(document.getElementById("catMsg"), "測驗完成。請查看下方回饋。", "success");
+        return;
+      }
+
+      // next item
+      renderItem(data.item);
+    } catch (err) {
+      showMsg(document.getElementById("catMsg"), "送出失敗：" + err.message, "error");
+      document.getElementById("btnNext").disabled = false;
+    }
+  }
+
+  function logout() {
+    // 只清掉登入資訊（你若用多個 key，這裡可一併清）
+    for (const k of USER_KEY_CANDIDATES) localStorage.removeItem(k);
+    clearCatSession();
+    window.location.href = "student.html";
+  }
+
+  function goBack() {
+    window.location.href = "student.html";
+  }
+
+  /* ---------- init ---------- */
+  function init() {
+    const found = getStoredUser();
+    const warn = document.getElementById("authWarn");
+
+    if (!found || !found.obj || found.obj.Role !== "student") {
+      showMsg(warn, "未偵測到有效登入狀態（Role=student）。請回到 student.html 登入後再進入本頁。", "error");
+      return;
+    }
+
+    user = found.obj;
+
+    // 顯示學生資料（對應 USER_DB 欄位）
+    document.getElementById("userLine").textContent = `${user.Name}（${user.Email}）`;
+    document.getElementById("userSub").textContent = `${user.SchoolName}｜班級：${user.Class}｜StudentID：${user.StudentID}`;
+    document.getElementById("badgeRole").textContent = user.Role;
+    document.getElementById("badgeClass").textContent = `Class ${user.Class}`;
+    document.getElementById("badgeStudentID").textContent = `ID ${user.StudentID}`;
+
+    // 由 Grade code 推斷 stage + numeric grade，供選單預設
+    const { stage, grade } = parseGradeCode(user.Grade);
+    document.getElementById("selStage").value = stage;
+    initGradeOptions(stage, grade);
+    document.getElementById("badgeGrade").textContent = `${stage} ${grade}年級`;
+
+    // stage 變動 → 重建 grade 選單
+    document.getElementById("selStage").addEventListener("change", () => {
+      const st = document.getElementById("selStage").value;
+      initGradeOptions(st, st === "國中" ? 7 : 3);
+    });
+
+    // buttons
+    document.getElementById("btnLoadUnits").addEventListener("click", loadUnits);
+    document.getElementById("btnStart").addEventListener("click", startCAT);
+    document.getElementById("btnNext").addEventListener("click", submitAndNext);
+    document.getElementById("btnLogout").addEventListener("click", logout);
+    document.getElementById("btnBack").addEventListener("click", goBack);
+
+    // 若你想要「進頁面自動載入單元」→ 取消下一行註解
+    // loadUnits();
+  }
+
+  init();
+</script>
 </body>
 </html>
