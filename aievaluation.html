@@ -2,688 +2,432 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Science Learning Hub | CAT 適性測驗</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>AI 評分診斷 | aievaluation</title>
 
   <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Fonts (選用：你可改成你整個系統一致的字體) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
-    body { font-family: "Noto Serif TC", ui-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Microsoft JhengHei", sans-serif; }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    body {
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      font-family: "Microsoft JhengHei", sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.7);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.08);
+    }
+    .loader {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3b82f6;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   </style>
 </head>
 
-<body class="bg-slate-50 text-slate-900">
-  <div class="max-w-5xl mx-auto p-4 md:p-6">
+<body class="text-slate-800 min-h-screen flex flex-col">
 
-    <!-- Header -->
-    <header class="mb-4">
-      <div class="flex items-start justify-between gap-3">
-        <div>
-          <h1 class="text-xl md:text-2xl font-semibold">CAT 適性測驗（子頁）</h1>
-          <p class="text-sm text-slate-600">本頁只負責：選單元 → CAT 作答 → 結果回饋（不含 AI 摘要頁）。</p>
+  <!-- Top bar -->
+  <nav class="glass-panel sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
+    <div class="flex items-center gap-3">
+      <a href="student.html" class="group flex items-center gap-2 text-slate-500 hover:text-blue-600 transition decoration-0">
+        <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow group-hover:shadow-md transition">
+          <i class="fa-solid fa-arrow-left"></i>
         </div>
-        <div class="flex gap-2">
-          <button id="btnBack" class="text-sm px-3 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-100">
-            回主頁
-          </button>
-          <button id="btnLogout" class="text-sm px-3 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-100">
-            登出
-          </button>
-        </div>
+        <span class="font-bold hidden md:block">返回學習中心</span>
+      </a>
+      <div class="h-8 w-px bg-slate-300 mx-2 hidden sm:block"></div>
+      <div class="hidden sm:block">
+        <h1 class="font-bold text-lg">AI 評分診斷</h1>
+        <p class="text-xs text-slate-500">教材參數設定 → 連線載入資料庫</p>
       </div>
-    </header>
+    </div>
 
-    <!-- User Card -->
-    <section class="bg-white border border-slate-200 rounded-2xl p-4 md:p-5 shadow-sm mb-4">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-        <div>
-          <div class="text-sm text-slate-500">登入學生</div>
-          <div id="userLine" class="text-base font-semibold">讀取中…</div>
-          <div id="userSub" class="text-sm text-slate-600 mt-1"></div>
-        </div>
-        <div class="flex flex-wrap gap-2">
-          <span id="badgeRole" class="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">role</span>
-          <span id="badgeGrade" class="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">grade</span>
-          <span id="badgeClass" class="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">class</span>
-          <span id="badgeStudentID" class="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">student_id</span>
-        </div>
-      </div>
-      <div id="authWarn" class="hidden mt-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl p-3"></div>
-    </section>
+    <div class="flex items-center gap-2 pl-2 border-l border-slate-300">
+      <div id="user-info" class="text-sm font-bold text-blue-600">訪客</div>
+    </div>
+  </nav>
 
-    <!-- Unit Selector -->
-    <section class="bg-white border border-slate-200 rounded-2xl p-4 md:p-5 shadow-sm mb-4">
-      <div class="flex items-center justify-between gap-3">
-        <h2 class="text-base font-semibold">1) 選擇教材單元（Sheet1 / CATItemBank）</h2>
-        <div id="unitLoading" class="hidden text-sm text-slate-500">載入中…</div>
+  <main class="max-w-7xl mx-auto px-4 py-8 flex-1 w-full pb-24">
+
+    <!-- Selection Panel -->
+    <div id="selection-panel" class="glass-panel rounded-2xl p-6 mb-8">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="font-bold text-lg flex items-center gap-2">
+          <i class="fa-solid fa-database"></i>
+          <span>教材參數設定</span>
+        </h2>
+        <span id="db-status" class="text-xs font-bold text-orange-500">
+          <i class="fa-solid fa-circle-notch fa-spin"></i> Loading...
+        </span>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-5 gap-3 mt-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
         <div>
-          <label class="block text-xs text-slate-600 mb-1">中小學（Sheet1: 中小學）</label>
-          <select id="selStage" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white">
-            <option value="國小">國小</option>
-            <option value="國中">國中</option>
+          <label class="text-xs font-bold text-slate-500 ml-1">學習階段</label>
+          <select id="sel-stage" class="w-full p-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-blue-500">
+            <option value="" disabled selected>Loading...</option>
           </select>
         </div>
+
         <div>
-          <label class="block text-xs text-slate-600 mb-1">年級（Sheet1: 年級 / ItemBank: grade）</label>
-          <select id="selGrade" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white"></select>
-        </div>
-        <div>
-          <label class="block text-xs text-slate-600 mb-1">學期（Sheet1: 學期 / ItemBank: semester）</label>
-          <select id="selSemester" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white">
-            <option value="上">上</option>
-            <option value="下">下</option>
+          <label class="text-xs font-bold text-slate-500 ml-1">版本</label>
+          <select id="sel-publisher" disabled class="w-full p-2.5 rounded-xl border border-slate-200 text-sm outline-none disabled:bg-slate-50">
+            <option value="" disabled selected>Select...</option>
           </select>
         </div>
+
         <div>
-          <label class="block text-xs text-slate-600 mb-1">出版社/版本（Sheet1: 出版社 / ItemBank: textbook_version）</label>
-          <select id="selPublisher" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white">
-            <option value="">（請先載入）</option>
+          <label class="text-xs font-bold text-slate-500 ml-1">年級</label>
+          <select id="sel-grade" disabled class="w-full p-2.5 rounded-xl border border-slate-200 text-sm outline-none disabled:bg-slate-50">
+            <option value="" disabled selected>Select...</option>
           </select>
         </div>
+
         <div>
-          <label class="block text-xs text-slate-600 mb-1">單元（ItemBank: unit_name）</label>
-          <select id="selUnit" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white">
-            <option value="">（請先載入）</option>
+          <label class="text-xs font-bold text-slate-500 ml-1">學期</label>
+          <select id="sel-semester" disabled class="w-full p-2.5 rounded-xl border border-slate-200 text-sm outline-none disabled:bg-slate-50">
+            <option value="" disabled selected>Select...</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="text-xs font-bold text-slate-500 ml-1">單元名稱</label>
+          <select id="sel-unit" disabled class="w-full p-2.5 rounded-xl border border-slate-200 text-sm outline-none disabled:bg-slate-50">
+            <option value="" disabled selected>Select...</option>
           </select>
         </div>
       </div>
 
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mt-4">
-        <div class="text-sm text-slate-600">
-          <span class="font-semibold">提醒：</span>單元摘要在另一頁已完成；本頁只進行 CAT 測驗與回饋。
-        </div>
-        <div class="flex gap-2">
-          <button id="btnLoadUnits" class="px-4 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-100">
-            載入單元清單
-          </button>
-          <button id="btnStart" class="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800">
-            開始 CAT 測驗
-          </button>
-        </div>
+      <div class="mt-6 flex flex-col sm:flex-row gap-3 justify-end">
+        <button id="btn-reload" type="button"
+          class="bg-slate-100 text-slate-700 px-6 py-2.5 rounded-xl font-bold border border-slate-200 hover:bg-slate-200 transition flex items-center gap-2"
+          onclick="reloadMetadata()">
+          <i class="fa-solid fa-rotate"></i> 重新載入資料庫
+        </button>
+
+        <button id="btn-evaluate" type="button" disabled
+          class="bg-emerald-600 text-white px-8 py-2.5 rounded-xl font-bold shadow-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-2"
+          onclick="startEvaluation()">
+          <i class="fa-solid fa-clipboard-check"></i> 開始評分診斷
+        </button>
       </div>
 
-      <div id="unitMsg" class="hidden mt-3 text-sm rounded-xl p-3"></div>
-    </section>
-
-    <!-- CAT Area -->
-    <section class="bg-white border border-slate-200 rounded-2xl p-4 md:p-5 shadow-sm mb-4">
-      <div class="flex items-center justify-between gap-3">
-        <h2 class="text-base font-semibold">2) CAT 作答</h2>
-        <div class="text-sm text-slate-600">
-          場次：<span id="testId" class="mono">—</span>
-        </div>
+      <div class="mt-4 text-xs text-slate-500">
+        <span class="font-semibold">提示：</span>這頁只要 GAS 的 <code>action=get_metadata</code> 回傳成功，即可正常帶出下拉選單。
       </div>
+    </div>
 
-      <div class="mt-3 flex items-center justify-between gap-3">
-        <div class="text-sm text-slate-600">
-          進度：<span id="progress" class="font-semibold">0 / 0</span>
-        </div>
-        <div class="text-sm text-slate-600">
-          作答時間：<span id="timer" class="mono">—</span>
-        </div>
-      </div>
-
-      <div id="qBox" class="mt-4 border border-slate-200 rounded-2xl p-4 bg-white">
-        <div class="text-xs text-slate-500">題目（CATItemBank: stem / item_format）</div>
-        <div id="qStem" class="mt-2 text-base leading-relaxed">尚未開始測驗。</div>
-
-        <!-- MCQ options -->
-        <div id="optBox" class="mt-4 space-y-2"></div>
-
-        <!-- Open response (fallback) -->
-        <div id="openBox" class="hidden mt-4">
-          <label class="block text-xs text-slate-600 mb-1">作答（若此題非選擇題）</label>
-          <input id="openInput" type="text"
-                 class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white"
-                 placeholder="請輸入你的答案（系統會寫入 CATresponse.response_option）" />
-        </div>
-
-        <div class="mt-4 flex items-center justify-between gap-2">
-          <div class="text-xs text-slate-500">
-            item_id：<span id="itemId" class="mono">—</span>
-            <span class="mx-2">|</span>
-            item_format：<span id="itemFormat" class="mono">—</span>
-          </div>
-          <button id="btnNext"
-                  class="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-40"
-                  disabled>
-            下一題
-          </button>
-        </div>
-
-        <div id="catMsg" class="hidden mt-3 text-sm rounded-xl p-3"></div>
-      </div>
-    </section>
+    <!-- Loading -->
+    <div id="loading-view" class="hidden flex-col items-center justify-center py-20">
+      <div class="loader mb-4"></div>
+      <h3 class="text-xl font-bold text-slate-700">載入評分診斷中...</h3>
+      <p class="text-sm text-slate-500 mt-2">（若你的後端尚未實作對應 action，這一步會提示錯誤，但資料庫載入仍可正常運作。）</p>
+    </div>
 
     <!-- Result -->
-    <section class="bg-white border border-slate-200 rounded-2xl p-4 md:p-5 shadow-sm">
-      <h2 class="text-base font-semibold">3) 測驗結果與回饋（finishCAT）</h2>
-      <div id="resultBox" class="mt-3 text-sm text-slate-600">
-        尚未完成測驗。
-      </div>
-    </section>
-
-  </div>
-
-<script>
-  /********************
-   * 你只需要修改：GAS_API_URL
-   ********************/
-  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxvAOgRDBE6T-2R37UeTzo0RSQukgGOlEYyBrTw8zUSOlIKNIzLdJXozjNx4Hn6brc2/exec";
-
-  /********************
-   * 登入資料存放 Key
-   * 你如果登入頁用不同 key，就改這裡
-   ********************/
-  const USER_KEY_CANDIDATES = ["SCI_HUB_USER", "studentUser", "USER", "loggedInUser"];
-
-  /********************
-   * CAT session（可選：避免刷新頁面丟失）
-   ********************/
-  const CAT_SESSION_KEY = "SCI_HUB_CAT_SESSION";
-
-  let user = null;
-  let testId = null;
-  let currentItem = null;
-  let t0 = null;
-  let timerHandle = null;
-
-  /* ---------- utils ---------- */
-  function safeParseJSON(s) { try { return JSON.parse(s); } catch { return null; } }
-  function escapeHTML(s) {
-    return String(s)
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#039;");
-  }
-  function showMsg(el, text, type="info") {
-    el.classList.remove("hidden");
-    el.textContent = text;
-    el.classList.remove(
-      "bg-red-50","border-red-200","text-red-700",
-      "bg-emerald-50","border-emerald-200","text-emerald-700",
-      "bg-slate-50","border-slate-200","text-slate-700"
-    );
-    if (type === "error") el.classList.add("bg-red-50","border","border-red-200","text-red-700");
-    else if (type === "success") el.classList.add("bg-emerald-50","border","border-emerald-200","text-emerald-700");
-    else el.classList.add("bg-slate-50","border","border-slate-200","text-slate-700");
-  }
-  function hideMsg(el){ el.classList.add("hidden"); }
-
-  async function postAPI(payload) {
-    const res = await fetch(GAS_API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify(payload),
-    });
-    const text = await res.text();
-    const data = safeParseJSON(text);
-    if (!data) throw new Error("後端未回傳 JSON。前 200 字：" + text.slice(0, 200));
-    if (data.ok === false) throw new Error(data.error || "後端回傳 ok=false");
-    return data;
-  }
-
-  function setLoading(isLoading) {
-    document.getElementById("unitLoading").classList.toggle("hidden", !isLoading);
-    document.getElementById("btnLoadUnits").disabled = isLoading;
-    document.getElementById("btnStart").disabled = isLoading;
-    document.getElementById("btnNext").disabled = isLoading || document.getElementById("btnNext").disabled;
-  }
-
-  // Grade code: TW_grade_tw_E_3 / TW_grade_tw_J_7
-  function parseGradeCode(code) {
-    if (!code || typeof code !== "string") return { stage: "國小", grade: 3 };
-    const parts = code.split("_");
-    const stageCode = parts[3]; // E / J
-    const gradeNum = parseInt(parts[4], 10);
-    const stage = (stageCode === "J") ? "國中" : "國小";
-    return { stage, grade: Number.isFinite(gradeNum) ? gradeNum : 3 };
-  }
-
-  function initGradeOptions(stage, gradeDefault) {
-    const sel = document.getElementById("selGrade");
-    sel.innerHTML = "";
-    const grades = (stage === "國中") ? [7,8,9] : [1,2,3,4,5,6];
-    grades.forEach(g => {
-      const opt = document.createElement("option");
-      opt.value = String(g);
-      opt.textContent = String(g);
-      if (g === gradeDefault) opt.selected = true;
-      sel.appendChild(opt);
-    });
-  }
-
-  function getStoredUser() {
-    for (const k of USER_KEY_CANDIDATES) {
-      const raw = localStorage.getItem(k);
-      const obj = safeParseJSON(raw);
-      if (obj && obj.Role) return { key: k, obj };
-    }
-    return null;
-  }
-
-  function saveCatSession() {
-    const payload = {
-      testId,
-      currentItemId: currentItem?.item_id || null,
-      unit: {
-        stage: document.getElementById("selStage").value,
-        grade: document.getElementById("selGrade").value,
-        semester: document.getElementById("selSemester").value,
-        textbook_version: document.getElementById("selPublisher").value,
-        unit_name: document.getElementById("selUnit").value
-      }
-    };
-    localStorage.setItem(CAT_SESSION_KEY, JSON.stringify(payload));
-  }
-  function clearCatSession() {
-    localStorage.removeItem(CAT_SESSION_KEY);
-  }
-
-  /* ---------- options parsing fallback (若後端只回 stem) ---------- */
-  function parseOptionsFromStem(stem) {
-    // 嘗試從 stem 解析 A/B/C/D 選項：支援 "A." "A：" "A)" 以及換行分隔
-    if (!stem) return null;
-    const lines = String(stem).split(/\r?\n/).map(s => s.trim()).filter(Boolean);
-    const opt = {};
-    for (const ln of lines) {
-      const m = ln.match(/^([A-D])\s*[\.\)\:：]\s*(.+)$/);
-      if (m) opt[m[1]] = m[2].trim();
-    }
-    const keys = Object.keys(opt);
-    if (keys.length >= 2) return opt; // 至少兩個選項才當作 MCQ
-    return null;
-  }
-
-  /* ---------- render item ---------- */
-  function renderItem(item) {
-    currentItem = item || null;
-
-    document.getElementById("itemId").textContent = item?.item_id || "—";
-    document.getElementById("itemFormat").textContent = item?.item_format || "—";
-    document.getElementById("qStem").textContent = item?.stem || "—";
-    document.getElementById("btnNext").disabled = true;
-
-    // reset UI blocks
-    const optBox = document.getElementById("optBox");
-    const openBox = document.getElementById("openBox");
-    optBox.innerHTML = "";
-    openBox.classList.add("hidden");
-
-    const openInput = document.getElementById("openInput");
-    openInput.value = "";
-    openInput.oninput = null;
-
-    // Decide options
-    const options = item?.options || parseOptionsFromStem(item?.stem) || null;
-
-    if (options && typeof options === "object") {
-      // MCQ
-      for (const k of ["A","B","C","D"]) {
-        if (!(k in options)) continue;
-        const id = `opt_${k}`;
-        const row = document.createElement("label");
-        row.className = "flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer";
-        row.innerHTML = `
-          <input type="radio" name="opt" id="${id}" value="${k}" class="mt-1" />
-          <div class="text-sm">
-            <div class="font-semibold">${k}</div>
-            <div class="text-slate-700 mt-1 leading-relaxed">${escapeHTML(options[k])}</div>
+    <div id="result-view" class="hidden">
+      <div class="glass-panel rounded-2xl p-6">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <div class="text-xs font-bold text-slate-500">目前選擇</div>
+            <div id="result-title" class="text-xl font-black text-slate-800 mt-1">—</div>
           </div>
-        `;
-        optBox.appendChild(row);
-      }
+          <button type="button"
+            class="bg-slate-100 text-slate-700 px-6 py-2.5 rounded-xl font-bold border border-slate-200 hover:bg-slate-200 transition"
+            onclick="backToSelection()">
+            返回參數設定
+          </button>
+        </div>
 
-      optBox.querySelectorAll('input[name="opt"]').forEach(r => {
-        r.addEventListener("change", () => {
-          document.getElementById("btnNext").disabled = false;
-        });
-      });
-    } else {
-      // Open response
-      openBox.classList.remove("hidden");
-      const inp = document.getElementById("openInput");
-      inp.oninput = () => {
-        document.getElementById("btnNext").disabled = inp.value.trim().length === 0;
-      };
-      document.getElementById("btnNext").disabled = inp.value.trim().length === 0;
+        <div class="mt-5">
+          <div class="text-sm font-bold text-slate-700 mb-2">系統回傳</div>
+          <pre id="result-json" class="text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 overflow-auto max-h-[50vh] whitespace-pre-wrap">—</pre>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    // === 1) 這裡改成你的 GAS Web App URL（你貼的成功版本就是這條）===
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxBWrZCp-xLckDGZnhe64K0IUa_8CJZRzqZbrgL8lQdNn3S1WgaEzbdOtpo4mGwN6_H/exec";
+
+    // === 2) 這一段就是你「成功載入資料庫」那份 HTML 的核心（完整搬過來）===
+    let allData = [];
+    let filters = {};
+
+    window.onload = async () => {
+      // 顯示登入者（同時支援 sessionStorage / localStorage）
+      const user = JSON.parse(sessionStorage.getItem("currentUser") || localStorage.getItem("currentUser") || '{"name":"訪客"}');
+      const userInfo = document.getElementById("user-info");
+      if (userInfo) userInfo.innerText = user.name;
+
+      await loadMetadataAndInit();
+    };
+
+    async function reloadMetadata() {
+      // 重置 UI
+      allData = [];
+      filters = {};
+      setDBStatusLoading();
+      resetAllSelectors();
+      await loadMetadataAndInit();
     }
 
-    // timer
-    t0 = Date.now();
-    if (timerHandle) clearInterval(timerHandle);
-    timerHandle = setInterval(() => {
-      if (!t0) return;
-      const sec = Math.floor((Date.now() - t0) / 1000);
-      document.getElementById("timer").textContent = `${sec}s`;
-    }, 500);
-
-    saveCatSession();
-  }
-
-  function renderResult(fin) {
-    clearCatSession();
-
-    const theta = (fin.theta !== undefined) ? fin.theta : "—";
-    const se = (fin.se !== undefined) ? fin.se : "—";
-    const score = (fin.score !== undefined) ? fin.score : "—";
-    const fb = fin.feedback_student || fin.feedback || "";
-
-    const strong = Array.isArray(fin.strong_concepts) ? fin.strong_concepts : [];
-    const weak = Array.isArray(fin.weak_concepts) ? fin.weak_concepts : [];
-    const wrong = Array.isArray(fin.wrong_items) ? fin.wrong_items : [];
-
-    const wrongHTML = wrong.length ? `
-      <div class="mt-4 p-3 rounded-xl border border-slate-200">
-        <div class="text-sm font-semibold">錯題與建議回看位置</div>
-        <div class="mt-2 text-sm text-slate-700 space-y-1">
-          ${wrong.map(w => {
-            const parts = [];
-            if (w.concept_tag) parts.push(escapeHTML(w.concept_tag));
-            if (w.textbook_source) parts.push(escapeHTML(w.textbook_source));
-            const suffix = parts.length ? `（${parts.join("｜")}）` : "";
-            return `<div>• ${escapeHTML(w.item_id || "")}${suffix}</div>`;
-          }).join("")}
-        </div>
-      </div>
-    ` : "";
-
-    document.getElementById("resultBox").innerHTML = `
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <div class="p-3 rounded-xl border border-slate-200 bg-slate-50">
-          <div class="text-xs text-slate-500">θ_snapshot（能力估計）</div>
-          <div class="text-lg font-semibold mt-1">${escapeHTML(theta)}</div>
-        </div>
-        <div class="p-3 rounded-xl border border-slate-200 bg-slate-50">
-          <div class="text-xs text-slate-500">SE（測量精度）</div>
-          <div class="text-lg font-semibold mt-1">${escapeHTML(se)}</div>
-        </div>
-        <div class="p-3 rounded-xl border border-slate-200 bg-slate-50">
-          <div class="text-xs text-slate-500">表現</div>
-          <div class="text-lg font-semibold mt-1">${escapeHTML(score)}</div>
-        </div>
-      </div>
-
-      <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div class="p-3 rounded-xl border border-slate-200">
-          <div class="text-sm font-semibold">相對優勢概念（concept_tag）</div>
-          <div class="mt-2 text-sm text-slate-700">${strong.length ? strong.map(escapeHTML).join("、") : "—"}</div>
-        </div>
-        <div class="p-3 rounded-xl border border-slate-200">
-          <div class="text-sm font-semibold">需要補強概念（concept_tag）</div>
-          <div class="mt-2 text-sm text-slate-700">${weak.length ? weak.map(escapeHTML).join("、") : "—"}</div>
-        </div>
-      </div>
-
-      ${wrongHTML}
-
-      <div class="mt-4 p-3 rounded-xl border border-slate-200">
-        <div class="text-sm font-semibold">學習回饋</div>
-        <div class="mt-2 text-sm text-slate-700 leading-relaxed whitespace-pre-line">${escapeHTML(fb || "—")}</div>
-      </div>
-    `;
-  }
-
-  /* ---------- events ---------- */
-  async function loadUnits() {
-    hideMsg(document.getElementById("unitMsg"));
-    setLoading(true);
-
-    try {
-      const stage = document.getElementById("selStage").value;
-      const grade = parseInt(document.getElementById("selGrade").value, 10);
-      const semester = document.getElementById("selSemester").value;
-
-      // 後端建議用 Sheet1 / CATItemBank 彙整選單
-      // 回傳格式建議：{ ok:true, publishers:[...], unitsByPublisher:{ "南一":[...], ... } }
-      const data = await postAPI({
-        action: "getUnitOptions",
-        stage, grade, semester,
-        subject: "自然科學",
-        // 也把學生資訊帶上（可選，方便後端記錄/限制）
-        student_id: user.StudentID,
-        school: user.SchoolName
-      });
-
-      const selPub = document.getElementById("selPublisher");
-      const selUnit = document.getElementById("selUnit");
-      selPub.innerHTML = "";
-      selUnit.innerHTML = "";
-
-      const pubs = data.publishers || [];
-      if (pubs.length === 0) {
-        selPub.innerHTML = `<option value="">（查無出版社/版本）</option>`;
-        selUnit.innerHTML = `<option value="">（請調整條件後重試）</option>`;
-        showMsg(document.getElementById("unitMsg"), "查無符合條件的單元清單。請確認後端已可從 Sheet1/CATItemBank 彙整資料。", "error");
-        return;
+    async function loadMetadataAndInit() {
+      const selStage = document.getElementById("sel-stage");
+      if (selStage) {
+        selStage.innerHTML = '<option value="" disabled selected>Loading...</option>';
+        selStage.disabled = true;
       }
 
-      pubs.forEach(p => {
+      try {
+        // 加上 ts 避免快取造成「舊資料／無更新」問題（iOS Safari 特別常見）
+        const res = await fetch(GAS_API_URL + "?action=get_metadata&ts=" + Date.now());
+        if (!res.ok) throw new Error(`伺服器 HTTP 錯誤: ${res.status}`);
+
+        const text = await res.text();
+        let json;
+        try {
+          json = JSON.parse(text);
+        } catch (parseError) {
+          console.error("JSON 解析失敗的原始文本:", text);
+          throw new Error(`API 回應格式錯誤，原始內容開頭: ${text.substring(0, 50)}...`);
+        }
+
+        if (json.status === "success") {
+          allData = json.data || [];
+
+          setDBStatusSuccess(allData.length);
+
+          // 初始化五層下拉
+          initSelectors();
+        } else {
+          throw new Error(json.message || "API 回應狀態非成功");
+        }
+      } catch (e) {
+        console.error("載入元數據失敗:", e);
+        setDBStatusFail(e.message);
+
+        if (selStage) {
+          selStage.innerHTML = '<option value="" disabled selected>連線失敗，請重試...</option>';
+          selStage.disabled = true;
+        }
+
+        alert(`無法載入資料庫！\n錯誤訊息: ${e.message}`);
+      }
+    }
+
+    function setDBStatusLoading() {
+      const dbStatus = document.getElementById("db-status");
+      if (!dbStatus) return;
+      dbStatus.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Loading...`;
+      dbStatus.className = "text-xs font-bold text-orange-500";
+    }
+
+    function setDBStatusSuccess(n) {
+      const dbStatus = document.getElementById("db-status");
+      if (!dbStatus) return;
+      dbStatus.innerHTML = `<i class="fa-solid fa-check"></i> 資料庫連線成功（${n}筆）`;
+      dbStatus.className = "text-xs font-bold text-green-600";
+    }
+
+    function setDBStatusFail(msg) {
+      const dbStatus = document.getElementById("db-status");
+      if (!dbStatus) return;
+      dbStatus.innerText = "連線失敗";
+      dbStatus.className = "text-xs font-bold text-red-500";
+      console.log("DB fail reason:", msg);
+    }
+
+    function resetAllSelectors() {
+      const ids = ["sel-stage", "sel-publisher", "sel-grade", "sel-semester", "sel-unit"];
+      ids.forEach((id, idx) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = `<option value="" disabled selected>${idx === 0 ? "Loading..." : "Select..."}</option>`;
+        el.disabled = (idx !== 0);
+      });
+      const btn = document.getElementById("btn-evaluate");
+      if (btn) btn.disabled = true;
+    }
+
+    function initSelectors() {
+      // 注意：這裡依賴你後端 get_metadata 回傳的欄位名稱：
+      // stage, publisher, grade, semester, unitName, unitType（與你成功頁一致）
+      const stages = [...new Set((allData || []).map(d => d.stage))].filter(Boolean);
+      populate("sel-stage", stages);
+
+      const selStage = document.getElementById("sel-stage");
+      const selPublisher = document.getElementById("sel-publisher");
+      const selGrade = document.getElementById("sel-grade");
+      const selSemester = document.getElementById("sel-semester");
+      const selUnit = document.getElementById("sel-unit");
+
+      if (selStage) selStage.onchange = (e) => updateLevel(1, e.target.value);
+      if (selPublisher) selPublisher.onchange = (e) => updateLevel(2, e.target.value);
+      if (selGrade) selGrade.onchange = (e) => updateLevel(3, e.target.value);
+      if (selSemester) selSemester.onchange = (e) => updateLevel(4, e.target.value);
+
+      if (selUnit) {
+        selUnit.onchange = (e) => {
+          filters.unitName = e.target.value;
+          const btn = document.getElementById("btn-evaluate");
+          if (btn) btn.disabled = false;
+        };
+      }
+    }
+
+    function updateLevel(level, value) {
+      if (level === 1) filters = { stage: value };
+      if (level === 2) { filters.publisher = value; delete filters.grade; delete filters.semester; delete filters.unitName; }
+      if (level === 3) { filters.grade = value; delete filters.semester; delete filters.unitName; }
+      if (level === 4) { filters.semester = value; delete filters.unitName; }
+
+      // 依你的成功版本：只清除後續層級
+      const ids = ["sel-publisher", "sel-grade", "sel-semester", "sel-unit"];
+      for (let i = level; i < 4; i++) {
+        const el = document.getElementById(ids[i]);
+        if (!el) continue;
+        el.innerHTML = '<option disabled selected>Select...</option>';
+        el.disabled = true;
+      }
+
+      const btn = document.getElementById("btn-evaluate");
+      if (btn) btn.disabled = true;
+
+      const relevantData = (allData || []).filter(d => {
+        const safeMatch = (dVal, fVal) => !fVal || String(dVal ?? "").trim() == String(fVal ?? "").trim();
+        return safeMatch(d.stage, filters.stage) &&
+               safeMatch(d.publisher, filters.publisher) &&
+               safeMatch(d.grade, filters.grade) &&
+               safeMatch(d.semester, filters.semester);
+      });
+
+      if (level === 1) {
+        populate("sel-publisher", [...new Set(relevantData.map(d => d.publisher))].filter(Boolean));
+      }
+
+      if (level === 2) {
+        populate("sel-grade", [...new Set(relevantData.map(d => d.grade))].filter(Boolean).sort((a,b)=>a-b), "grade");
+      }
+
+      if (level === 3) {
+        populate("sel-semester", [...new Set(relevantData.map(d => d.semester))].filter(Boolean), "semester");
+      }
+
+      if (level === 4) {
+        const unitSelect = document.getElementById("sel-unit");
+        if (!unitSelect) return;
+
+        unitSelect.innerHTML = '<option disabled selected>Select...</option>';
+
+        if (relevantData.length > 0) {
+          relevantData.forEach(d => {
+            const opt = document.createElement("option");
+            opt.value = d.unitName;
+            opt.text = (d.unitType && !isNaN(d.unitType)) ? `第${d.unitType}課 ${d.unitName}` : d.unitName;
+            unitSelect.add(opt);
+          });
+          unitSelect.disabled = false;
+        }
+      }
+    }
+
+    function populate(id, list, type) {
+      const el = document.getElementById(id);
+      if (!el) return;
+
+      el.innerHTML = '<option disabled selected>Select...</option>';
+
+      (list || []).forEach(o => {
         const opt = document.createElement("option");
-        opt.value = p;
-        opt.textContent = p;
-        selPub.appendChild(opt);
+        opt.value = o;
+
+        if (type === "grade") opt.text = o + "年級";
+        else if (type === "semester") opt.text = (o === "上" ? "上學期" : (o === "下" ? "下學期" : o));
+        else opt.text = o;
+
+        el.add(opt);
       });
 
-      function refreshUnits() {
-        const p = selPub.value;
-        const units = (data.unitsByPublisher && data.unitsByPublisher[p]) ? data.unitsByPublisher[p] : [];
-        selUnit.innerHTML = "";
-        if (units.length === 0) {
-          selUnit.innerHTML = `<option value="">（此版本無單元）</option>`;
-          return;
-        }
-        units.forEach(u => {
-          const opt = document.createElement("option");
-          opt.value = u;
-          opt.textContent = u;
-          selUnit.appendChild(opt);
+      el.disabled = false;
+    }
+
+    // === 3) 評分診斷（先做成可執行的「示範流程」：把 filters 送到後端，後端若未實作會提示）===
+    async function startEvaluation() {
+      const selPanel = document.getElementById("selection-panel");
+      const loading = document.getElementById("loading-view");
+      const resultView = document.getElementById("result-view");
+
+      if (selPanel) selPanel.classList.add("hidden");
+      if (loading) { loading.classList.remove("hidden"); loading.classList.add("flex"); }
+      if (resultView) resultView.classList.add("hidden");
+
+      const titleEl = document.getElementById("result-title");
+      if (titleEl) {
+        const sem = (filters.semester === "上") ? "上學期" : (filters.semester === "下" ? "下學期" : (filters.semester || ""));
+        titleEl.innerText = `${filters.publisher || ""} ${filters.grade || ""}年級 ${sem}｜${filters.unitName || ""}`;
+      }
+
+      try {
+        // 你可以把 action 改成你後端真正有的（例如 generate_exam / submit_exam / get_evaluation...）
+        const payload = { action: "aievaluation_init", filters: filters };
+
+        const res = await fetch(GAS_API_URL, {
+          method: "POST",
+          body: JSON.stringify(payload)
         });
-      }
 
-      selPub.onchange = refreshUnits;
-      refreshUnits();
+        if (!res.ok) throw new Error(`HTTP 錯誤! 狀態碼: ${res.status}`);
 
-      showMsg(document.getElementById("unitMsg"), "單元清單已載入。", "success");
-    } catch (err) {
-      showMsg(document.getElementById("unitMsg"), "載入單元清單失敗：" + err.message, "error");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function startCAT() {
-    hideMsg(document.getElementById("catMsg"));
-    hideMsg(document.getElementById("unitMsg"));
-
-    const stage = document.getElementById("selStage").value;
-    const grade = parseInt(document.getElementById("selGrade").value, 10);
-    const semester = document.getElementById("selSemester").value;
-    const textbook_version = document.getElementById("selPublisher").value;
-    const unit_name = document.getElementById("selUnit").value;
-
-    if (!textbook_version || !unit_name) {
-      showMsg(document.getElementById("unitMsg"), "請先載入單元清單並選擇『出版社/版本』與『單元』。", "error");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const data = await postAPI({
-        action: "startCAT",
-        student: {
-          student_id: user.StudentID,          // USER_DB: StudentID
-          name: user.Name,
-          email: user.Email,
-          grade_code: user.Grade,              // USER_DB: Grade（例如 TW_grade_tw_E_3）
-          class: user.Class,                   // USER_DB: Class
-          school: user.SchoolName              // USER_DB: SchoolName
-        },
-        unit: {
-          stage,                               // Sheet1: 中小學
-          subject: "自然科學",                 // Sheet1: 科目 / ItemBank: subject
-          grade,                               // Sheet1: 年級 / ItemBank: grade
-          semester,                            // Sheet1: 學期 / ItemBank: semester
-          textbook_version,                    // Sheet1: 出版社 / ItemBank: textbook_version
-          unit_name                            // ItemBank: unit_name（後端可映射 Sheet1: 課名/課別/課名）
-        },
-        settings: {
-          max_items: 15,
-          stop_se: 0.35
+        const text = await res.text();
+        let json;
+        try {
+          json = JSON.parse(text);
+        } catch (e) {
+          // 若後端回純文字，也直接顯示
+          json = { status: "raw", data: text };
         }
-      });
 
-      testId = data.test_id;
-      document.getElementById("testId").textContent = testId || "—";
-      document.getElementById("progress").textContent = `${data.progress?.n_admin ?? 0} / ${data.progress?.max_items ?? 0}`;
+        const out = document.getElementById("result-json");
+        if (out) out.textContent = JSON.stringify(json, null, 2);
 
-      renderItem(data.item);
-      showMsg(document.getElementById("catMsg"), "測驗開始。請作答。", "success");
+        if (loading) { loading.classList.add("hidden"); loading.classList.remove("flex"); }
+        if (resultView) resultView.classList.remove("hidden");
 
-      // reset result box
-      document.getElementById("resultBox").textContent = "測驗進行中…";
-    } catch (err) {
-      showMsg(document.getElementById("catMsg"), "開始測驗失敗：" + err.message, "error");
-    } finally {
-      setLoading(false);
-    }
-  }
+      } catch (e) {
+        if (loading) { loading.classList.add("hidden"); loading.classList.remove("flex"); }
+        if (selPanel) selPanel.classList.remove("hidden");
 
-  function getResponseOption() {
-    const checked = document.querySelector('input[name="opt"]:checked');
-    if (checked) return checked.value; // A/B/C/D
-
-    const openBox = document.getElementById("openBox");
-    const open = document.getElementById("openInput");
-    if (!openBox.classList.contains("hidden") && open.value.trim()) return open.value.trim();
-
-    return "";
-  }
-
-  async function submitAndNext() {
-    hideMsg(document.getElementById("catMsg"));
-
-    if (!testId || !currentItem?.item_id) {
-      showMsg(document.getElementById("catMsg"), "測驗尚未開始或題目遺失。請重新開始測驗。", "error");
-      return;
-    }
-
-    const response_option = getResponseOption();
-    if (!response_option) return;
-
-    const time_ms = t0 ? (Date.now() - t0) : null;
-    document.getElementById("btnNext").disabled = true;
-
-    try {
-      const data = await postAPI({
-        action: "submitAndNext",
-        test_id: testId,
-        student_id: user.StudentID,            // CATresponse: student_id
-        item_id: currentItem.item_id,          // CATresponse: item_id
-        response_option,                       // CATresponse: response_option
-        time_ms,                               // 若你後端不寫，可忽略
-        // 下面三個是你 CATresponse 表上有的欄位（grade/class/school）
-        grade: user.Grade,                     // 直接寫 grade code 或你也可改成數字年級（由後端統一）
-        class: user.Class,
-        school: user.SchoolName
-      });
-
-      document.getElementById("progress").textContent = `${data.progress?.n_admin ?? 0} / ${data.progress?.max_items ?? 0}`;
-
-      if (data.done) {
-        // finishCAT：後端負責彙整 CATresponse + CATItemBank（IRT_a/b/c、concept_tag、correct_key 等）
-        const fin = await postAPI({ action: "finishCAT", test_id: testId, student_id: user.StudentID });
-        renderResult(fin);
-
-        // clear question area
-        document.getElementById("qStem").textContent = "測驗已完成。";
-        document.getElementById("optBox").innerHTML = "";
-        document.getElementById("openBox").classList.add("hidden");
-        document.getElementById("timer").textContent = "—";
-        document.getElementById("itemId").textContent = "—";
-        document.getElementById("itemFormat").textContent = "—";
-
-        if (timerHandle) { clearInterval(timerHandle); timerHandle = null; }
-        t0 = null;
-
-        showMsg(document.getElementById("catMsg"), "測驗完成。請查看下方回饋。", "success");
-        return;
+        alert("評分診斷初始化失敗（但教材參數/資料庫載入功能仍正常）。\n錯誤訊息: " + e.message);
       }
-
-      // next item
-      renderItem(data.item);
-    } catch (err) {
-      showMsg(document.getElementById("catMsg"), "送出失敗：" + err.message, "error");
-      document.getElementById("btnNext").disabled = false;
-    }
-  }
-
-  function logout() {
-    // 只清掉登入資訊（你若用多個 key，這裡可一併清）
-    for (const k of USER_KEY_CANDIDATES) localStorage.removeItem(k);
-    clearCatSession();
-    window.location.href = "student.html";
-  }
-
-  function goBack() {
-    window.location.href = "student.html";
-  }
-
-  /* ---------- init ---------- */
-  function init() {
-    const found = getStoredUser();
-    const warn = document.getElementById("authWarn");
-
-    if (!found || !found.obj || found.obj.Role !== "student") {
-      showMsg(warn, "未偵測到有效登入狀態（Role=student）。請回到 student.html 登入後再進入本頁。", "error");
-      return;
     }
 
-    user = found.obj;
+    function backToSelection() {
+      const selPanel = document.getElementById("selection-panel");
+      const resultView = document.getElementById("result-view");
+      const loading = document.getElementById("loading-view");
 
-    // 顯示學生資料（對應 USER_DB 欄位）
-    document.getElementById("userLine").textContent = `${user.Name}（${user.Email}）`;
-    document.getElementById("userSub").textContent = `${user.SchoolName}｜班級：${user.Class}｜StudentID：${user.StudentID}`;
-    document.getElementById("badgeRole").textContent = user.Role;
-    document.getElementById("badgeClass").textContent = `Class ${user.Class}`;
-    document.getElementById("badgeStudentID").textContent = `ID ${user.StudentID}`;
+      if (loading) { loading.classList.add("hidden"); loading.classList.remove("flex"); }
+      if (resultView) resultView.classList.add("hidden");
+      if (selPanel) selPanel.classList.remove("hidden");
+    }
+  </script>
 
-    // 由 Grade code 推斷 stage + numeric grade，供選單預設
-    const { stage, grade } = parseGradeCode(user.Grade);
-    document.getElementById("selStage").value = stage;
-    initGradeOptions(stage, grade);
-    document.getElementById("badgeGrade").textContent = `${stage} ${grade}年級`;
-
-    // stage 變動 → 重建 grade 選單
-    document.getElementById("selStage").addEventListener("change", () => {
-      const st = document.getElementById("selStage").value;
-      initGradeOptions(st, st === "國中" ? 7 : 3);
-    });
-
-    // buttons
-    document.getElementById("btnLoadUnits").addEventListener("click", loadUnits);
-    document.getElementById("btnStart").addEventListener("click", startCAT);
-    document.getElementById("btnNext").addEventListener("click", submitAndNext);
-    document.getElementById("btnLogout").addEventListener("click", logout);
-    document.getElementById("btnBack").addEventListener("click", goBack);
-
-    // 若你想要「進頁面自動載入單元」→ 取消下一行註解
-    // loadUnits();
-  }
-
-  init();
-</script>
 </body>
 </html>
