@@ -321,7 +321,10 @@
     const openBox = document.getElementById("openBox");
     optBox.innerHTML = "";
     openBox.classList.add("hidden");
-    document.getElementById("openInput").value = "";
+
+    const openInput = document.getElementById("openInput");
+    openInput.value = "";
+    openInput.oninput = null;
 
     // Decide options
     const options = item?.options || parseOptionsFromStem(item?.stem) || null;
@@ -352,9 +355,10 @@
       // Open response
       openBox.classList.remove("hidden");
       const inp = document.getElementById("openInput");
-      inp.addEventListener("input", () => {
+      inp.oninput = () => {
         document.getElementById("btnNext").disabled = inp.value.trim().length === 0;
-      }, { once: true });
+      };
+      document.getElementById("btnNext").disabled = inp.value.trim().length === 0;
     }
 
     // timer
@@ -379,6 +383,22 @@
 
     const strong = Array.isArray(fin.strong_concepts) ? fin.strong_concepts : [];
     const weak = Array.isArray(fin.weak_concepts) ? fin.weak_concepts : [];
+    const wrong = Array.isArray(fin.wrong_items) ? fin.wrong_items : [];
+
+    const wrongHTML = wrong.length ? `
+      <div class="mt-4 p-3 rounded-xl border border-slate-200">
+        <div class="text-sm font-semibold">錯題與建議回看位置</div>
+        <div class="mt-2 text-sm text-slate-700 space-y-1">
+          ${wrong.map(w => {
+            const parts = [];
+            if (w.concept_tag) parts.push(escapeHTML(w.concept_tag));
+            if (w.textbook_source) parts.push(escapeHTML(w.textbook_source));
+            const suffix = parts.length ? `（${parts.join("｜")}）` : "";
+            return `<div>• ${escapeHTML(w.item_id || "")}${suffix}</div>`;
+          }).join("")}
+        </div>
+      </div>
+    ` : "";
 
     document.getElementById("resultBox").innerHTML = `
       <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -406,6 +426,8 @@
           <div class="mt-2 text-sm text-slate-700">${weak.length ? weak.map(escapeHTML).join("、") : "—"}</div>
         </div>
       </div>
+
+      ${wrongHTML}
 
       <div class="mt-4 p-3 rounded-xl border border-slate-200">
         <div class="text-sm font-semibold">學習回饋</div>
@@ -542,8 +564,11 @@
   function getResponseOption() {
     const checked = document.querySelector('input[name="opt"]:checked');
     if (checked) return checked.value; // A/B/C/D
+
+    const openBox = document.getElementById("openBox");
     const open = document.getElementById("openInput");
-    if (!open.classList.contains("hidden") && open.value.trim()) return open.value.trim();
+    if (!openBox.classList.contains("hidden") && open.value.trim()) return open.value.trim();
+
     return "";
   }
 
@@ -589,6 +614,10 @@
         document.getElementById("timer").textContent = "—";
         document.getElementById("itemId").textContent = "—";
         document.getElementById("itemFormat").textContent = "—";
+
+        if (timerHandle) { clearInterval(timerHandle); timerHandle = null; }
+        t0 = null;
+
         showMsg(document.getElementById("catMsg"), "測驗完成。請查看下方回饋。", "success");
         return;
       }
