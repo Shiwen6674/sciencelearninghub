@@ -345,34 +345,131 @@ function getStudentIdFromLogin(){
   }
   return "";
 }
-
 /* ===========================
-   4) API 呼叫（重點：避免 CORS preflight）
-   - 不送 Content-Type: application/json
-   - 直接 body 放 JSON 字串，GAS 仍可 JSON.parse(e.postData.contents)
+   4) API 呼叫（改成：GET → form POST → JSON POST 三段式）
+   - 兼容「單元重點整理」常見的 e.parameter 讀法
+   - 也兼容你目前 JSON body 的寫法
 =========================== */
-async function api(payload){
-  const res = await fetch(GAS_API_URL, {
-    method: "POST",
-    body: JSON.stringify(payload),
-    redirect: "follow"
-  });
 
-  const text = await res.text();
-  let json = null;
-  try{ json = JSON.parse(text); }catch(_){}
-  if(!json) throw new Error("後端未回傳 JSON（請確認使用 /exec，且 doPost 回 JSON）。");
-  if(json.ok !== true) throw new Error(json.error || "後端回傳失敗（ok=false）");
-  return json;
+// 1) 把 payload 轉成「後端最容易吃到」的參數（e.parameter）
+function buildFormBody(payload){
+  const p = new URLSearchParams();
+  const action = payload?.action ?? "";
+  if(action) p.set("action", action);
+
+  // 兼容：有些後端喜歡拿 payload 再 JSON.parse
+  p.set("payload", JSON.stringify(payload ?? {}));
+
+  // 常用扁平參數
+  if(payload?.subject != null)  p.set("subject", String(payload.subject));
+  if(payload?.grade != null)    p.set("grade", String(payload.grade));
+  if(payload?.semester != null) p.set("semester", String(payload.semester));
+
+  // unit 物件（startCAT 用得到）
+  const unit = payload?.unit;
+  if(unit){
+    if(unit.subject != null)          p.set("subject", String(unit.subject));
+    if(unit.grade != null)            p.set("grade", String(unit.grade));
+    if(unit.semester != null)         p.set("semester", String(unit.semester));
+    if(unit.textbook_version != null) p.set("textbook_version", String(unit.textbook_version));
+    if(unit.unit_name != null)        p.set("unit_name", String(unit.unit_name));
+  }
+
+  // student_id（你這頁是沿用 student.html 的登入資訊）
+  const sid = payload?.student_id ?? payload?.student?.student_id;
+  if(sid != null) p.set("student_id", String(sid));
+
+  // CAT 常用欄位
+  const keys = ["test_id","item_id","response_option","max_items","min_items","stop_se","grade"];
+  for(const k of keys){
+    if(payload?.[k] != null) p.set(k, String(payload[k]));
+  }
+
+  // settings（startCAT 你送在 settings.max_items）
+  const settings = payload?.settings;
+  if(settings){
+    if(settings.max_items != null && !p.has("max_items")) p.set("max_items", String(settings.max_items));
+    if(settings.min_items != null && !p.has("min_items")) p.set("min_items", String(settings.min_items));
+    if(settings.stop_se  != null && !p.has("stop_se"))   p.set("stop_se",  String(settings.stop_se));
+  }
+
+  return p;
 }
 
-async function ping(){
+function safeParseJSON(text){
+  // 有些服務會回傳防 XSSI 前綴
+  const t = String(text ?? "").trim().replace(/^\)\]\}'\s*\n?/, "");
+  try { return JSON.parse(t); } catch { return null; }
+}
+
+function normalizeOk(obj){
+  if(!obj || typeof obj !== "object") throw new Error("後端未回傳 JSON。");
+  // 明確失敗
+  if(obj.ok === false) throw new Error(obj.error || "後端回傳失敗（ok=false）。");
+  if(obj.success === false) throw new Error(obj.error || "後端回傳失敗（success=false）。");
+
+  // 明確成功
+  if(obj.ok === true) return obj;
+  if(obj.success === true) return { ...obj, ok: true };
+
+  // 沒有 ok 欄位但有資料：視為成功（避免你被 ok 檢查卡死）
+  if(obj.error) throw new Error(obj.error);
+  return { ...obj, ok: true };
+}
+
+async function api(payload){
+  let lastErr = null;
+
+  // A) 先嘗試 GET（最像你之前「單元重點整理」成功的載入方式）
+  //    特別是 getUnitOptions 這種「載入選單」行為，很多人只寫在 doGet
   try{
-    const r = await fetch(GAS_API_URL, { method:"GET", redirect:"follow" });
-    if(r.ok) UI.setConn(true);
-    else UI.setConn(false, "HTTP " + r.status);
+    const action = payload?.action;
+    if(action === ACTION.GET_UNIT_OPTIONS){
+      const url = new URL(GAS_API_URL);
+      url.searchParams.set("action", action);
+      if(payload?.subject != null)  url.searchParams.set("subject", String(payload.subject));
+      if(payload?.grade != null)    url.searchParams.set("grade", String(payload.grade));
+      if(payload?.semester != null) url.searchParams.set("semester", String(payload.semester));
+
+      const res = await fetch(url.toString(), { method: "GET", redirect: "follow" });
+      const text = await res.text();
+      const json = safeParseJSON(text);
+      if(json) return normalizeOk(json);
+      throw new Error("後端未回傳 JSON（GET）。");
+    }
   }catch(e){
-    UI.setConn(false, String(e?.message||e));
+    lastErr = e;
+  }
+
+  // B) 再嘗試 POST x-www-form-urlencoded（最相容 e.parameter）
+  try{
+    const formBody = buildFormBody(payload);
+    const res = await fetch(GAS_API_URL, {
+      method: "POST",
+      body: formBody,
+      redirect: "follow"
+    });
+    const text = await res.text();
+    const json = safeParseJSON(text);
+    if(json) return normalizeOk(json);
+    throw new Error("後端未回傳 JSON（form POST）。");
+  }catch(e){
+    lastErr = e;
+  }
+
+  // C) 最後才用你原本的 JSON body（保底）
+  try{
+    const res = await fetch(GAS_API_URL, {
+      method: "POST",
+      body: JSON.stringify(payload),
+      redirect: "follow"
+    });
+    const text = await res.text();
+    const json = safeParseJSON(text);
+    if(json) return normalizeOk(json);
+    throw new Error("後端未回傳 JSON（JSON POST）。");
+  }catch(e){
+    throw new Error(String(e?.message || lastErr?.message || e));
   }
 }
 
