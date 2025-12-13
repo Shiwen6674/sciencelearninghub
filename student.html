@@ -241,26 +241,59 @@
 
         // 1. 權限檢查與用戶資料
        // 1. 權限檢查與用戶資料
-const userJson = sessionStorage.getItem("currentUser");
-const currentUser = userJson ? JSON.parse(userJson) : { name: "訪客", role: "Student" };
+let userJson = sessionStorage.getItem("currentUser") || localStorage.getItem("currentUser");
+let currentUser = { name: "訪客", role: "Student" };
+try {
+    if (userJson) currentUser = JSON.parse(userJson);
+} catch (_) {
+    currentUser = { name: "訪客", role: "Student" };
+}
+
 
 // ★最小必要修正：把 student_id 固化到 localStorage（給 aievaluation.html 用）
 (function syncStudentIdToStorage() {
-    const sid = String(currentUser.student_id || currentUser.StudentID || "").trim();
-    if (!sid) return; // 非學生或沒有 StudentID 就不做任何事
+    const sid = String(
+        currentUser.student_id || currentUser.StudentID || currentUser.studentId || ""
+    ).trim();
+    if (!sid) return;
 
-    // 1) 統一 key（aievaluation.html 只要讀這個就穩）
-    localStorage.setItem("student_id", sid);
-    localStorage.setItem("StudentID", sid); //（可選）相容舊碼
+    const mergedUser = Object.assign({}, currentUser, {
+        student_id: sid,
+        StudentID: sid,
+        studentId: sid
+    });
+    const txt = JSON.stringify(mergedUser);
 
-    // 2) 也把 currentUser 放到 localStorage（跨頁面更穩）
-    const mergedUser = Object.assign({}, currentUser, { student_id: sid, StudentID: sid });
-    localStorage.setItem("currentUser", JSON.stringify(mergedUser));
-    sessionStorage.setItem("currentUser", JSON.stringify(mergedUser)); // 同步回 session，避免不一致
+    // A) 直接可用的純字串 key（給各頁快速取用）
+    const directKeys = [
+        "student_id", "StudentID",
+        "SLH_student_id", "slh_student_id",
+        "user_student_id", "login_student_id",
+        "current_student_id"
+    ];
+    for (const k of directKeys) {
+        try { localStorage.setItem(k, sid); } catch (_) {}
+        try { sessionStorage.setItem(k, sid); } catch (_) {}
+    }
+
+    // B) 統一 currentUser（session + local 都寫，避免跨頁不一致）
+    try { sessionStorage.setItem("currentUser", txt); } catch (_) {}
+    try { localStorage.setItem("currentUser", txt); } catch (_) {}
+
+    // C) 常見 alias JSON key（讓其他頁面不必猜 key）
+    const aliasJsonKeys = ["SLH_USER", "slh_user", "SLH_LOGIN", "LOGIN", "USER", "user", "auth", "profile", "me"];
+    for (const k of aliasJsonKeys) {
+        try { sessionStorage.setItem(k, txt); } catch (_) {}
+        try { localStorage.setItem(k, txt); } catch (_) {}
+    }
 })();
+;
 
-document.getElementById("user-name-display").innerText = currentUser.name;
-document.getElementById("user-avatar").innerText = currentUser.name.charAt(0).toUpperCase();
+
+const __displayName = String(currentUser.name || "訪客");
+document.getElementById("user-name-display").innerText = __displayName;
+document.getElementById("user-avatar").innerText = __displayName.charAt(0).toUpperCase();
+
 
 
         // 2. 語言邏輯
@@ -318,14 +351,23 @@ function logout() {
     if(confirm("確定要登出嗎？")) {
         sessionStorage.removeItem("currentUser");
 
-        // ★最小必要修正：清掉 localStorage 的登入資訊
-        localStorage.removeItem("currentUser");
-        localStorage.removeItem("student_id");
-        localStorage.removeItem("StudentID");
+        // ★最小必要修正：清掉 localStorage / sessionStorage 的登入 alias
+        const keys = [
+            "currentUser",
+            "student_id","StudentID",
+            "SLH_student_id","slh_student_id",
+            "user_student_id","login_student_id","current_student_id",
+            "SLH_USER","slh_user","SLH_LOGIN","LOGIN","USER","user","auth","profile","me"
+        ];
+        for (const k of keys) {
+            try { localStorage.removeItem(k); } catch(_) {}
+            try { sessionStorage.removeItem(k); } catch(_) {}
+        }
 
         window.location.href = "index.html";
     }
 }
+
 
 
         // Canvas Background
