@@ -314,12 +314,19 @@ document.getElementById("user-avatar").innerText = currentUser.name.charAt(0).to
             fetch(GAS_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }).catch(e => console.log("Log ignored"));
         }
 
-        function logout() {
-            if(confirm("確定要登出嗎？")) {
-                sessionStorage.removeItem("currentUser");
-                window.location.href = "index.html";
-            }
-        }
+function logout() {
+    if(confirm("確定要登出嗎？")) {
+        sessionStorage.removeItem("currentUser");
+
+        // ★最小必要修正：清掉 localStorage 的登入資訊
+        localStorage.removeItem("currentUser");
+        localStorage.removeItem("student_id");
+        localStorage.removeItem("StudentID");
+
+        window.location.href = "index.html";
+    }
+}
+
 
         // Canvas Background
         (function() {
