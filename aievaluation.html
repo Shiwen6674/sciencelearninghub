@@ -474,6 +474,21 @@ async function api(payload){
 }
 
 /* ===========================
+   ✅ 必要補回：ping（避免初始化中斷）
+=========================== */
+async function ping(){
+  try{
+    const url = new URL(GAS_API_URL);
+    url.searchParams.set("t", String(Date.now())); // cache-buster
+    const r = await fetch(url.toString(), { method:"GET", redirect:"follow" });
+    if(r.ok) UI.setConn(true);
+    else UI.setConn(false, "HTTP " + r.status);
+  }catch(e){
+    UI.setConn(false, String(e?.message || e));
+  }
+}
+
+/* ===========================
    5) 載入教材選單（確保不失敗）
 =========================== */
 function buildGradeOptions(){
@@ -893,3 +908,4 @@ ${document.getElementById("resFeedback").textContent}`;
 </script>
 </body>
 </html>
+
