@@ -2,954 +2,1391 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>CAT 自適性測驗 | AI 出題與作答</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Science Learning Hub | CAT 評量</title>
 
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- Chart.js (for PISA-style chart stimulus) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <style>
+    :root{
+      --bg: #0b1220;
+      --card: rgba(255,255,255,.06);
+      --card2: rgba(255,255,255,.10);
+      --stroke: rgba(255,255,255,.12);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.72);
+      --muted2: rgba(255,255,255,.55);
+      --good: #22c55e;
+      --warn: #f59e0b;
+      --bad: #ef4444;
+      --brand: #10b981;
+      --brand2:#34d399;
+    }
+    html,body{height:100%;}
+    body{
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      background:
+        radial-gradient(1200px 800px at 15% 10%, rgba(16,185,129,.25), transparent 55%),
+        radial-gradient(900px 600px at 90% 15%, rgba(59,130,246,.18), transparent 55%),
+        radial-gradient(1100px 700px at 35% 95%, rgba(244,63,94,.12), transparent 60%),
+        linear-gradient(180deg, #050914 0%, var(--bg) 60%, #070c18 100%);
+      color: var(--text);
+    }
+    .serif{ font-family: "Noto Serif TC", serif; }
+    .glass{
+      background: var(--card);
+      border: 1px solid var(--stroke);
+      box-shadow: 0 18px 45px rgba(0,0,0,.35);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .glass2{
+      background: var(--card2);
+      border: 1px solid var(--stroke);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .soft-ring:focus{
+      outline: none;
+      box-shadow: 0 0 0 4px rgba(16,185,129,.25);
+      border-color: rgba(16,185,129,.55);
+    }
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center;
+      gap:.55rem; border-radius: 14px;
+      padding:.75rem 1rem;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.92);
+      transition: transform .12s ease, background .12s ease, border-color .12s ease;
+      user-select:none;
+    }
+    .btn:hover{ background: rgba(255,255,255,.10); border-color: rgba(255,255,255,.22); }
+    .btn:active{ transform: translateY(1px); }
+    .btn-primary{
+      background: linear-gradient(135deg, rgba(16,185,129,.95), rgba(52,211,153,.85));
+      border-color: rgba(16,185,129,.55);
+      color: #062019;
+    }
+    .btn-primary:hover{ filter: brightness(1.03); }
+    .btn-danger{
+      background: rgba(239,68,68,.14);
+      border-color: rgba(239,68,68,.35);
+    }
+    .badge{
+      display:inline-flex; align-items:center; gap:.4rem;
+      padding:.2rem .55rem; border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.86);
+      font-size: .78rem;
+    }
+    .label{ color: var(--muted2); font-size:.85rem; }
+    .input, select{
+      width:100%;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      padding: .70rem .85rem;
+      color: rgba(255,255,255,.92);
+    }
+    select option{ color:#111827; }
+    .divider{
+      height:1px; background: rgba(255,255,255,.10);
+    }
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace; }
+    .skeleton{
+      background: linear-gradient(90deg, rgba(255,255,255,.06), rgba(255,255,255,.12), rgba(255,255,255,.06));
+      background-size: 200% 100%;
+      animation: sk 1.2s infinite;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.10);
+    }
+    @keyframes sk{ 0%{background-position: 200% 0;} 100%{background-position: -200% 0;} }
+    .toast{
+      position: fixed; right: 18px; bottom: 18px; z-index: 50;
+      width: min(420px, calc(100vw - 36px));
+      display:none;
+    }
+    .toast.show{ display:block; }
+    .modal{
+      position: fixed; inset:0; z-index: 60;
+      display:none; align-items:center; justify-content:center;
+      padding: 18px;
+      background: rgba(0,0,0,.55);
+    }
+    .modal.show{ display:flex; }
+    .kbd{
+      font-size:.75rem; padding:.10rem .35rem; border-radius:8px;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.80);
+    }
+    .opt{
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.05);
+      border-radius: 16px;
+      padding: .85rem .95rem;
+      transition: transform .12s ease, border-color .12s ease, background .12s ease;
+      cursor:pointer;
+    }
+    .opt:hover{ background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.22); }
+    .opt.selected{
+      border-color: rgba(16,185,129,.60);
+      background: rgba(16,185,129,.12);
+      box-shadow: 0 0 0 4px rgba(16,185,129,.12);
+    }
+    .opt.disabled{ opacity:.55; cursor:not-allowed; }
+    .prose-stem{
+      white-space: pre-wrap;
+      line-height: 1.75;
+      color: rgba(255,255,255,.90);
+    }
+    .prose-muted{
+      white-space: pre-wrap;
+      line-height: 1.7;
+      color: rgba(255,255,255,.78);
+    }
+    .table-stim th,.table-stim td{
+      border: 1px solid rgba(255,255,255,.12);
+      padding: .55rem .6rem;
+      font-size: .92rem;
+    }
+    .table-stim th{
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.88);
+      font-weight:600;
+    }
+  </style>
 
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          colors: { student: '#3b82f6' },
-          animation: { "fade-in-up": "fadeInUp 0.5s ease-out forwards" },
-          keyframes: { fadeInUp: { "0%": { opacity: "0", transform: "translateY(20px)" }, "100%": { opacity: "1", transform: "translateY(0)" } } }
+          fontFamily: {
+            serif: ['"Noto Serif TC"', 'serif']
+          }
         }
       }
     };
   </script>
-
-  <style>
-    body {
-      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-      font-family: "Microsoft JhengHei", sans-serif;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .glass-panel {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.7);
-      box-shadow: 0 4px 6px rgba(0,0,0,0.08);
-    }
-    .loader {
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #3b82f6;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-    }
-    @keyframes spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
-    .option-btn { transition: all 0.18s ease; }
-  </style>
 </head>
 
-<body class="text-slate-800 min-h-screen flex flex-col">
-
-  <nav class="glass-panel sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
-    <div class="flex items-center gap-4">
-      <a href="student.html" class="group flex items-center gap-2 text-slate-500 hover:text-blue-600 transition decoration-0">
-        <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow group-hover:shadow-md transition">
-          <i class="fa-solid fa-arrow-left"></i>
-        </div>
-        <span class="font-bold hidden md:block">返回學習中心</span>
-      </a>
-      <div class="h-8 w-px bg-slate-300 mx-2 hidden sm:block"></div>
-      <div class="hidden sm:block">
-        <h1 class="font-bold text-lg">CAT 自適性測驗</h1>
-        <p class="text-xs text-slate-500">教材參數設定 → AI 出題 → 作答 → 自適應下一題</p>
-      </div>
-    </div>
-    <div class="flex items-center gap-2 pl-2 border-l border-slate-300">
-      <div id="user-info" class="text-sm font-bold text-blue-600">訪客</div>
-    </div>
-  </nav>
-
-  <main class="max-w-7xl mx-auto px-4 py-8 flex-1 w-full pb-24">
-
-    <!-- 教材參數設定 -->
-    <div id="selection-panel" class="glass-panel rounded-2xl p-6 mb-8 no-print">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="font-bold text-lg flex items-center gap-2">
-          <i class="fa-solid fa-database"></i>
-          <span>教材參數設定</span>
-        </h2>
-        <span id="db-status" class="text-xs font-bold text-orange-500">
-          <i class="fa-solid fa-circle-notch fa-spin"></i> Loading...
-        </span>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-        <div>
-          <label class="text-xs font-bold text-slate-500 ml-1">學習階段</label>
-          <select id="sel-stage" class="w-full p-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-blue-500">
-            <option value="" disabled selected>Loading...</option>
-          </select>
+<body>
+  <div class="max-w-[1280px] mx-auto px-4 py-6">
+    <!-- Top Bar -->
+    <div class="glass rounded-3xl px-5 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-2xl glass2 flex items-center justify-center">
+          <i class="fa-solid fa-compass-drafting text-white/90"></i>
         </div>
         <div>
-          <label class="text-xs font-bold text-slate-500 ml-1">版本</label>
-          <select id="sel-publisher" disabled class="w-full p-2.5 rounded-xl border border-slate-200 text-sm outline-none disabled:bg-slate-50">
-            <option value="" disabled selected>Select...</option>
-          </select>
-        </div>
-        <div>
-          <label class="text-xs font-bold text-slate-500 ml-1">年級</label>
-          <select id="sel-grade" disabled class="w-full p-2.5 rounded-xl border border-slate-200 text-sm outline-none disabled:bg-slate-50">
-            <option value="" disabled selected>Select...</option>
-          </select>
-        </div>
-        <div>
-          <label class="text-xs font-bold text-slate-500 ml-1">學期</label>
-          <select id="sel-semester" disabled class="w-full p-2.5 rounded-xl border border-slate-200 text-sm outline-none disabled:bg-slate-50">
-            <option value="" disabled selected>Select...</option>
-          </select>
-        </div>
-        <div>
-          <label class="text-xs font-bold text-slate-500 ml-1">單元名稱</label>
-          <select id="sel-unit" disabled class="w-full p-2.5 rounded-xl border border-slate-200 text-sm outline-none disabled:bg-slate-50">
-            <option value="" disabled selected>Select...</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- 框架偏好：PISA / TIMSS / TOEFL -->
-      <div class="mt-5 grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4">
-          <div class="flex items-center justify-between">
-            <div class="font-bold text-slate-700">PISA 優點</div>
-            <label class="inline-flex items-center cursor-pointer">
-              <input id="fw-pisa" type="checkbox" class="sr-only peer" checked>
-              <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:bg-blue-600 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:h-5 after:w-5 after:rounded-full after:transition-all peer-checked:after:translate-x-5"></div>
-            </label>
+          <div class="text-lg md:text-xl font-semibold">Science Learning Hub <span class="text-white/60">|</span> CAT 評量</div>
+          <div class="text-sm text-white/65">
+            整合 CAT（IRT）自適應出題 + PISA 題組/資料表圖表呈現 + TIMSS 概念標籤 + TOEFL 式進度/快捷鍵 UX
           </div>
-          <div class="text-xs text-slate-500 mt-2">強調情境化題幹、真實問題脈絡與素養導向題組。</div>
-        </div>
-
-        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4">
-          <div class="flex items-center justify-between">
-            <div class="font-bold text-slate-700">TIMSS 優點</div>
-            <label class="inline-flex items-center cursor-pointer">
-              <input id="fw-timss" type="checkbox" class="sr-only peer" checked>
-              <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:bg-blue-600 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:h-5 after:w-5 after:rounded-full after:transition-all peer-checked:after:translate-x-5"></div>
-            </label>
-          </div>
-          <div class="text-xs text-slate-500 mt-2">強調知識向度×認知歷程（知道/應用/推理）的題目結構。</div>
-        </div>
-
-        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4">
-          <div class="flex items-center justify-between">
-            <div class="font-bold text-slate-700">TOEFL 優點</div>
-            <label class="inline-flex items-center cursor-pointer">
-              <input id="fw-toefl" type="checkbox" class="sr-only peer" checked>
-              <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:bg-blue-600 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:h-5 after:w-5 after:rounded-full after:transition-all peer-checked:after:translate-x-5"></div>
-            </label>
-          </div>
-          <div class="text-xs text-slate-500 mt-2">強調計時、穩定的自適應測驗流程與一致的作答體驗。</div>
         </div>
       </div>
 
-      <!-- CAT 參數（最小必要：題數、是否計時） -->
-      <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div>
-          <label class="text-xs font-bold text-slate-500 ml-1">目標題數</label>
-          <input id="cat-target-n" type="number" min="5" max="30" value="10"
-            class="w-full p-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-blue-500 bg-white">
-        </div>
-        <div>
-          <label class="text-xs font-bold text-slate-500 ml-1">最多題數（上限）</label>
-          <input id="cat-max-n" type="number" min="5" max="50" value="15"
-            class="w-full p-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-blue-500 bg-white">
-        </div>
-        <div>
-          <label class="text-xs font-bold text-slate-500 ml-1">是否計時</label>
-          <select id="cat-timer-on" class="w-full p-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-blue-500 bg-white">
-            <option value="1" selected>是</option>
-            <option value="0">否</option>
-          </select>
-        </div>
-        <div>
-          <label class="text-xs font-bold text-slate-500 ml-1">每題秒數（計時用）</label>
-          <input id="cat-seconds-per-item" type="number" min="10" max="300" value="45"
-            class="w-full p-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-blue-500 bg-white">
-        </div>
-      </div>
-
-      <div class="mt-6 flex justify-end gap-3">
-        <button id="btn-reload" type="button"
-          class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-3 rounded-xl font-bold transition cursor-pointer border border-slate-200 shadow-sm flex items-center active:scale-95"
-          onclick="reloadMetadata()">
-          <i class="fa-solid fa-rotate mr-2"></i> 重新載入資料庫
-        </button>
-
-        <button id="btn-start-cat" type="button" disabled
-          class="bg-emerald-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-2 active:scale-95"
-          onclick="startCAT()">
-          <i class="fa-solid fa-play"></i> 開始出題（CAT）
+      <div class="flex items-center gap-2 flex-wrap">
+        <span id="badge-conn" class="badge"><i class="fa-solid fa-circle-notch fa-spin"></i> 連線中…</span>
+        <span id="badge-db" class="badge"><i class="fa-solid fa-database"></i> 未載入</span>
+        <button id="btn-reload" class="btn">
+          <i class="fa-solid fa-rotate"></i> 重新載入
         </button>
       </div>
-
-      <div class="mt-4 text-xs text-slate-500">
-        提示：這頁只要 GAS 的 <code>action=get_metadata</code> 回傳成功，即可正常帶出下拉選單。開始出題後，會呼叫後端 <code>generate_exam</code>（可在程式最上方改 action 名稱）。
-      </div>
     </div>
 
-    <!-- Loading -->
-    <div id="loading-view" class="hidden flex-col items-center justify-center py-20">
-      <div class="loader mb-4"></div>
-      <h3 class="text-xl font-bold text-slate-700">CAT 出題中...</h3>
-      <p class="text-sm text-slate-500 mt-2">正在向後端取得第一題（或題組）</p>
-    </div>
-
-    <!-- CAT 測驗區 -->
-    <div id="cat-view" class="hidden animate-fade-in-up">
-      <div class="glass-panel rounded-2xl p-6">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <div>
-            <div id="cat-tag" class="text-xs font-bold bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full inline-block">CAT</div>
-            <div id="cat-title" class="text-2xl font-black text-slate-800 mt-2">—</div>
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 mt-5">
+      <!-- Left Panel -->
+      <aside class="lg:col-span-4 space-y-5">
+        <section class="glass rounded-3xl p-5">
+          <div class="flex items-center justify-between gap-2">
+            <div class="font-semibold text-white/90"><i class="fa-solid fa-sliders mr-2"></i>教材參數設定</div>
+            <span class="badge"><i class="fa-solid fa-keyboard"></i> 快捷鍵 <span class="kbd">A</span><span class="kbd">B</span><span class="kbd">C</span><span class="kbd">D</span></span>
           </div>
-          <div class="flex items-center gap-2">
-            <div id="cat-progress" class="text-xs font-bold text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full">第 0 題／共 0 題</div>
-            <div id="cat-timer" class="text-xs font-bold text-slate-600 bg-slate-100 px-3 py-1 rounded-full hidden">
-              <i class="fa-solid fa-clock mr-1"></i><span id="cat-timer-text">—</span>
+          <div class="divider my-4"></div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <div class="label mb-1">學習階段</div>
+              <select id="sel-stage" class="soft-ring">
+                <option value="國小">國小</option>
+                <option value="國中">國中</option>
+              </select>
             </div>
-            <button type="button"
-              class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl font-bold border border-slate-200"
-              onclick="backToSelection()">
-              返回設定
+            <div>
+              <div class="label mb-1">科目</div>
+              <select id="sel-subject" class="soft-ring">
+                <option value="自然科學">自然科學</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 mt-3">
+            <div>
+              <div class="label mb-1">年級</div>
+              <select id="sel-grade" class="soft-ring"></select>
+            </div>
+            <div>
+              <div class="label mb-1">學期</div>
+              <select id="sel-semester" class="soft-ring">
+                <option value="上學期">上學期</option>
+                <option value="下學期">下學期</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 gap-3 mt-3">
+            <div>
+              <div class="label mb-1">版本（出版社）</div>
+              <select id="sel-publisher" class="soft-ring">
+                <option value="">載入後選擇…</option>
+              </select>
+            </div>
+            <div>
+              <div class="label mb-1">單元名稱</div>
+              <select id="sel-unit" class="soft-ring">
+                <option value="">載入後選擇…</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="divider my-4"></div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <div class="label mb-1">學生代碼（CAT 需要）</div>
+              <input id="inp-student" class="input soft-ring" placeholder="例如：S401_01（可留空，系統自動產生）" />
+            </div>
+            <div>
+              <div class="label mb-1">CAT 上限題數</div>
+              <input id="inp-maxitems" type="number" min="5" max="40" step="1" class="input soft-ring" value="15" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 mt-3">
+            <div>
+              <div class="label mb-1">CAT 最少題數</div>
+              <input id="inp-minitems" type="number" min="3" max="40" step="1" class="input soft-ring" value="8" />
+            </div>
+            <div>
+              <div class="label mb-1">停止門檻（SE）</div>
+              <input id="inp-stopse" type="number" min="0.10" max="1.00" step="0.01" class="input soft-ring" value="0.35" />
+            </div>
+          </div>
+
+          <div class="mt-4 flex gap-3">
+            <button id="btn-start" class="btn btn-primary w-full">
+              <i class="fa-solid fa-play"></i> 開始 CAT 出題
+            </button>
+            <button id="btn-reset" class="btn w-full">
+              <i class="fa-solid fa-arrow-rotate-left"></i> 重設
             </button>
           </div>
-        </div>
 
-        <div class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-          <div class="lg:col-span-2">
-            <!-- 刺激材料 / 情境（PISA 常用） -->
-            <div id="cat-stimulus-box" class="hidden bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-4">
-              <div class="text-xs font-bold text-slate-500 mb-2">閱讀材料 / 情境</div>
-              <div id="cat-stimulus" class="text-sm text-slate-700 leading-relaxed whitespace-pre-line"></div>
+          <div class="mt-3 text-xs text-white/55 leading-relaxed">
+            註：此頁以你的後台 action 規格呼叫（<span class="mono">getUnitOptions / startCAT / submitAndNext / finishCAT</span>），不需要改動後端程式。
+          </div>
+        </section>
+
+        <!-- AI Item Generation / Bank Booster -->
+        <section class="glass rounded-3xl p-5">
+          <div class="flex items-center justify-between">
+            <div class="font-semibold text-white/90"><i class="fa-solid fa-wand-magic-sparkles mr-2"></i>題庫補強（AI 生成並入庫）</div>
+            <span class="badge"><i class="fa-solid fa-table-cells-large"></i> PISA 題組支援</span>
+          </div>
+          <div class="divider my-4"></div>
+
+          <div class="grid grid-cols-3 gap-3">
+            <div>
+              <div class="label mb-1">總題數</div>
+              <input id="ai-N" type="number" min="6" max="30" step="1" class="input soft-ring" value="12">
+            </div>
+            <div>
+              <div class="label mb-1">單題數</div>
+              <input id="ai-single" type="number" min="2" max="30" step="1" class="input soft-ring" value="8">
+            </div>
+            <div>
+              <div class="label mb-1">題組數</div>
+              <input id="ai-group" type="number" min="0" max="10" step="1" class="input soft-ring" value="2">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-3 mt-3">
+            <div>
+              <div class="label mb-1">容易%</div>
+              <input id="ai-easy" type="number" min="0" max="100" step="1" class="input soft-ring" value="30">
+            </div>
+            <div>
+              <div class="label mb-1">中等%</div>
+              <input id="ai-medium" type="number" min="0" max="100" step="1" class="input soft-ring" value="50">
+            </div>
+            <div>
+              <div class="label mb-1">偏難%</div>
+              <input id="ai-hard" type="number" min="0" max="100" step="1" class="input soft-ring" value="20">
+            </div>
+          </div>
+
+          <div class="mt-4 flex gap-3">
+            <button id="btn-ai-save" class="btn w-full">
+              <i class="fa-solid fa-cloud-arrow-up"></i> AI 生成並寫入題庫
+            </button>
+          </div>
+
+          <div class="mt-3 text-xs text-white/60 leading-relaxed">
+            用途：若某單元 CAT 題庫不足（後台回 <span class="mono">no active items</span>），可先用此功能「生成+入庫」，再開始 CAT。
+          </div>
+        </section>
+
+        <!-- Design Principles -->
+        <section class="glass rounded-3xl p-5">
+          <div class="font-semibold text-white/90"><i class="fa-solid fa-award mr-2"></i>保留的測驗優點（設計落地）</div>
+          <div class="divider my-4"></div>
+
+          <div class="space-y-3 text-sm text-white/80">
+            <div class="flex items-start gap-3">
+              <div class="w-9 h-9 rounded-2xl glass2 flex items-center justify-center mt-0.5"><i class="fa-solid fa-chart-line"></i></div>
+              <div>
+                <div class="font-medium">PISA：情境化 + 資料判讀</div>
+                <div class="text-white/60">支援題組、表格/圖表/簡易 SVG 刺激；題幹可分離 stimulus 渲染。</div>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <div class="w-9 h-9 rounded-2xl glass2 flex items-center justify-center mt-0.5"><i class="fa-solid fa-tags"></i></div>
+              <div>
+                <div class="font-medium">TIMSS：概念/技能對齊</div>
+                <div class="text-white/60">顯示 concept_tag、textbook_source；結束後以概念層級彙整弱點/優勢。</div>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <div class="w-9 h-9 rounded-2xl glass2 flex items-center justify-center mt-0.5"><i class="fa-solid fa-stopwatch"></i></div>
+              <div>
+                <div class="font-medium">TOEFL：流暢作答 UX</div>
+                <div class="text-white/60">清楚進度條、鍵盤快捷鍵、送出前確認、錯誤提示清晰且可復原。</div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </aside>
+
+      <!-- Right Panel -->
+      <main class="lg:col-span-8 space-y-5">
+        <!-- Live status / progress -->
+        <section class="glass rounded-3xl p-5">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="badge"><i class="fa-solid fa-bolt"></i> CAT 狀態：<span id="live-state" class="font-semibold">待命</span></span>
+              <span class="badge"><i class="fa-solid fa-signal"></i> θ：<span id="live-theta" class="font-semibold">—</span></span>
+              <span class="badge"><i class="fa-solid fa-crosshairs"></i> SE：<span id="live-se" class="font-semibold">—</span></span>
+              <span class="badge"><i class="fa-solid fa-list-check"></i> 進度：<span id="live-progress" class="font-semibold">0/—</span></span>
             </div>
 
-            <div class="bg-white border border-slate-200 rounded-2xl p-5">
-              <div id="cat-question-meta" class="text-xs text-slate-500 mb-2">—</div>
-              <div id="cat-question" class="text-base md:text-lg font-bold text-slate-800 leading-relaxed">—</div>
-              <div id="cat-options" class="mt-4 space-y-2"></div>
-
-              <div id="cat-feedback" class="mt-4 hidden text-sm rounded-xl px-3 py-2"></div>
-
-              <div class="mt-5 flex justify-end gap-2">
-                <button id="btn-next" type="button" disabled
-                  class="text-sm px-5 py-2.5 rounded-xl bg-emerald-600 text-white font-bold shadow hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed"
-                  onclick="goNext()">
-                  下一題
-                </button>
+            <div class="w-full md:w-[320px]">
+              <div class="h-2 rounded-full bg-white/10 overflow-hidden border border-white/10">
+                <div id="bar-progress" class="h-full rounded-full" style="width:0%; background: linear-gradient(90deg, rgba(16,185,129,.95), rgba(59,130,246,.60));"></div>
+              </div>
+              <div class="mt-1 text-xs text-white/55 flex justify-between">
+                <span>自適應出題中</span>
+                <span id="bar-hint">—</span>
               </div>
             </div>
           </div>
 
-          <!-- 右側：作答狀態 -->
-          <div class="bg-white border border-slate-200 rounded-2xl p-5">
-            <div class="font-bold text-slate-700 mb-2">測驗狀態</div>
-            <div class="text-sm text-slate-600 leading-relaxed space-y-2">
-              <div>測驗編號：<span id="cat-test-id" class="font-semibold">—</span></div>
-              <div>目前能力值 θ：<span id="cat-theta" class="font-semibold">—</span></div>
-              <div>停止規則：<span id="cat-stop-rule" class="font-semibold">目標題數 / 最大題數</span></div>
+          <div class="divider my-4"></div>
+
+          <div id="panel-placeholder" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="glass2 rounded-2xl p-4">
+              <div class="text-sm font-semibold text-white/90">你現在可以做什麼</div>
+              <div class="mt-2 text-sm text-white/70 leading-relaxed">
+                1) 先選年級、學期、出版社、單元<br>
+                2) 直接按「開始 CAT 出題」：若題庫足夠，立即出第一題<br>
+                3) 若題庫不足，可先用「AI 生成並寫入題庫」補強後再開始
+              </div>
+            </div>
+            <div class="glass2 rounded-2xl p-4">
+              <div class="text-sm font-semibold text-white/90">操作效率（建議）</div>
+              <div class="mt-2 text-sm text-white/70 leading-relaxed">
+                作答可按鍵盤 <span class="kbd">A</span>/<span class="kbd">B</span>/<span class="kbd">C</span>/<span class="kbd">D</span> 選擇選項。<br>
+                送出後才會寫入資料庫（避免誤觸）。
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Question card -->
+        <section class="glass rounded-3xl p-5">
+          <div class="flex items-center justify-between gap-3">
+            <div class="font-semibold text-white/90"><i class="fa-solid fa-pen-to-square mr-2"></i>作答區</div>
+            <div class="flex items-center gap-2">
+              <button id="btn-finish" class="btn" disabled>
+                <i class="fa-solid fa-flag-checkered"></i> 結束並產生診斷
+              </button>
+            </div>
+          </div>
+
+          <div class="divider my-4"></div>
+
+          <!-- Stimulus Render Area -->
+          <div id="stimulus-wrap" class="hidden mb-4">
+            <div class="text-xs text-white/55 mb-2">共同材料 / 刺激（PISA 題組呈現）</div>
+            <div class="glass2 rounded-2xl p-4">
+              <div id="stimulus-content"></div>
+            </div>
+          </div>
+
+          <div id="q-skel" class="space-y-3">
+            <div class="skeleton h-5 w-2/3"></div>
+            <div class="skeleton h-4 w-full"></div>
+            <div class="skeleton h-4 w-full"></div>
+            <div class="skeleton h-4 w-5/6"></div>
+          </div>
+
+          <div id="q-wrap" class="hidden">
+            <div class="flex items-start justify-between gap-3 flex-wrap">
+              <div>
+                <div class="text-xs text-white/55">題目 ID</div>
+                <div id="q-id" class="mono text-sm text-white/80">—</div>
+              </div>
+              <div class="flex items-center gap-2 flex-wrap justify-end">
+                <span id="tag-concept" class="badge"><i class="fa-solid fa-tag"></i> concept_tag：—</span>
+                <span id="tag-source" class="badge"><i class="fa-solid fa-book"></i> source：—</span>
+              </div>
             </div>
 
-            <div class="mt-4 border-t border-slate-100 pt-4">
-              <div class="text-xs font-bold text-slate-500 mb-2">框架偏好（已送後端）</div>
-              <div id="cat-fw-badges" class="flex flex-wrap gap-2"></div>
+            <div class="mt-3 prose-stem serif text-[1.02rem]" id="q-stem"></div>
+
+            <div class="grid grid-cols-1 gap-3 mt-5" id="q-options"></div>
+
+            <div class="mt-5 flex flex-col md:flex-row gap-3">
+              <button id="btn-submit" class="btn btn-primary md:w-[240px]" disabled>
+                <i class="fa-solid fa-paper-plane"></i> 送出答案
+              </button>
+              <button id="btn-next" class="btn md:w-[240px]" disabled>
+                <i class="fa-solid fa-forward"></i> 下一題
+              </button>
+              <div class="flex-1 text-sm text-white/65 flex items-center">
+                <span id="hint-area">選擇 A/B/C/D 後再送出。</span>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+        </section>
 
-      <!-- 結果區 -->
-      <div id="cat-result" class="hidden glass-panel rounded-2xl p-6 mt-6">
-        <div class="flex items-center justify-between">
-          <div>
-            <div class="text-xs font-bold text-slate-500">測驗完成</div>
-            <div id="cat-result-title" class="text-2xl font-black text-slate-800 mt-1">—</div>
+        <!-- Report -->
+        <section id="report" class="glass rounded-3xl p-5 hidden">
+          <div class="flex items-center justify-between gap-3">
+            <div class="font-semibold text-white/90"><i class="fa-solid fa-clipboard-check mr-2"></i>診斷報告</div>
+            <div class="flex gap-2">
+              <button id="btn-copy-report" class="btn">
+                <i class="fa-solid fa-copy"></i> 複製摘要
+              </button>
+              <button id="btn-restart" class="btn">
+                <i class="fa-solid fa-rotate-left"></i> 重新測驗
+              </button>
+            </div>
           </div>
-          <button type="button"
-            class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-3 rounded-xl font-bold border border-slate-200"
-            onclick="reloadPageHard()">
-            重新開始
-          </button>
-        </div>
-        <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="bg-white border border-slate-200 rounded-2xl p-4">
-            <div class="text-xs font-bold text-slate-500">得分</div>
-            <div id="cat-score" class="text-3xl font-black text-emerald-700 mt-1">—</div>
-          </div>
-          <div class="bg-white border border-slate-200 rounded-2xl p-4">
-            <div class="text-xs font-bold text-slate-500">能力值 θ（若後端提供）</div>
-            <div id="cat-score-theta" class="text-3xl font-black text-slate-800 mt-1">—</div>
-          </div>
-          <div class="bg-white border border-slate-200 rounded-2xl p-4">
-            <div class="text-xs font-bold text-slate-500">作答題數</div>
-            <div id="cat-score-n" class="text-3xl font-black text-slate-800 mt-1">—</div>
-          </div>
-        </div>
+          <div class="divider my-4"></div>
 
-        <div class="mt-5 bg-white border border-slate-200 rounded-2xl p-4">
-          <div class="text-sm font-bold text-slate-700 mb-2">後端回饋 / 診斷（原樣顯示）</div>
-          <pre id="cat-result-raw" class="text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 overflow-auto max-h-[40vh] whitespace-pre-wrap">—</pre>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="glass2 rounded-2xl p-4">
+              <div class="text-xs text-white/55">得分</div>
+              <div id="rep-score" class="text-2xl font-bold mt-1">—</div>
+              <div class="text-xs text-white/55 mt-2">test_id</div>
+              <div id="rep-testid" class="mono text-sm text-white/75 mt-1 break-all">—</div>
+            </div>
+            <div class="glass2 rounded-2xl p-4">
+              <div class="text-xs text-white/55">能力估計 θ</div>
+              <div id="rep-theta" class="text-2xl font-bold mt-1">—</div>
+              <div class="text-xs text-white/55 mt-2">測量精度 SE</div>
+              <div id="rep-se" class="text-xl font-semibold mt-1 text-white/85">—</div>
+            </div>
+            <div class="glass2 rounded-2xl p-4">
+              <div class="text-xs text-white/55">學習建議（非 AI）</div>
+              <div id="rep-feedback" class="prose-muted text-sm mt-2"></div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div class="glass2 rounded-2xl p-4">
+              <div class="font-semibold text-white/90 text-sm"><i class="fa-solid fa-triangle-exclamation mr-2"></i>優先補強概念</div>
+              <div id="rep-weak" class="mt-2 text-sm text-white/75"></div>
+            </div>
+            <div class="glass2 rounded-2xl p-4">
+              <div class="font-semibold text-white/90 text-sm"><i class="fa-solid fa-star mr-2"></i>相對優勢概念</div>
+              <div id="rep-strong" class="mt-2 text-sm text-white/75"></div>
+            </div>
+          </div>
+
+          <div class="glass2 rounded-2xl p-4 mt-4">
+            <div class="font-semibold text-white/90 text-sm"><i class="fa-solid fa-xmark mr-2"></i>錯題（回看線索：概念｜教材來源）</div>
+            <div id="rep-wrong" class="mt-2 text-sm text-white/75"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast">
+    <div class="glass rounded-2xl p-4">
+      <div class="flex items-start gap-3">
+        <div id="toast-icon" class="w-10 h-10 rounded-2xl glass2 flex items-center justify-center">
+          <i class="fa-solid fa-circle-info"></i>
+        </div>
+        <div class="flex-1">
+          <div id="toast-title" class="font-semibold">提示</div>
+          <div id="toast-msg" class="text-sm text-white/75 mt-1 leading-relaxed">—</div>
+          <div class="mt-3 flex justify-end">
+            <button class="btn" onclick="UI.hideToast()"><i class="fa-solid fa-xmark"></i> 關閉</button>
+          </div>
         </div>
       </div>
     </div>
+  </div>
 
-  </main>
+  <!-- Modal -->
+  <div id="modal" class="modal">
+    <div class="glass rounded-3xl w-full max-w-[720px] p-5">
+      <div class="flex items-center justify-between gap-3">
+        <div class="font-semibold text-white/90" id="modal-title">—</div>
+        <button class="btn" onclick="UI.hideModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="divider my-4"></div>
+      <div id="modal-body" class="text-sm text-white/75 leading-relaxed"></div>
+      <div class="mt-5 flex flex-col md:flex-row gap-3 justify-end" id="modal-actions"></div>
+    </div>
+  </div>
 
   <script>
-    // ========= 你只需要檢查這三個常數 =========
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxBWrZCp-xLckDGZnhe64K0IUa_8CJZRzqZbrgL8lQdNn3S1WgaEzbdOtpo4mGwN6_H/exec";
+    /************************************************************
+     * 1) 只要改這裡：換成你的 GAS /exec
+     ************************************************************/
+    const GAS_API_URL = "https://script.google.com/macros/s/PASTE_YOUR_DEPLOYMENT_ID/exec";
 
-    // 後端出題/作答 action（若你的後端名稱不同，只改這兩行）
-    const ACTION_START  = "generate_exam"; // 開始出題（CAT）
-    const ACTION_SUBMIT = "submit_exam";   // 送出作答 / 取下一題（CAT）
-    // ========================================
-
-    let allData = [];
-    let filters = {};
-
-    // CAT session state
-    let catSession = {
-      test_id: "",
-      current_item: null,
-      current_index: 0,
-      target_n: 10,
-      max_n: 15,
-      timer_on: true,
-      seconds_per_item: 45,
-      frameworks: { pisa: true, timss: true, toefl: true },
-      theta: null,
-      answers: [],
-      items_cache: null,   // 若後端一次回傳 items array，也能跑
-      finished: false
+    /************************************************************
+     * 2) 後台 action（對齊你貼的 code.gs，避免 Unknown action）
+     ************************************************************/
+    const ACTION = {
+      GET_UNIT_OPTIONS: "getUnitOptions",
+      START_CAT: "startCAT",
+      SUBMIT_NEXT: "submitAndNext",
+      FINISH_CAT: "finishCAT",
+      GEN_SAVE_EXAM: "generateAndSaveExam"
     };
 
-    let timerHandle = null;
-    let timerRemain = 0;
-
-    // ---------- 工具 ----------
-    function safeJsonParse(text) {
-      try { return JSON.parse(text); } catch(e) { return null; }
-    }
-
-    function getCurrentUser() {
-      return JSON.parse(sessionStorage.getItem("currentUser") || localStorage.getItem("currentUser") || '{"name":"訪客"}');
-    }
-
-    function setDBStatusSuccess(n) {
-      const dbStatus = document.getElementById("db-status");
-      if (!dbStatus) return;
-      dbStatus.innerHTML = `<i class="fa-solid fa-check"></i> 資料庫連線成功（${n}筆）`;
-      dbStatus.className = "text-xs font-bold text-green-600";
-    }
-
-    function setDBStatusFail() {
-      const dbStatus = document.getElementById("db-status");
-      if (!dbStatus) return;
-      dbStatus.innerText = "連線失敗";
-      dbStatus.className = "text-xs font-bold text-red-500";
-    }
-
-    function setDBStatusLoading() {
-      const dbStatus = document.getElementById("db-status");
-      if (!dbStatus) return;
-      dbStatus.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Loading...`;
-      dbStatus.className = "text-xs font-bold text-orange-500";
-    }
-
-    function normalizeItem(raw) {
-      if (!raw || typeof raw !== "object") return null;
-
-      const stem =
-        raw.stem || raw.question || raw.text || raw.item_stem || raw.prompt || "";
-
-      const stimulus =
-        raw.stimulus || raw.passage || raw.context || raw.reading || "";
-
-      // 你的 CATItemBank 欄位是 option_A~D
-      const A = raw.option_A ?? raw.A ?? raw.choiceA ?? raw.optionA ?? "";
-      const B = raw.option_B ?? raw.B ?? raw.choiceB ?? raw.optionB ?? "";
-      const C = raw.option_C ?? raw.C ?? raw.choiceC ?? raw.optionC ?? "";
-      const D = raw.option_D ?? raw.D ?? raw.choiceD ?? raw.optionD ?? "";
-
-      const options = [A, B, C, D].map(x => (x === null || typeof x === "undefined") ? "" : String(x));
-
-      return {
-        item_id: raw.item_id || raw.id || raw.itemId || raw.itemID || "",
-        concept_tag: raw.concept_tag || raw.concept || raw.topic || "",
-        cognitive_level: raw.cogntive_level || raw.cognitive_level || raw.level || "",
-        difficulty: raw.IRT_b ?? raw.b ?? raw.difficulty ?? "",
-        stem: String(stem || "").trim(),
-        stimulus: String(stimulus || "").trim(),
-        options: options,
-      };
-    }
-
-    function renderFrameworkBadges() {
-      const box = document.getElementById("cat-fw-badges");
-      if (!box) return;
-      box.innerHTML = "";
-
-      const mk = (label) => {
-        const span = document.createElement("span");
-        span.className = "text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200";
-        span.textContent = label;
-        return span;
-      };
-
-      if (catSession.frameworks.pisa)  box.appendChild(mk("PISA"));
-      if (catSession.frameworks.timss) box.appendChild(mk("TIMSS"));
-      if (catSession.frameworks.toefl) box.appendChild(mk("TOEFL"));
-
-      if (!catSession.frameworks.pisa && !catSession.frameworks.timss && !catSession.frameworks.toefl) {
-        box.appendChild(mk("未指定框架（一般題型）"));
-      }
-    }
-
-    function setTitleFromFilters() {
-      const sem = (filters.semester === "上") ? "上學期" : (filters.semester === "下") ? "下學期" : (filters.semester || "");
-      const title = `${filters.stage || ""}｜${filters.publisher || ""}｜${filters.grade || ""}年級｜${sem}｜${filters.unitName || ""}`;
-      const el = document.getElementById("cat-title");
-      if (el) el.textContent = title;
-    }
-
-    function updateProgress() {
-      const el = document.getElementById("cat-progress");
-      if (!el) return;
-      el.textContent = `第 ${catSession.current_index} 題／目標 ${catSession.target_n} 題（上限 ${catSession.max_n} 題）`;
-    }
-
-    function stopTimer() {
-      if (timerHandle) {
-        clearInterval(timerHandle);
-        timerHandle = null;
-      }
-    }
-
-    function startTimer(seconds) {
-      stopTimer();
-      timerRemain = seconds;
-
-      const box = document.getElementById("cat-timer");
-      const txt = document.getElementById("cat-timer-text");
-      if (box && txt) {
-        box.classList.remove("hidden");
-        txt.textContent = `${timerRemain}s`;
-      }
-
-      timerHandle = setInterval(() => {
-        timerRemain -= 1;
-        if (txt) txt.textContent = `${timerRemain}s`;
-
-        if (timerRemain <= 0) {
-          stopTimer();
-          // 超時：自動送出空白（由後端決定怎麼處理，例如視為未作答/錯）
-          autoTimeoutSubmit();
-        }
-      }, 1000);
-    }
-
-    async function autoTimeoutSubmit() {
-      // 若已經作答過，就不動
-      const btnNext = document.getElementById("btn-next");
-      if (btnNext && !btnNext.disabled) return;
-
-      // 視為未作答：送 response_option = ""
-      try {
-        await submitAnswer("");
-      } catch (e) {
-        alert("計時到，但送出作答失敗：" + e.message);
-      }
-    }
-
-    // ---------- 這段是你「成功載入資料庫」那份 HTML 的核心（完整保留） ----------
-    window.onload = async () => {
-      const user = getCurrentUser();
-      const userInfo = document.getElementById("user-info");
-      if (userInfo) userInfo.innerText = user.name;
-
-      setDBStatusLoading();
-
-      try {
-        const res = await fetch(GAS_API_URL + "?action=get_metadata&ts=" + Date.now());
-        if (!res.ok) throw new Error(`伺服器 HTTP 錯誤: ${res.status}`);
-
-        const text = await res.text();
-        const json = safeJsonParse(text);
-        if (!json) {
-          console.error("JSON 解析失敗的原始文本:", text);
-          throw new Error("API 回應格式錯誤（非 JSON）。");
-        }
-
-        if (json.status === "success") {
-          allData = json.data || [];
-          setDBStatusSuccess(allData.length);
-          initSelectors();
-        } else {
-          throw new Error(json.message || "API 回應狀態非成功");
-        }
-      } catch (e) {
-        console.error("載入元數據失敗:", e);
-        setDBStatusFail();
-        const selStageAgain = document.getElementById("sel-stage");
-        if (selStageAgain) {
-          selStageAgain.innerHTML = '<option value="" disabled selected>連線失敗，請重試...</option>';
-          selStageAgain.disabled = true;
-        }
-        alert(`無法載入資料庫！\n錯誤訊息: ${e.message}`);
+    /************************************************************
+     * State
+     ************************************************************/
+    const State = {
+      meta: {
+        unitsByPublisher: {},
+        publishers: []
+      },
+      cat: {
+        started: false,
+        test_id: "",
+        student_id: "",
+        current_item: null,
+        selected: "",
+        next_item_buffer: null,
+        n_admin: 0,
+        max_items: 15,
+        min_items: 8,
+        stop_se: 0.35,
+        theta: null,
+        se: null
       }
     };
 
-    function reloadMetadata() {
-      location.reload();
-    }
-
-    function initSelectors() {
-      const stages = [...new Set(allData.map(d => d.stage))];
-      populate("sel-stage", stages);
-
-      const selStage = document.getElementById("sel-stage");
-      const selPublisher = document.getElementById("sel-publisher");
-      const selGrade = document.getElementById("sel-grade");
-      const selSemester = document.getElementById("sel-semester");
-      const selUnit = document.getElementById("sel-unit");
-
-      if (selStage) selStage.onchange = (e) => updateLevel(1, e.target.value);
-      if (selPublisher) selPublisher.onchange = (e) => updateLevel(2, e.target.value);
-      if (selGrade) selGrade.onchange = (e) => updateLevel(3, e.target.value);
-      if (selSemester) selSemester.onchange = (e) => updateLevel(4, e.target.value);
-      if (selUnit) selUnit.onchange = (e) => {
-        filters.unitName = e.target.value;
-        const btn = document.getElementById("btn-start-cat");
-        if (btn) btn.disabled = false;
-      };
-    }
-
-    function updateLevel(level, value) {
-      if (level === 1) filters = { stage: value };
-      if (level === 2) { filters.publisher = value; delete filters.grade; delete filters.semester; delete filters.unitName; }
-      if (level === 3) { filters.grade = value; delete filters.semester; delete filters.unitName; }
-      if (level === 4) { filters.semester = value; delete filters.unitName; }
-
-      const ids = ["sel-publisher", "sel-grade", "sel-semester", "sel-unit"];
-      for (let i = level; i < 4; i++) {
-        const el = document.getElementById(ids[i]);
-        if (el) {
-          el.innerHTML = '<option disabled selected>Select...</option>';
-          el.disabled = true;
+    /************************************************************
+     * UI helpers
+     ************************************************************/
+    const UI = {
+      setConn(ok, msg){
+        const el = document.getElementById("badge-conn");
+        if(ok){
+          el.innerHTML = `<i class="fa-solid fa-circle-check"></i> 連線成功`;
+          el.style.borderColor = "rgba(34,197,94,.35)";
+          el.style.background = "rgba(34,197,94,.10)";
+        }else{
+          el.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> 連線異常`;
+          el.style.borderColor = "rgba(245,158,11,.35)";
+          el.style.background = "rgba(245,158,11,.10)";
+          if(msg) UI.toast("連線異常", msg, "warn");
         }
-      }
+      },
+      setDB(text){
+        const el = document.getElementById("badge-db");
+        el.innerHTML = `<i class="fa-solid fa-database"></i> ${escapeHtml(text)}`;
+      },
+      toast(title, msg, type="info"){
+        const t = document.getElementById("toast");
+        const ic = document.getElementById("toast-icon");
+        const tt = document.getElementById("toast-title");
+        const tm = document.getElementById("toast-msg");
 
-      const btn = document.getElementById("btn-start-cat");
-      if (btn) btn.disabled = true;
+        let icon = "fa-circle-info";
+        if(type==="good") icon="fa-circle-check";
+        if(type==="warn") icon="fa-triangle-exclamation";
+        if(type==="bad") icon="fa-circle-xmark";
 
-      const relevantData = allData.filter(d => {
-        const safeMatch = (dVal, fVal) => !fVal || String(dVal).trim() == String(fVal).trim();
-        return safeMatch(d.stage, filters.stage) &&
-               safeMatch(d.publisher, filters.publisher) &&
-               safeMatch(d.grade, filters.grade) &&
-               safeMatch(d.semester, filters.semester);
-      });
+        ic.innerHTML = `<i class="fa-solid ${icon}"></i>`;
+        tt.textContent = title || "提示";
+        tm.textContent = msg || "";
 
-      if (level === 1) populate("sel-publisher", [...new Set(relevantData.map(d => d.publisher))]);
-      if (level === 2) populate("sel-grade", [...new Set(relevantData.map(d => d.grade))].sort((a, b) => a - b), "grade");
-      if (level === 3) populate("sel-semester", [...new Set(relevantData.map(d => d.semester))], "semester");
-
-      if (level === 4) {
-        const unitSelect = document.getElementById("sel-unit");
-        if (!unitSelect) return;
-        unitSelect.innerHTML = '<option disabled selected>Select...</option>';
-        if (relevantData.length > 0) {
-          relevantData.forEach(d => {
-            const opt = document.createElement("option");
-            opt.value = d.unitName;
-            opt.text = (d.unitType && !isNaN(d.unitType)) ? `第${d.unitType}課 ${d.unitName}` : d.unitName;
-            unitSelect.add(opt);
-          });
-          unitSelect.disabled = false;
-        }
-      }
-    }
-
-    function populate(id, list, type) {
-      const el = document.getElementById(id);
-      if (!el) return;
-      el.innerHTML = '<option disabled selected>Select...</option>';
-      list.forEach(o => {
-        const opt = document.createElement("option");
-        opt.value = o;
-        if (type === "grade") opt.text = o + "年級";
-        else if (type === "semester") opt.text = (o === "上" ? "上學期" : (o === "下" ? "下學期" : o));
-        else opt.text = o;
-        el.add(opt);
-      });
-      el.disabled = false;
-    }
-    // ----------（以上：資料庫載入與五層連動 完整保留）----------
-
-
-    // ========== CAT：開始出題 ==========
-    async function startCAT() {
-      const selPanel = document.getElementById("selection-panel");
-      const loading = document.getElementById("loading-view");
-      const catView = document.getElementById("cat-view");
-
-      if (selPanel) selPanel.classList.add("hidden");
-      if (loading) { loading.classList.remove("hidden"); loading.classList.add("flex"); }
-      if (catView) catView.classList.add("hidden");
-
-      // 讀取框架偏好與 CAT 參數
-      catSession.frameworks = {
-        pisa:  !!document.getElementById("fw-pisa")?.checked,
-        timss: !!document.getElementById("fw-timss")?.checked,
-        toefl: !!document.getElementById("fw-toefl")?.checked
-      };
-      catSession.target_n = Math.max(5, Math.min(30, Number(document.getElementById("cat-target-n")?.value || 10)));
-      catSession.max_n = Math.max(catSession.target_n, Math.min(50, Number(document.getElementById("cat-max-n")?.value || 15)));
-      catSession.timer_on = (document.getElementById("cat-timer-on")?.value || "1") === "1";
-      catSession.seconds_per_item = Math.max(10, Math.min(300, Number(document.getElementById("cat-seconds-per-item")?.value || 45)));
-
-      // reset session
-      catSession.test_id = "";
-      catSession.current_item = null;
-      catSession.current_index = 0;
-      catSession.theta = null;
-      catSession.answers = [];
-      catSession.items_cache = null;
-      catSession.finished = false;
-      stopTimer();
-
-      // UI init
-      setTitleFromFilters();
-      renderFrameworkBadges();
-      const testIdEl = document.getElementById("cat-test-id");
-      if (testIdEl) testIdEl.textContent = "—";
-      const thetaEl = document.getElementById("cat-theta");
-      if (thetaEl) thetaEl.textContent = "—";
-
-      try {
-        const user = getCurrentUser();
-
-        const payload = {
-          action: ACTION_START,
-          mode: "CAT",
-          filters: filters,
-          cat: {
-            target_n: catSession.target_n,
-            max_n: catSession.max_n,
-            timer_on: catSession.timer_on ? 1 : 0,
-            seconds_per_item: catSession.seconds_per_item,
-            frameworks: catSession.frameworks
-          },
-          user: {
-            name: user.name || "訪客",
-            student_id: user.student_id || user.StudentID || user.id || ""
-          }
-        };
-
-        const res = await fetch(GAS_API_URL, {
-          method: "POST",
-          body: JSON.stringify(payload)
+        t.classList.add("show");
+        clearTimeout(UI._toastTimer);
+        UI._toastTimer = setTimeout(()=>UI.hideToast(), 5200);
+      },
+      hideToast(){
+        document.getElementById("toast").classList.remove("show");
+      },
+      modal(title, bodyHtml, actions=[]){
+        document.getElementById("modal-title").textContent = title || "提示";
+        document.getElementById("modal-body").innerHTML = bodyHtml || "";
+        const act = document.getElementById("modal-actions");
+        act.innerHTML = "";
+        actions.forEach(a=>{
+          const btn = document.createElement("button");
+          btn.className = a.className || "btn";
+          btn.innerHTML = a.html || "OK";
+          btn.onclick = a.onClick || (()=>UI.hideModal());
+          act.appendChild(btn);
         });
+        document.getElementById("modal").classList.add("show");
+      },
+      hideModal(){
+        document.getElementById("modal").classList.remove("show");
+      },
+      setLive(){
+        const s = State.cat;
+        document.getElementById("live-state").textContent = s.started ? "測驗中" : "待命";
+        document.getElementById("live-theta").textContent = (s.theta==null) ? "—" : String(round(s.theta, 4));
+        document.getElementById("live-se").textContent = (s.se==null) ? "—" : String(round(s.se, 4));
+        document.getElementById("live-progress").textContent = `${s.n_admin}/${s.max_items || "—"}`;
 
-        if (!res.ok) throw new Error(`HTTP 錯誤! 狀態碼: ${res.status}`);
-
-        const text = await res.text();
-        const json = safeJsonParse(text);
-
-        if (!json) {
-          console.error("非 JSON 回應：", text);
-          throw new Error("後端回傳非 JSON（請檢查 Apps Script ContentService 回傳）。");
+        const pct = (s.max_items ? Math.min(100, Math.round((s.n_admin / s.max_items)*100)) : 0);
+        document.getElementById("bar-progress").style.width = pct + "%";
+        document.getElementById("bar-hint").textContent = s.max_items ? (pct + "%") : "—";
+      },
+      showQuestionSkeleton(show){
+        document.getElementById("q-skel").classList.toggle("hidden", !show);
+        document.getElementById("q-wrap").classList.toggle("hidden", show);
+      },
+      showReport(show){
+        document.getElementById("report").classList.toggle("hidden", !show);
+      },
+      showStimulus(stim){
+        const wrap = document.getElementById("stimulus-wrap");
+        const box = document.getElementById("stimulus-content");
+        box.innerHTML = "";
+        if(!stim){
+          wrap.classList.add("hidden");
+          return;
         }
+        wrap.classList.remove("hidden");
 
-        if (json.status !== "success") {
-          throw new Error(json.message || "後端回應失敗");
+        try{
+          const kind = String(stim.kind||"").trim();
+          if(kind === "table" && stim.table){
+            const cols = Array.isArray(stim.table.columns)? stim.table.columns : [];
+            const rows = Array.isArray(stim.table.rows)? stim.table.rows : [];
+            const table = document.createElement("table");
+            table.className = "table-stim w-full border-collapse rounded-xl overflow-hidden";
+            const thead = document.createElement("thead");
+            const trh = document.createElement("tr");
+            cols.forEach(c=>{
+              const th = document.createElement("th");
+              th.textContent = String(c);
+              trh.appendChild(th);
+            });
+            thead.appendChild(trh);
+            table.appendChild(thead);
+
+            const tbody = document.createElement("tbody");
+            rows.forEach(r=>{
+              const tr = document.createElement("tr");
+              (Array.isArray(r)? r : [r]).forEach(cell=>{
+                const td = document.createElement("td");
+                td.textContent = String(cell);
+                tr.appendChild(td);
+              });
+              tbody.appendChild(tr);
+            });
+            table.appendChild(tbody);
+            box.appendChild(table);
+            return;
+          }
+
+          if(kind === "chart" && stim.chart){
+            const canvas = document.createElement("canvas");
+            canvas.height = 160;
+            box.appendChild(canvas);
+
+            const chart_type = stim.chart.chart_type || "bar";
+            const labels = Array.isArray(stim.chart.labels)? stim.chart.labels : [];
+            const datasets = Array.isArray(stim.chart.datasets)? stim.chart.datasets : [];
+
+            // Let Chart.js use its default palette; keep it simple
+            new Chart(canvas.getContext("2d"),{
+              type: chart_type,
+              data:{
+                labels,
+                datasets: datasets.map((d,i)=>({
+                  label: d.label || ("dataset"+(i+1)),
+                  data: Array.isArray(d.data)? d.data : []
+                }))
+              },
+              options:{
+                responsive:true,
+                plugins:{
+                  legend:{ labels:{ color:"rgba(255,255,255,.85)" } }
+                },
+                scales:{
+                  x:{ ticks:{ color:"rgba(255,255,255,.75)" }, grid:{ color:"rgba(255,255,255,.10)" } },
+                  y:{ ticks:{ color:"rgba(255,255,255,.75)" }, grid:{ color:"rgba(255,255,255,.10)" } }
+                }
+              }
+            });
+            return;
+          }
+
+          if(kind === "svg" && stim.svg && stim.svg.svg_text){
+            const div = document.createElement("div");
+            div.className = "w-full overflow-auto";
+            div.innerHTML = stim.svg.svg_text;
+            box.appendChild(div);
+            return;
+          }
+
+          const pre = document.createElement("pre");
+          pre.className = "text-xs text-white/70 whitespace-pre-wrap";
+          pre.textContent = JSON.stringify(stim, null, 2);
+          box.appendChild(pre);
+        }catch(e){
+          const pre = document.createElement("pre");
+          pre.className = "text-xs text-white/70 whitespace-pre-wrap";
+          pre.textContent = "stimulus 解析失敗：" + String(e?.message || e);
+          box.appendChild(pre);
         }
-
-        // 相容多種後端格式：data.items（一次回題組）或 data.item（一次回一題）
-        const data = json.data || {};
-        catSession.test_id = data.test_id || data.testId || data.testID || "";
-
-        const testId2 = document.getElementById("cat-test-id");
-        if (testId2) testId2.textContent = catSession.test_id || "（未提供）";
-
-        catSession.theta = (typeof data.theta !== "undefined") ? data.theta : null;
-        const theta2 = document.getElementById("cat-theta");
-        if (theta2) theta2.textContent = (catSession.theta === null || typeof catSession.theta === "undefined") ? "—" : String(catSession.theta);
-
-        if (Array.isArray(data.items) && data.items.length > 0) {
-          catSession.items_cache = data.items.map(normalizeItem).filter(Boolean);
-          catSession.current_index = 1;
-          catSession.current_item = catSession.items_cache[0];
-        } else {
-          const itemRaw = data.item || data.current_item || data.currentItem || data.question || null;
-          const item = normalizeItem(itemRaw);
-          if (!item) throw new Error("後端未提供第一題（item/items）。");
-          catSession.current_index = 1;
-          catSession.current_item = item;
-        }
-
-        // show cat view
-        if (loading) { loading.classList.add("hidden"); loading.classList.remove("flex"); }
-        if (catView) catView.classList.remove("hidden");
-
-        updateProgress();
-        renderCurrentItem();
-
-      } catch (e) {
-        console.error(e);
-        if (loading) { loading.classList.add("hidden"); loading.classList.remove("flex"); }
-        if (selPanel) selPanel.classList.remove("hidden");
-        alert("開始出題失敗：\n" + e.message);
       }
-    }
+    };
 
-    function renderCurrentItem() {
-      const item = catSession.current_item;
-      if (!item) return;
-
-      // meta
-      const meta = [];
-      if (item.item_id) meta.push(`題號：${item.item_id}`);
-      if (item.concept_tag) meta.push(`概念：${item.concept_tag}`);
-      if (item.cognitive_level) meta.push(`認知層次：${item.cognitive_level}`);
-      if (item.difficulty !== "" && item.difficulty !== null && typeof item.difficulty !== "undefined") meta.push(`難度(b)：${item.difficulty}`);
-
-      const metaEl = document.getElementById("cat-question-meta");
-      if (metaEl) metaEl.textContent = meta.length ? meta.join("｜") : "—";
-
-      // stimulus
-      const stimBox = document.getElementById("cat-stimulus-box");
-      const stimEl = document.getElementById("cat-stimulus");
-      if (item.stimulus) {
-        if (stimEl) stimEl.textContent = item.stimulus;
-        if (stimBox) stimBox.classList.remove("hidden");
-      } else {
-        if (stimEl) stimEl.textContent = "";
-        if (stimBox) stimBox.classList.add("hidden");
-      }
-
-      // question
-      const qEl = document.getElementById("cat-question");
-      if (qEl) qEl.textContent = item.stem || "（題幹空白）";
-
-      // options
-      const optEl = document.getElementById("cat-options");
-      if (optEl) optEl.innerHTML = "";
-
-      const feedback = document.getElementById("cat-feedback");
-      if (feedback) {
-        feedback.classList.add("hidden");
-        feedback.textContent = "";
-        feedback.className = "mt-4 hidden text-sm rounded-xl px-3 py-2";
-      }
-
-      const btnNext = document.getElementById("btn-next");
-      if (btnNext) btnNext.disabled = true;
-
-      const letters = ["A", "B", "C", "D"];
-      item.options.forEach((optText, idx) => {
-        if (!optText) return;
-
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "option-btn w-full text-left px-4 py-3 rounded-xl border border-slate-200 bg-white hover:bg-emerald-50 hover:border-emerald-300 text-slate-800";
-        btn.innerHTML = `<span class="inline-flex items-center justify-center w-7 h-7 mr-2 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold">${letters[idx]}</span>${optText}`;
-        btn.onclick = () => chooseOption(letters[idx], idx);
-        optEl.appendChild(btn);
-      });
-
-      updateProgress();
-
-      // timer
-      if (catSession.timer_on) {
-        startTimer(catSession.seconds_per_item);
-      } else {
-        stopTimer();
-        const t = document.getElementById("cat-timer");
-        if (t) t.classList.add("hidden");
-      }
-    }
-
-    async function chooseOption(letter, index) {
-      stopTimer();
-
-      const optEl = document.getElementById("cat-options");
-      const btns = optEl ? Array.from(optEl.querySelectorAll("button")) : [];
-      btns.forEach(b => b.disabled = true);
-
-      const item = catSession.current_item;
-      const answer = {
-        ts: new Date().toISOString(),
-        test_id: catSession.test_id || "",
-        item_id: item?.item_id || "",
-        response_option: letter,
-        response_index: index
-      };
-      catSession.answers.push(answer);
-
-      // 立即送後端（CAT 要靠後端更新 θ、抽下一題）
-      try {
-        await submitAnswer(letter);
-      } catch (e) {
-        alert("送出作答失敗：\n" + e.message);
-        // 允許使用者仍可按下一題（避免卡死）
-        const btnNext = document.getElementById("btn-next");
-        if (btnNext) btnNext.disabled = false;
-      }
-    }
-
-    async function submitAnswer(letter) {
-      const item = catSession.current_item;
-      if (!item) throw new Error("目前沒有題目可送出");
-
-      const user = getCurrentUser();
-
-      const payload = {
-        action: ACTION_SUBMIT,
-        mode: "CAT",
-        filters: filters,
-        test_id: catSession.test_id || "",
-        item_id: item.item_id || "",
-        response_option: letter, // "A"/"B"/"C"/"D" 或 ""（超時未作答）
-        user: {
-          name: user.name || "訪客",
-          student_id: user.student_id || user.StudentID || user.id || ""
-        },
-        cat: {
-          target_n: catSession.target_n,
-          max_n: catSession.max_n,
-          frameworks: catSession.frameworks
-        }
-      };
-
+    /************************************************************
+     * API
+     ************************************************************/
+    async function apiCall(payload){
       const res = await fetch(GAS_API_URL, {
         method: "POST",
-        body: JSON.stringify(payload)
+        headers: { "Content-Type":"application/json" },
+        body: JSON.stringify(payload),
+        redirect: "follow"
+      });
+      const text = await res.text();
+      let json = null;
+      try{ json = JSON.parse(text); }catch(_){}
+      if(!json){
+        throw new Error("後端未回傳 JSON。請確認 GAS 是 Web App /exec，並且 doPost 回傳 JSON。");
+      }
+      if(json.ok !== true){
+        throw new Error(json.error || "後端回傳失敗（ok=false）");
+      }
+      return json;
+    }
+
+    async function ping(){
+      try{
+        const res = await fetch(GAS_API_URL, { method:"GET", redirect:"follow" });
+        const txt = await res.text();
+        let j = null;
+        try{ j = JSON.parse(txt); }catch(_){}
+        if(j && j.ok === true){
+          UI.setConn(true);
+          return true;
+        }
+        UI.setConn(true); // GET 不一定回 JSON，但能通就當 ok
+        return true;
+      }catch(e){
+        UI.setConn(false, String(e?.message||e));
+        return false;
+      }
+    }
+
+    /************************************************************
+     * Metadata: grade options + getUnitOptions from ItemBank
+     ************************************************************/
+    function buildGradeOptions(stage){
+      const sel = document.getElementById("sel-grade");
+      sel.innerHTML = "";
+      const grades = (stage === "國中") ? [7,8,9] : [3,4,5,6];
+      grades.forEach(g=>{
+        const op = document.createElement("option");
+        op.value = String(g);
+        op.textContent = String(g) + "年級";
+        sel.appendChild(op);
+      });
+      // default 4 if exists
+      if(stage !== "國中") sel.value = "4";
+    }
+
+    function getSelectedUnitMeta(){
+      const subject = document.getElementById("sel-subject").value.trim() || "自然科學";
+      const grade = Number(document.getElementById("sel-grade").value);
+      const semester = document.getElementById("sel-semester").value.trim();
+      const publisher = document.getElementById("sel-publisher").value.trim();
+      const unit = document.getElementById("sel-unit").value.trim();
+
+      return {
+        subject,
+        grade,
+        semester,
+        textbook_version: publisher,
+        unit_name: unit
+      };
+    }
+
+    async function loadUnitOptions(){
+      const subject = document.getElementById("sel-subject").value.trim() || "自然科學";
+      const grade = Number(document.getElementById("sel-grade").value);
+      const semester = document.getElementById("sel-semester").value.trim();
+
+      UI.setDB("載入單元選單中…");
+      const json = await apiCall({
+        action: ACTION.GET_UNIT_OPTIONS,
+        subject, grade, semester
       });
 
-      if (!res.ok) throw new Error(`HTTP 錯誤! 狀態碼: ${res.status}`);
+      State.meta.publishers = Array.isArray(json.publishers) ? json.publishers : [];
+      State.meta.unitsByPublisher = json.unitsByPublisher || {};
 
-      const text = await res.text();
-      const json = safeJsonParse(text);
-      if (!json) {
-        console.error("非 JSON 回應：", text);
-        throw new Error("後端回傳非 JSON。");
+      // publisher dropdown
+      const selPub = document.getElementById("sel-publisher");
+      selPub.innerHTML = "";
+      if(State.meta.publishers.length === 0){
+        const op = document.createElement("option");
+        op.value = "";
+        op.textContent = "（此年級/學期尚無題庫）";
+        selPub.appendChild(op);
+      }else{
+        State.meta.publishers.forEach(p=>{
+          const op = document.createElement("option");
+          op.value = p;
+          op.textContent = p;
+          selPub.appendChild(op);
+        });
       }
-      if (json.status !== "success") {
-        throw new Error(json.message || "後端回應失敗");
+
+      // unit dropdown depends on publisher
+      refreshUnitDropdown();
+
+      UI.setDB(`單元選單已載入（出版社 ${State.meta.publishers.length}）`);
+      UI.toast("資料載入完成", "已取得該年級/學期之題庫版本與單元清單。", "good");
+    }
+
+    function refreshUnitDropdown(){
+      const pub = document.getElementById("sel-publisher").value.trim();
+      const units = (State.meta.unitsByPublisher && State.meta.unitsByPublisher[pub]) ? State.meta.unitsByPublisher[pub] : [];
+      const selUnit = document.getElementById("sel-unit");
+      selUnit.innerHTML = "";
+      if(!units || units.length === 0){
+        const op = document.createElement("option");
+        op.value = "";
+        op.textContent = "（此版本尚無單元）";
+        selUnit.appendChild(op);
+      }else{
+        units.forEach(u=>{
+          const op = document.createElement("option");
+          op.value = u;
+          op.textContent = u;
+          selUnit.appendChild(op);
+        });
+      }
+    }
+
+    /************************************************************
+     * CAT flow
+     ************************************************************/
+    function ensureStudentId(){
+      const inp = document.getElementById("inp-student");
+      let sid = (inp.value || "").trim();
+      if(!sid){
+        sid = "guest_" + Date.now();
+        inp.value = sid;
+      }
+      localStorage.setItem("slh_student_id", sid);
+      return sid;
+    }
+
+    function resetCATUI(){
+      State.cat.started = false;
+      State.cat.test_id = "";
+      State.cat.current_item = null;
+      State.cat.selected = "";
+      State.cat.next_item_buffer = null;
+      State.cat.n_admin = 0;
+      State.cat.theta = null;
+      State.cat.se = null;
+
+      UI.setLive();
+      UI.showQuestionSkeleton(true);
+      UI.showStimulus(null);
+      UI.showReport(false);
+
+      document.getElementById("btn-finish").disabled = true;
+      document.getElementById("btn-submit").disabled = true;
+      document.getElementById("btn-next").disabled = true;
+
+      // placeholder visible
+      document.getElementById("panel-placeholder").classList.remove("hidden");
+    }
+
+    function parseStimulusFromStem(stem){
+      // detect marker [STIMULUS_JSON]
+      const marker = "[STIMULUS_JSON]";
+      const idx = stem.indexOf(marker);
+      if(idx < 0) return { cleanStem: stem, stimulus: null };
+      const before = stem.slice(0, idx).trim();
+      const after = stem.slice(idx + marker.length).trim();
+      // after may include JSON
+      const firstBrace = after.indexOf("{");
+      const lastBrace = after.lastIndexOf("}");
+      if(firstBrace < 0 || lastBrace <= firstBrace){
+        return { cleanStem: before, stimulus: null };
+      }
+      const jsonText = after.slice(firstBrace, lastBrace+1);
+      try{
+        const stim = JSON.parse(jsonText);
+        return { cleanStem: before, stimulus: stim };
+      }catch(_){
+        return { cleanStem: before, stimulus: null };
+      }
+    }
+
+    function normalizeItem(raw){
+      if(!raw) return null;
+      const item_id = String(raw.item_id || "").trim();
+      let stem = String(raw.stem || "").trim();
+
+      const parsed = parseStimulusFromStem(stem);
+      stem = parsed.cleanStem;
+
+      const optObj = raw.options || {};
+      const A = (raw.option_A ?? optObj.A ?? raw.A ?? "").toString();
+      const B = (raw.option_B ?? optObj.B ?? raw.B ?? "").toString();
+      const C = (raw.option_C ?? optObj.C ?? raw.C ?? "").toString();
+      const D = (raw.option_D ?? optObj.D ?? raw.D ?? "").toString();
+
+      const options = { A, B, C, D };
+      const concept_tag = String(raw.concept_tag || "").trim();
+      const textbook_source = String(raw.textbook_source || "").trim();
+
+      return { item_id, stem, options, concept_tag, textbook_source, stimulus: parsed.stimulus };
+    }
+
+    function renderItem(item){
+      UI.showQuestionSkeleton(false);
+
+      document.getElementById("panel-placeholder").classList.add("hidden");
+
+      document.getElementById("q-id").textContent = item.item_id || "—";
+      document.getElementById("q-stem").textContent = item.stem || "";
+
+      document.getElementById("tag-concept").innerHTML = `<i class="fa-solid fa-tag"></i> concept_tag：${escapeHtml(item.concept_tag || "—")}`;
+      document.getElementById("tag-source").innerHTML = `<i class="fa-solid fa-book"></i> source：${escapeHtml(item.textbook_source || "—")}`;
+
+      UI.showStimulus(item.stimulus);
+
+      const optWrap = document.getElementById("q-options");
+      optWrap.innerHTML = "";
+
+      State.cat.selected = "";
+      document.getElementById("btn-submit").disabled = true;
+      document.getElementById("btn-next").disabled = true;
+      document.getElementById("hint-area").textContent = "選擇 A/B/C/D 後再送出。";
+
+      ["A","B","C","D"].forEach(letter=>{
+        const text = (item.options && item.options[letter] != null) ? String(item.options[letter]) : "";
+        const card = document.createElement("div");
+        card.className = "opt";
+        card.setAttribute("data-letter", letter);
+        card.innerHTML = `
+          <div class="flex items-start gap-3">
+            <div class="w-9 h-9 rounded-2xl glass2 flex items-center justify-center font-bold">${letter}</div>
+            <div class="flex-1 text-white/85 leading-relaxed">${escapeHtml(text)}</div>
+            <div class="text-xs text-white/55 mt-1"><span class="kbd">${letter}</span></div>
+          </div>
+        `;
+        card.onclick = ()=>selectOption(letter);
+        optWrap.appendChild(card);
+      });
+    }
+
+    function selectOption(letter){
+      if(!State.cat.started) return;
+      State.cat.selected = letter;
+      document.querySelectorAll(".opt").forEach(el=>{
+        const l = el.getAttribute("data-letter");
+        el.classList.toggle("selected", l===letter);
+      });
+      document.getElementById("btn-submit").disabled = false;
+      document.getElementById("hint-area").textContent = `已選擇 ${letter}。按「送出答案」寫入並取得下一題。`;
+    }
+
+    async function startCAT(){
+      const unit = getSelectedUnitMeta();
+      if(!unit.textbook_version || !unit.unit_name){
+        UI.toast("資料不足", "請先選擇「出版社」與「單元名稱」。", "warn");
+        return;
       }
 
-      const data = json.data || {};
+      const sid = ensureStudentId();
+      State.cat.student_id = sid;
 
-      // 更新 theta（若後端有給）
-      if (typeof data.theta !== "undefined") {
-        catSession.theta = data.theta;
-        const thetaEl = document.getElementById("cat-theta");
-        if (thetaEl) thetaEl.textContent = String(catSession.theta);
-      }
+      State.cat.max_items = clampNum(Number(document.getElementById("inp-maxitems").value), 5, 40, 15);
+      State.cat.min_items = clampNum(Number(document.getElementById("inp-minitems").value), 3, 40, 8);
+      State.cat.stop_se = clampNum(Number(document.getElementById("inp-stopse").value), 0.10, 1.00, 0.35);
 
-      // 後端可回 correctness / feedback（若你有做）
-      const fb = document.getElementById("cat-feedback");
-      if (fb && (data.feedback || data.correctness || typeof data.is_correct !== "undefined")) {
-        const isCorrect = (data.is_correct === 1 || data.is_correct === "1" || data.isCorrect === true);
-        fb.classList.remove("hidden");
-        if (isCorrect) {
-          fb.className = "mt-4 text-sm rounded-xl px-3 py-2 bg-emerald-50 border border-emerald-200 text-emerald-800";
-          fb.innerHTML = `<div class="font-semibold text-emerald-700 mb-1">答對</div><div class="text-slate-700">${data.feedback || ""}</div>`;
-        } else {
-          fb.className = "mt-4 text-sm rounded-xl px-3 py-2 bg-orange-50 border border-orange-200 text-orange-800";
-          fb.innerHTML = `<div class="font-semibold text-orange-600 mb-1">答錯</div><div class="text-slate-700">${data.feedback || ""}</div>`;
+      UI.showReport(false);
+      UI.showQuestionSkeleton(true);
+      UI.showStimulus(null);
+
+      document.getElementById("btn-start").disabled = true;
+      document.getElementById("btn-finish").disabled = true;
+
+      try{
+        const json = await apiCall({
+          action: ACTION.START_CAT,
+          student: { student_id: sid },
+          unit,
+          settings: { max_items: State.cat.max_items }
+        });
+
+        State.cat.started = true;
+        State.cat.test_id = json.test_id || "";
+        State.cat.theta = (typeof json.theta !== "undefined") ? json.theta : null;
+        State.cat.se = (typeof json.se !== "undefined") ? json.se : null;
+        State.cat.n_admin = 0; // backend returns n_admin=0 at start
+
+        const item = normalizeItem(json.item);
+        if(!item) throw new Error("後端未提供第一題 item");
+
+        State.cat.current_item = item;
+        UI.setLive();
+        renderItem(item);
+
+        document.getElementById("btn-finish").disabled = false;
+        UI.toast("CAT 已開始", "已取得第一題。", "good");
+      }catch(e){
+        // If no active items, give best UX: offer AI generate+save then start again
+        const msg = String(e?.message || e);
+
+        if(msg.includes("no active items")){
+          UI.modal(
+            "此單元 CAT 題庫不足",
+            `後端回覆：<span class="mono">${escapeHtml(msg)}</span><br><br>
+             你可以直接「AI 生成並入庫」補題庫，完成後立即開始 CAT。`,
+            [
+              {
+                className:"btn btn-primary",
+                html:`<i class="fa-solid fa-wand-magic-sparkles"></i> 立即 AI 生成並入庫後開始`,
+                onClick: async ()=>{
+                  UI.hideModal();
+                  await aiGenerateAndSave(true);
+                }
+              },
+              {
+                className:"btn",
+                html:`<i class="fa-solid fa-xmark"></i> 取消`,
+                onClick: ()=>UI.hideModal()
+              }
+            ]
+          );
+        }else{
+          UI.toast("開始 CAT 失敗", msg, "bad");
         }
+      }finally{
+        document.getElementById("btn-start").disabled = false;
       }
+    }
 
-      // 決定下一題 / 結束
-      if (data.finished === true || data.done === true || data.is_finished === 1 || data.next_item === null) {
-        catSession.finished = true;
-        showResult(json);
+    async function submitAnswer(){
+      if(!State.cat.started || !State.cat.current_item) return;
+      const letter = State.cat.selected;
+      if(!letter){
+        UI.toast("尚未選擇答案", "請先選擇 A/B/C/D。", "warn");
         return;
       }
 
-      let nextItemRaw = data.next_item || data.item || data.current_item || data.currentItem || null;
+      // lock UI
+      document.getElementById("btn-submit").disabled = true;
+      document.getElementById("btn-next").disabled = true;
+      document.getElementById("hint-area").textContent = "送出中…";
 
-      // 如果後端一次回 items，我們也能本地走（但仍建議後端回 next_item）
-      if (!nextItemRaw && Array.isArray(data.items)) {
-        catSession.items_cache = data.items.map(normalizeItem).filter(Boolean);
-        nextItemRaw = catSession.items_cache[catSession.current_index]; // 下一題（index 從 0）
+      const unit = getSelectedUnitMeta();
+      const item = State.cat.current_item;
+
+      try{
+        const json = await apiCall({
+          action: ACTION.SUBMIT_NEXT,
+          test_id: State.cat.test_id,
+          student_id: State.cat.student_id,
+          item_id: item.item_id,
+          response_option: letter,
+          max_items: State.cat.max_items,
+          min_items: State.cat.min_items,
+          stop_se: State.cat.stop_se,
+          // optional (record fields)
+          grade: String(unit.grade || ""),
+          class: "",
+          school: ""
+        });
+
+        State.cat.theta = (typeof json.theta !== "undefined") ? json.theta : State.cat.theta;
+        State.cat.se = (typeof json.se !== "undefined") ? json.se : State.cat.se;
+
+        const prog = json.progress || {};
+        State.cat.n_admin = Number(prog.n_admin || (State.cat.n_admin + 1));
+        UI.setLive();
+
+        if(json.done === true){
+          document.getElementById("hint-area").textContent = "測驗已達停止條件，正在產生診斷…";
+          await finishCAT();
+          return;
+        }
+
+        const next = normalizeItem(json.item);
+        if(!next) throw new Error("後端未提供下一題 item");
+
+        State.cat.next_item_buffer = next;
+        document.getElementById("btn-next").disabled = false;
+        document.getElementById("hint-area").textContent = "已取得下一題，按「下一題」繼續。";
+      }catch(e){
+        UI.toast("送出失敗", String(e?.message||e), "bad");
+        document.getElementById("btn-submit").disabled = false;
+        document.getElementById("hint-area").textContent = "送出失敗，請重試。";
       }
+    }
 
-      const nextItem = normalizeItem(nextItemRaw);
-      if (!nextItem) {
-        // 後端沒有給 next，允許使用者手動按「下一題」但會卡住；直接當作結束更安全
-        showResult(json);
+    function goNext(){
+      const next = State.cat.next_item_buffer;
+      if(!next) return;
+      State.cat.current_item = next;
+      State.cat.next_item_buffer = null;
+      renderItem(next);
+      document.getElementById("hint-area").textContent = "選擇 A/B/C/D 後再送出。";
+    }
+
+    async function finishCAT(){
+      if(!State.cat.started) return;
+
+      document.getElementById("btn-finish").disabled = true;
+      document.getElementById("btn-submit").disabled = true;
+      document.getElementById("btn-next").disabled = true;
+
+      try{
+        const json = await apiCall({
+          action: ACTION.FINISH_CAT,
+          test_id: State.cat.test_id,
+          student_id: State.cat.student_id
+        });
+
+        // Show report
+        UI.showReport(true);
+
+        document.getElementById("rep-score").textContent = json.score || "—";
+        document.getElementById("rep-testid").textContent = json.test_id || "—";
+        document.getElementById("rep-theta").textContent = (json.theta!=null) ? String(json.theta) : "—";
+        document.getElementById("rep-se").textContent = (json.se!=null) ? String(json.se) : "—";
+        document.getElementById("rep-feedback").textContent = json.feedback_student || "";
+
+        document.getElementById("rep-weak").innerHTML = renderListBadges(json.weak_concepts || [], "bad");
+        document.getElementById("rep-strong").innerHTML = renderListBadges(json.strong_concepts || [], "good");
+        document.getElementById("rep-wrong").innerHTML = renderWrongItems(json.wrong_items || []);
+
+        UI.toast("診斷完成", "已產生測驗摘要與概念層級診斷。", "good");
+
+        // mark ended
+        State.cat.started = false;
+        UI.setLive();
+      }catch(e){
+        UI.toast("產生診斷失敗", String(e?.message||e), "bad");
+      }finally{
+        document.getElementById("btn-finish").disabled = false;
+      }
+    }
+
+    /************************************************************
+     * AI generate + save to itembank
+     ************************************************************/
+    async function aiGenerateAndSave(thenStart=false){
+      const unit = getSelectedUnitMeta();
+      if(!unit.textbook_version || !unit.unit_name){
+        UI.toast("資料不足", "請先選擇「出版社」與「單元名稱」。", "warn");
         return;
       }
 
-      // 下一題準備好：開放按鈕「下一題」
-      catSession._next_item_buffer = nextItem;
+      const spec = {
+        N: Number(document.getElementById("ai-N").value),
+        N_single: Number(document.getElementById("ai-single").value),
+        N_group: Number(document.getElementById("ai-group").value),
+        easy: Number(document.getElementById("ai-easy").value),
+        medium: Number(document.getElementById("ai-medium").value),
+        hard: Number(document.getElementById("ai-hard").value)
+      };
 
-      const btnNext = document.getElementById("btn-next");
-      if (btnNext) btnNext.disabled = false;
+      document.getElementById("btn-ai-save").disabled = true;
+      UI.toast("AI 生成中", "正在生成題目並寫入 CATItemBank…", "info");
+
+      try{
+        const json = await apiCall({
+          action: ACTION.GEN_SAVE_EXAM,
+          unit,
+          spec,
+          save_options_columns: true
+        });
+
+        UI.toast("入庫完成", `已寫入 ${json.saved_count} 題。`, "good");
+        await loadUnitOptions(); // refresh dropdowns from itembank
+
+        if(thenStart){
+          await startCAT();
+        }
+      }catch(e){
+        UI.toast("AI 入庫失敗", String(e?.message||e), "bad");
+      }finally{
+        document.getElementById("btn-ai-save").disabled = false;
+      }
     }
 
-    function goNext() {
-      const next = catSession._next_item_buffer || null;
-      if (!next) return;
+    /************************************************************
+     * Event wiring
+     ************************************************************/
+    document.addEventListener("DOMContentLoaded", async ()=>{
+      // restore student id
+      const sid = localStorage.getItem("slh_student_id");
+      if(sid) document.getElementById("inp-student").value = sid;
 
-      catSession.current_item = next;
-      catSession.current_index += 1;
-      catSession._next_item_buffer = null;
+      buildGradeOptions(document.getElementById("sel-stage").value);
+      resetCATUI();
 
-      renderCurrentItem();
+      document.getElementById("sel-stage").addEventListener("change", async ()=>{
+        buildGradeOptions(document.getElementById("sel-stage").value);
+        await loadUnitOptions().catch(err=>UI.toast("載入失敗", String(err?.message||err), "bad"));
+      });
+
+      document.getElementById("sel-grade").addEventListener("change", ()=>loadUnitOptions().catch(err=>UI.toast("載入失敗", String(err?.message||err), "bad")));
+      document.getElementById("sel-semester").addEventListener("change", ()=>loadUnitOptions().catch(err=>UI.toast("載入失敗", String(err?.message||err), "bad")));
+      document.getElementById("sel-publisher").addEventListener("change", refreshUnitDropdown);
+
+      document.getElementById("btn-reload").addEventListener("click", async ()=>{
+        await ping();
+        await loadUnitOptions().catch(err=>UI.toast("載入失敗", String(err?.message||err), "bad"));
+      });
+
+      document.getElementById("btn-start").addEventListener("click", startCAT);
+      document.getElementById("btn-submit").addEventListener("click", submitAnswer);
+      document.getElementById("btn-next").addEventListener("click", goNext);
+      document.getElementById("btn-finish").addEventListener("click", finishCAT);
+
+      document.getElementById("btn-reset").addEventListener("click", ()=>{
+        resetCATUI();
+        UI.toast("已重設", "狀態已回到待命。", "info");
+      });
+
+      document.getElementById("btn-restart").addEventListener("click", ()=>{
+        resetCATUI();
+        UI.toast("已重設", "可重新開始測驗。", "info");
+        window.scrollTo({ top:0, behavior:"smooth" });
+      });
+
+      document.getElementById("btn-ai-save").addEventListener("click", ()=>aiGenerateAndSave(false));
+
+      document.getElementById("btn-copy-report").addEventListener("click", async ()=>{
+        const text =
+`score: ${document.getElementById("rep-score").textContent}
+test_id: ${document.getElementById("rep-testid").textContent}
+theta: ${document.getElementById("rep-theta").textContent}
+se: ${document.getElementById("rep-se").textContent}
+
+feedback:
+${document.getElementById("rep-feedback").textContent}`;
+        try{
+          await navigator.clipboard.writeText(text);
+          UI.toast("已複製", "診斷摘要已複製到剪貼簿。", "good");
+        }catch(e){
+          UI.toast("複製失敗", "瀏覽器未授權剪貼簿，請手動複製。", "warn");
+        }
+      });
+
+      // keyboard shortcuts A/B/C/D
+      document.addEventListener("keydown", (ev)=>{
+        if(!State.cat.started) return;
+        const k = String(ev.key || "").toUpperCase();
+        if(["A","B","C","D"].includes(k)){
+          selectOption(k);
+          ev.preventDefault();
+        }
+        if(k === "ENTER"){
+          if(!document.getElementById("btn-submit").disabled) submitAnswer();
+          ev.preventDefault();
+        }
+      });
+
+      // initial load
+      const ok = await ping();
+      if(ok){
+        await loadUnitOptions().catch(err=>UI.toast("載入失敗", String(err?.message||err), "bad"));
+      }
+    });
+
+    /************************************************************
+     * Small utilities
+     ************************************************************/
+    function escapeHtml(s){
+      return String(s ?? "").replace(/[&<>"']/g, (m)=>({
+        "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
+      }[m]));
     }
-
-    function showResult(rawJson) {
-      stopTimer();
-
-      const catResult = document.getElementById("cat-result");
-      if (catResult) catResult.classList.remove("hidden");
-
-      const titleEl = document.getElementById("cat-result-title");
-      if (titleEl) titleEl.textContent = (filters.unitName || "測驗") + "｜CAT 測驗完成";
-
-      const nEl = document.getElementById("cat-score-n");
-      if (nEl) nEl.textContent = String(catSession.answers.length);
-
-      const thetaEl = document.getElementById("cat-score-theta");
-      if (thetaEl) thetaEl.textContent = (catSession.theta === null || typeof catSession.theta === "undefined") ? "—" : String(catSession.theta);
-
-      // score：若後端有給就用；沒有就顯示 —
-      const scoreEl = document.getElementById("cat-score");
-      const data = (rawJson && rawJson.data) ? rawJson.data : {};
-      const scoreVal = data.score ?? data.total_score ?? data.percent ?? data.percentile ?? null;
-      if (scoreEl) scoreEl.textContent = (scoreVal === null || typeof scoreVal === "undefined") ? "—" : String(scoreVal);
-
-      const rawEl = document.getElementById("cat-result-raw");
-      if (rawEl) rawEl.textContent = JSON.stringify(rawJson, null, 2);
-
-      // 隱藏題目區（避免繼續作答）
-      const btnNext = document.getElementById("btn-next");
-      if (btnNext) btnNext.disabled = true;
+    function round(x,d){ const p=Math.pow(10,d); return Math.round(x*p)/p; }
+    function clampNum(x, lo, hi, fallback){
+      const n = Number(x);
+      if(!Number.isFinite(n)) return fallback;
+      return Math.max(lo, Math.min(hi, n));
     }
-
-    function backToSelection() {
-      stopTimer();
-      const selPanel = document.getElementById("selection-panel");
-      const catView = document.getElementById("cat-view");
-      const loading = document.getElementById("loading-view");
-
-      if (loading) { loading.classList.add("hidden"); loading.classList.remove("flex"); }
-      if (catView) catView.classList.add("hidden");
-      if (selPanel) selPanel.classList.remove("hidden");
+    function renderListBadges(arr, type){
+      const xs = Array.isArray(arr) ? arr : [];
+      if(xs.length===0) return `<div class="text-white/55">（無）</div>`;
+      return xs.map(x=>{
+        const t = escapeHtml(String(x));
+        const icon = (type==="good") ? "fa-star" : "fa-triangle-exclamation";
+        const bg = (type==="good") ? "rgba(34,197,94,.10)" : "rgba(245,158,11,.10)";
+        const bd = (type==="good") ? "rgba(34,197,94,.35)" : "rgba(245,158,11,.35)";
+        return `<span class="badge mr-2 mb-2" style="background:${bg}; border-color:${bd};"><i class="fa-solid ${icon}"></i> ${t}</span>`;
+      }).join("");
     }
-
-    function reloadPageHard() {
-      location.reload();
+    function renderWrongItems(arr){
+      const xs = Array.isArray(arr) ? arr : [];
+      if(xs.length===0) return `<div class="text-white/55">（無）</div>`;
+      return xs.map(w=>{
+        const id = escapeHtml(w.item_id || "");
+        const ct = escapeHtml(w.concept_tag || "");
+        const src = escapeHtml(w.textbook_source || "");
+        const meta = [ct, src].filter(Boolean).join(" ｜ ");
+        return `<div class="py-2 border-b border-white/10 last:border-b-0">
+          <div class="mono text-white/85">${id}</div>
+          <div class="text-xs text-white/60 mt-1">${meta || "—"}</div>
+        </div>`;
+      }).join("");
     }
   </script>
 </body>
