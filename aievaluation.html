@@ -255,15 +255,15 @@ const ACTION = {
 
 /* 可能存在於「單元重點整理」後端的教材選單 action（前端自動嘗試，不需要你改 UI） */
 const META_ACTION_CANDIDATES = [
+  "get_metadata",          // ★ 這個是你上面成功載入的 action
   "getMaterialTree",
   "getTextbookMeta",
   "getContentMeta",
   "getContentOptions",
   "getTextbookOptions",
   "getLessonOptions",
-  ACTION.GET_UNIT_OPTIONS  // 最後才退回舊的
+  ACTION.GET_UNIT_OPTIONS
 ];
-
 /* ===========================
    1) 全域狀態（精簡）
 =========================== */
@@ -425,13 +425,26 @@ function safeParseJSON(text){
 
 function normalizeOk(obj){
   if(!obj || typeof obj !== "object") throw new Error("後端未回傳 JSON。");
-  if(obj.ok === false) throw new Error(obj.error || "後端回傳失敗（ok=false）。");
-  if(obj.success === false) throw new Error(obj.error || "後端回傳失敗（success=false）。");
+
+  // ★ 新增：兼容你上方成功頁面的回傳格式
+  const st = String(obj.status ?? "").toLowerCase();
+  if(st === "error" || st === "fail" || st === "failed"){
+    throw new Error(obj.message || obj.error || "後端回傳失敗（status=error）。");
+  }
+  if(st === "success"){
+    return { ...obj, ok: true };
+  }
+
+  if(obj.ok === false) throw new Error(obj.error || obj.message || "後端回傳失敗（ok=false）。");
+  if(obj.success === false) throw new Error(obj.error || obj.message || "後端回傳失敗（success=false）。");
   if(obj.ok === true) return obj;
   if(obj.success === true) return { ...obj, ok: true };
   if(obj.error) throw new Error(obj.error);
+  if(obj.message && st) throw new Error(obj.message);
+
   return { ...obj, ok: true };
 }
+
 
 async function api(payload){
   let lastErr = null;
