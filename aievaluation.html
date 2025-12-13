@@ -1140,11 +1140,77 @@ function normalizeItem(raw){
     }
   };
 }
+/* =========================================
+   1. 把這個新工具貼在 renderItem 上面
+   ========================================= */
+function parseAndRenderStimulus(rawStem) {
+  const marker = "[STIMULUS_JSON]";
+  const idx = rawStem.indexOf(marker);
 
+  if (idx < 0) {
+    return { text: rawStem, html: "" };
+  }
+
+  const textPart = rawStem.substring(0, idx).trim();
+  const jsonPart = rawStem.substring(idx + marker.length).trim();
+  
+  let htmlPart = "";
+
+  try {
+    const data = JSON.parse(jsonPart);
+    if (data.kind === "table" && data.table) {
+      const cols = data.table.columns || [];
+      const rows = data.table.rows || [];
+      htmlPart = `
+        <div class="my-4 overflow-x-auto border border-slate-200 rounded-xl shadow-sm">
+          <table class="min-w-full divide-y divide-slate-200 text-sm">
+            <thead class="bg-slate-50">
+              <tr>
+                ${cols.map(c => `<th class="px-4 py-3 text-left font-bold text-slate-700 whitespace-nowrap">${c}</th>`).join('')}
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 bg-white">
+              ${rows.map(r => `
+                <tr class="hover:bg-slate-50">
+                  ${r.map(cell => `<td class="px-4 py-3 text-slate-600 whitespace-nowrap">${cell}</td>`).join('')}
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+  } catch (e) {
+    console.error("表格解析失敗:", e);
+  }
+  return { text: textPart, html: htmlPart };
+}
+
+/* =========================================
+   2. 這是升級版的 renderItem (請覆蓋掉舊的)
+   ========================================= */
 function renderItem(item){
   UI.showQuestion(true);
 
-  document.getElementById("qStem").textContent = item.stem || "";
+  // ★ 這裡改了：呼叫上面的工具來處理表格
+  const content = parseAndRenderStimulus(item.stem || "");
+  const stemDiv = document.getElementById("qStem");
+  
+  stemDiv.innerHTML = ""; // 清空舊內容
+  
+  // 放入文字
+  const textNode = document.createElement("div");
+  textNode.textContent = content.text;
+  stemDiv.appendChild(textNode);
+
+  // 放入表格 (如果有)
+  if (content.html) {
+    const tableWrapper = document.createElement("div");
+    tableWrapper.innerHTML = content.html;
+    stemDiv.appendChild(tableWrapper);
+  }
+
+  // --- 以下是原本產生選項按鈕的程式碼 (不需要改) ---
   const wrap = document.getElementById("optWrap");
   wrap.innerHTML = "";
 
