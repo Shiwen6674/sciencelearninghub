@@ -244,6 +244,12 @@ const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxvAOgRDBE6T-2R37Ue
 const CONTENT_DB_ID = "1cEfMEy3bvDa1tET3xmh7ShGeJy8KLUMa_JuULGBD-mk";
 const CONTENT_SHEET_NAME = "Sheet1";
 
+/* ====== ★必要新增：StudentID 來源（USER_DB → Users_student → J 欄）====== */
+const USER_DB_ID = "1cDOsaa7E0EwD1R9CeCWoGf8_9ZMcFv8fxQ5d-LWUKu8";
+const USER_SHEET_NAME = "Users_student";
+const USER_STUDENTID_COL = "J";
+/* ===================================================================== */
+
 /* 你的後端 action（不改後端就必須對齊） */
 const ACTION = {
   /* 既有：題庫選單/測驗流程 */
@@ -255,7 +261,7 @@ const ACTION = {
 
 /* 可能存在於「單元重點整理」後端的教材選單 action（前端自動嘗試，不需要你改 UI） */
 const META_ACTION_CANDIDATES = [
-  "get_metadata",          // ★ 這個是你上面成功載入的 action
+  "get_metadata",
   "getMaterialTree",
   "getTextbookMeta",
   "getContentMeta",
@@ -264,15 +270,36 @@ const META_ACTION_CANDIDATES = [
   "getLessonOptions",
   ACTION.GET_UNIT_OPTIONS
 ];
+
+/* ====== ★必要新增：嘗試用 email 查回 StudentID 的 action 候選 ======
+   你的後端只要有其中任何一個，就能成功把 Users_student!J 的 StudentID 回傳給前端
+====================================================================== */
+const STUDENTID_ACTION_CANDIDATES = [
+  "getStudentIdByEmail",
+  "getStudentIDByEmail",
+  "resolveStudentIdByEmail",
+  "resolveStudentIDByEmail",
+  "resolveStudentId",
+  "resolveStudentID",
+  "getStudentId",
+  "get_student_id",
+  "getUserByEmail",
+  "get_user_by_email",
+  "getUser",
+  "get_user",
+  "getProfile",
+  "get_profile"
+];
+
 /* ===========================
    1) 全域狀態（精簡）
 =========================== */
 const Meta = {
-  mode: "tree",     // tree | legacy
-  tree: {},         // stage -> grade -> semester -> version -> units[]
-  unitIndex: {},    // key -> {lesson_no, lesson_name, unit_name, ...}
-  publishers: [],   // legacy
-  unitsByPublisher: {} // legacy
+  mode: "tree",
+  tree: {},
+  unitIndex: {},
+  publishers: [],
+  unitsByPublisher: {}
 };
 
 const CAT = {
@@ -337,12 +364,12 @@ const UI = {
 };
 
 /* ===========================
-   3) 取得 student_id（沿用 student.html）
+   3) 取得 student_id
+   ★必要修改：studentID 必須來自 Users_student!J；不可用 email / prompt 代替
 =========================== */
 function getStudentIdFromLogin(){
   const storages = [sessionStorage, localStorage];
 
-  // 1) 先找「純字串」sid key（兩種 storage 都查）
   const directKeys = [
     "student_id","StudentID",
     "SLH_student_id","slh_student_id",
@@ -358,7 +385,6 @@ function getStudentIdFromLogin(){
     }
   }
 
-  // 2) 再找「JSON」登入物件（兩種 storage 都查）
   const jsonKeys = [
     "currentUser","slh_user",
     "SLH_USER","SLH_LOGIN",
@@ -373,12 +399,10 @@ function getStudentIdFromLogin(){
       try{
         const obj = JSON.parse(raw);
 
-        // 支援常見扁平欄位
         let sid =
           obj?.student_id ?? obj?.StudentID ?? obj?.studentId ?? obj?.studentID ?? obj?.StudentId ??
           obj?.sid ?? obj?.id ?? obj?.uid ?? obj?.user_id;
 
-        // 支援常見巢狀欄位（很多人會包在 user/profile 裡）
         if(!sid){
           sid =
             obj?.user?.student_id ?? obj?.user?.StudentID ?? obj?.user?.studentId ??
@@ -391,61 +415,201 @@ function getStudentIdFromLogin(){
     }
   }
 
-  // 3) 最後保底：看看全域物件（你前面有寫 window.currentUser 等）
   const u = window.currentUser || window.USER || window.SLH_USER || window.Auth?.user;
   const sid = u?.student_id ?? u?.StudentID ?? u?.studentId ?? u?.studentID;
   const s = String(sid ?? "").trim();
   return s || "";
 }
 
-function ensureStudentId(){
-  // 0) 已經有就直接用
-  if (CAT.student_id) return String(CAT.student_id).trim();
+/* ===== Login Sync (對齊 unitkeyidea.html；只新增不改既有流程) ===== */
+function __normalizeUser(u){
+  if(!u || typeof u !== "object") return null;
 
-  // 1) 原本的取法
-  let sid = getStudentIdFromLogin();
-  sid = String(sid || "").trim();
+  const name =
+    u.name ?? u.Name ?? u.displayName ?? u.nickname ?? u.username ?? "";
 
-  // 2) 若沒有學號，但有登入物件：用 email 當替代識別（一次解決最常見情況）
-  if(!sid){
+  const email =
+    u.email ?? u.Email ?? "";
+
+  const student_id =
+    u.student_id ?? u.StudentID ?? u.studentId ?? u.studentID ?? u.StudentId ??
+    u.sid ?? u.id ?? u.uid ?? u.user_id ?? "";
+
+  if(!student_id && !name && !email) return null;
+
+  return { ...u, name, email, student_id: String(student_id || "").trim() };
+}
+
+function __loadCurrentUser(){
+  let raw = sessionStorage.getItem("currentUser") || localStorage.getItem("currentUser");
+  if(raw){
+    try { return __normalizeUser(JSON.parse(raw)); } catch(_) {}
+  }
+
+  const fallbackKeys = ["SLH_USER","SLH_LOGIN","USER","LOGIN","user","auth","profile","me"];
+  for(const k of fallbackKeys){
+    raw = sessionStorage.getItem(k) || localStorage.getItem(k);
+    if(!raw) continue;
     try{
-      const u = __loadCurrentUser ? __loadCurrentUser() : null;
-      const email = String(u?.email || u?.Email || "").trim();
-      if(email) sid = email;
+      const u = __normalizeUser(JSON.parse(raw));
+      if(u) return u;
     }catch(_){}
   }
+  return null;
+}
 
-  // 3) 再不行：看 URL 參數（備援）
-  if(!sid){
-    const sp = new URLSearchParams(location.search);
-    sid = String(
-      sp.get("student_id") || sp.get("StudentID") || sp.get("sid") || sp.get("studentId") || ""
-    ).trim();
+function __syncLoginAliases(user){
+  if(!user) return null;
+
+  const txt = JSON.stringify(user);
+
+  try { sessionStorage.setItem("currentUser", txt); } catch(_){}
+  try { localStorage.setItem("currentUser", txt); } catch(_){}
+
+  const aliasKeys = ["SLH_USER","SLH_LOGIN","USER","LOGIN","user","authUser"];
+  for(const k of aliasKeys){
+    try { sessionStorage.setItem(k, txt); } catch(_){}
+    try { localStorage.setItem(k, txt); } catch(_){}
   }
 
-  // 4) 最後保底：只問一次，並永久寫入（避免你每次按開始都跳）
-  if(!sid){
-    sid = String(prompt("找不到學號（StudentID）。請輸入學號以開始測驗（只需一次）：") || "").trim();
+  if(user.student_id){
+    const sid = String(user.student_id).trim();
+    try { localStorage.setItem("student_id", sid); } catch(_){}
+    try { localStorage.setItem("StudentID", sid); } catch(_){}
+    try { sessionStorage.setItem("student_id", sid); } catch(_){}
+    try { sessionStorage.setItem("StudentID", sid); } catch(_){}
+    try { localStorage.setItem("slh_user", txt); } catch(_){}
   }
 
+  window.currentUser = user;
+  window.USER = user;
+  window.SLH_USER = user;
+  window.Auth = window.Auth || {};
+  window.Auth.user = user;
+
+  return user;
+}
+
+function __appendNameAfterConnected(name){
+  if(!name) return;
+
+  let el =
+    document.getElementById("connBadge") ||
+    document.getElementById("netBadge")  ||
+    document.getElementById("statusConn")||
+    document.getElementById("conn-status");
+
+  if(!el){
+    const candidates = Array.from(document.querySelectorAll("span,div,button"));
+    el = candidates.find(x => (x.innerText || "").trim() === "已連線");
+  }
+  if(!el) return;
+
+  if(el.querySelector && el.querySelector("#connUserName")) return;
+
+  const sp = document.createElement("span");
+  sp.id = "connUserName";
+  sp.style.marginLeft = "8px";
+  sp.style.fontWeight = "700";
+  sp.textContent = name;
+
+  el.appendChild(sp);
+}
+
+/* ===== ★必要新增：用 email 從 Users_student!J 查回 StudentID ===== */
+function __getEmailForLookup(){
+  const u = __loadCurrentUser ? __loadCurrentUser() : null;
+  let email = String(u?.email || u?.Email || "").trim();
+  if(email) return email;
+
+  const storages = [sessionStorage, localStorage];
+  const emailKeys = ["email","Email","user_email","login_email","SLH_email","SLH_Email"];
+  for(const S of storages){
+    for(const k of emailKeys){
+      const v = String(S.getItem(k) || "").trim();
+      if(v && v.includes("@")) return v;
+    }
+  }
+
+  const sp = new URLSearchParams(location.search);
+  email = String(sp.get("email") || sp.get("Email") || "").trim();
+  return email;
+}
+
+async function __resolveStudentIdByEmail(email){
+  const e = String(email || "").trim();
+  if(!e) return "";
+
+  let lastErr = null;
+
+  for(const act of STUDENTID_ACTION_CANDIDATES){
+    try{
+      const json = await api({
+        action: act,
+        email: e,
+
+        // 告訴後端：要查哪份 User DB、哪個 sheet、哪一欄（J）
+        user_db_id: USER_DB_ID,
+        user_sheet_name: USER_SHEET_NAME,
+        student_id_col: USER_STUDENTID_COL
+      });
+
+      const sid =
+        json?.student_id ?? json?.StudentID ?? json?.studentId ?? json?.studentID ??
+        json?.data?.student_id ?? json?.data?.StudentID ?? json?.data?.studentId ??
+        json?.user?.student_id ?? json?.user?.StudentID ?? json?.user?.studentId ??
+        json?.profile?.student_id ?? json?.profile?.StudentID ?? json?.profile?.studentId ??
+        json?.row?.student_id ?? json?.row?.StudentID ?? json?.row?.studentId ??
+        json?.result?.student_id ?? json?.result?.StudentID ?? json?.result?.studentId ??
+        "";
+
+      const s = String(sid || "").trim();
+      if(s) return s;
+
+      lastErr = new Error("回傳成功但未包含 StudentID。");
+    }catch(err){
+      lastErr = err;
+    }
+  }
+
+  if(lastErr) throw lastErr;
+  return "";
+}
+
+/* ★必要修改：ensureStudentId 改為 async，且不再用 email / prompt 代替 */
+async function ensureStudentId(){
+  if (CAT.student_id) return String(CAT.student_id).trim();
+
+  // 1) 先用既有 storage/currentUser
+  let sid = String(getStudentIdFromLogin() || "").trim();
+  if(sid){
+    CAT.student_id = sid;
+    return sid;
+  }
+
+  // 2) 用 email 查回 Users_student!J
+  const email = __getEmailForLookup();
+  if(!email) return "";
+
+  try{
+    sid = await __resolveStudentIdByEmail(email);
+  }catch(_){
+    sid = "";
+  }
+
+  sid = String(sid || "").trim();
   if(!sid) return "";
 
-  // 寫回 storage（以後就不會再跳未登入）
+  // 寫回 storage + currentUser（讓後續頁面都能抓到）
   try{ localStorage.setItem("student_id", sid); }catch(_){}
   try{ localStorage.setItem("StudentID", sid); }catch(_){}
   try{ sessionStorage.setItem("student_id", sid); }catch(_){}
   try{ sessionStorage.setItem("StudentID", sid); }catch(_){}
 
-  // 同步回 currentUser（避免其他頁又抓不到）
   try{
-    const raw = sessionStorage.getItem("currentUser") || localStorage.getItem("currentUser");
-    const obj = raw ? JSON.parse(raw) : {};
-    obj.student_id = sid;
-    obj.StudentID = sid;
-    obj.studentId = sid;
-    const txt = JSON.stringify(obj);
-    sessionStorage.setItem("currentUser", txt);
-    localStorage.setItem("currentUser", txt);
+    const u = __loadCurrentUser() || {};
+    const merged = { ...u, student_id: sid, StudentID: sid, studentId: sid };
+    __syncLoginAliases(merged);
   }catch(_){}
 
   CAT.student_id = sid;
@@ -463,6 +627,13 @@ function buildFormBody(payload){
   // 讓後端能知道你要抓哪份試算表（若後端已內建，可忽略）
   if(payload?.content_db_id) p.set("content_db_id", String(payload.content_db_id));
   if(payload?.sheet_name)    p.set("sheet_name", String(payload.sheet_name));
+
+  /* ===== ★必要新增：讓後端收到 user_db / Users_student / col J / email ===== */
+  if(payload?.email != null)          p.set("email", String(payload.email));
+  if(payload?.user_db_id)             p.set("user_db_id", String(payload.user_db_id));
+  if(payload?.user_sheet_name)        p.set("user_sheet_name", String(payload.user_sheet_name));
+  if(payload?.student_id_col)         p.set("student_id_col", String(payload.student_id_col));
+  /* ===================================================================== */
 
   // 兼容：有些後端用 payload 參數整包 JSON.parse
   p.set("payload", JSON.stringify(payload ?? {}));
@@ -511,7 +682,6 @@ function safeParseJSON(text){
 function normalizeOk(obj){
   if(!obj || typeof obj !== "object") throw new Error("後端未回傳 JSON。");
 
-  // ★ 新增：兼容你上方成功頁面的回傳格式
   const st = String(obj.status ?? "").toLowerCase();
   if(st === "error" || st === "fail" || st === "failed"){
     throw new Error(obj.message || obj.error || "後端回傳失敗（status=error）。");
@@ -530,18 +700,23 @@ function normalizeOk(obj){
   return { ...obj, ok: true };
 }
 
-
 async function api(payload){
   let lastErr = null;
 
-  // A) GET（對「載入選單」特別友善）
+  // A) GET
   try{
     const url = new URL(GAS_API_URL);
     if(payload?.action) url.searchParams.set("action", payload.action);
 
-    // 常用參數
     if(payload?.content_db_id) url.searchParams.set("content_db_id", String(payload.content_db_id));
     if(payload?.sheet_name)    url.searchParams.set("sheet_name", String(payload.sheet_name));
+
+    // ★必要新增：studentID lookup 也可能用 GET
+    if(payload?.email != null)          url.searchParams.set("email", String(payload.email));
+    if(payload?.user_db_id)             url.searchParams.set("user_db_id", String(payload.user_db_id));
+    if(payload?.user_sheet_name)        url.searchParams.set("user_sheet_name", String(payload.user_sheet_name));
+    if(payload?.student_id_col)         url.searchParams.set("student_id_col", String(payload.student_id_col));
+
     if(payload?.subject != null)  url.searchParams.set("subject", String(payload.subject));
     if(payload?.stage != null)    url.searchParams.set("stage", String(payload.stage));
     if(payload?.grade != null)    url.searchParams.set("grade", String(payload.grade));
@@ -556,7 +731,7 @@ async function api(payload){
     lastErr = e;
   }
 
-  // B) POST x-www-form-encoded（最相容 e.parameter）
+  // B) POST x-www-form-encoded
   try{
     const formBody = buildFormBody(payload);
     const res = await fetch(GAS_API_URL, { method: "POST", body: formBody, redirect: "follow" });
@@ -568,7 +743,7 @@ async function api(payload){
     lastErr = e;
   }
 
-  // C) JSON POST（保底）
+  // C) JSON POST
   try{
     const res = await fetch(GAS_API_URL, { method: "POST", body: JSON.stringify(payload), redirect: "follow" });
     const text = await res.text();
@@ -582,7 +757,6 @@ async function api(payload){
 
 async function ping(){
   try{
-    // 只測試 Web App 是否可連線；不依賴後端一定要回 JSON
     const res = await fetch(GAS_API_URL, { method: "GET", redirect: "follow" });
     if(!res.ok) throw new Error("HTTP " + res.status);
 
@@ -594,10 +768,8 @@ async function ping(){
   }
 }
 
-
 /* ===========================
-   5) 由試算表建立「學習階段→年級→學期→版本→單元」樹
-   - 盡量兼容不同後端回傳格式
+   5) 建教材樹（略：以下保留你原本程式，不動）
 =========================== */
 function normStage(v){
   const s = String(v ?? "").trim();
@@ -654,7 +826,6 @@ function buildTreeFromRows(rows){
     unitIndex[unitKey] = { unit_key: unitKey, stage, grade, semester, textbook_version: version, lesson_no: lessonNo, lesson_name: lessonName, unit_name: unitName };
   }
 
-  // 去重 + 排序
   for(const st of Object.keys(tree)){
     for(const g of Object.keys(tree[st])){
       for(const sem of Object.keys(tree[st][g])){
@@ -668,7 +839,6 @@ function buildTreeFromRows(rows){
             uniq.push(u);
           }
           uniq.sort((a,b)=>{
-            // 課別可排序：先比數字（若可抽），再比字串
             const an = Number(String(a.lesson_no||"").replace(/[^\d]/g,""));
             const bn = Number(String(b.lesson_no||"").replace(/[^\d]/g,""));
             if(Number.isFinite(an) && Number.isFinite(bn) && an !== bn) return an - bn;
@@ -683,7 +853,6 @@ function buildTreeFromRows(rows){
   return { tree, unitIndex };
 }
 
-/* 後端若只回傳 publishers / unitsByPublisher（舊 getUnitOptions），仍可做最低限度相容 */
 function buildTreeFromLegacy(publishers, unitsByPublisher, grade, semester){
   const tree = {};
   const unitIndex = {};
@@ -708,7 +877,6 @@ function buildTreeFromLegacy(publishers, unitsByPublisher, grade, semester){
   return { tree, unitIndex };
 }
 
-/* 嘗試從後端抓完整教材樹（一次載入、下拉選單全連動） */
 async function loadMaterialTree(){
   let lastErr = null;
 
@@ -718,21 +886,16 @@ async function loadMaterialTree(){
         action: act,
         content_db_id: CONTENT_DB_ID,
         sheet_name: CONTENT_SHEET_NAME,
-        // 若後端需要 subject 才會過濾
         subject: "自然科學"
       });
 
-      // 1) 直接給 tree
       if(json.tree && typeof json.tree === "object"){
-        // 期待格式：tree[stage][grade][semester][version] = units[]
-        // 若後端已給 unitIndex 也吃
         Meta.tree = json.tree;
         Meta.unitIndex = json.unitIndex || {};
         Meta.mode = "tree";
         return true;
       }
 
-      // 2) rows / data / items 形式
       const rows = json.rows || json.data || json.items || json.materials;
       if(Array.isArray(rows) && rows.length){
         const built = buildTreeFromRows(rows);
@@ -742,16 +905,13 @@ async function loadMaterialTree(){
         return true;
       }
 
-      // 3) 舊 getUnitOptions：publishers + unitsByPublisher
       if(Array.isArray(json.publishers) && json.unitsByPublisher){
-        // 只能依「年級+學期」載入（仍可運作，但連動範圍較小）
         Meta.publishers = json.publishers;
         Meta.unitsByPublisher = json.unitsByPublisher;
         Meta.mode = "legacy";
         return true;
       }
 
-      // 4) 其他格式：嘗試把 json 當 rows（保守）
       if(Array.isArray(json) && json.length){
         const built = buildTreeFromRows(json);
         Meta.tree = built.tree;
@@ -770,7 +930,7 @@ async function loadMaterialTree(){
 }
 
 /* ===========================
-   6) 下拉選單：全連動（stage→grade→semester→version→unit）
+   6) 下拉選單：全連動（略：保留你原本程式，不動）
 =========================== */
 function setOptions(selectEl, options, placeholder){
   selectEl.innerHTML = "";
@@ -818,7 +978,6 @@ function refreshAllDropdowns(){
   const grade = getSelGrade();
   const semObj = (gradesObj && Number.isFinite(grade) && gradesObj[grade]) ? gradesObj[grade] : {};
   const semKeys = Object.keys(semObj);
-  // 固定順序：上、下（若存在）
   const semOrder = ["上學期","下學期"];
   semKeys.sort((a,b)=> semOrder.indexOf(a) - semOrder.indexOf(b));
   const prevSem = selSem.value;
@@ -844,7 +1003,6 @@ function refreshAllDropdowns(){
   );
   if(prevUnit && unitsArr.some(u=>u.unit_key===prevUnit)) selUnit.value = prevUnit;
 
-  // hints
   const hasVer = verKeys.length > 0;
   document.getElementById("publisherHint").textContent = hasVer ? "已載入版本，請選擇。" : "請先確認此條件是否已有題庫。";
 
@@ -852,7 +1010,6 @@ function refreshAllDropdowns(){
   document.getElementById("unitHint").textContent = hasUnit ? "已載入單元，請選擇。" : "請先確認此版本是否已建立單元題庫。";
 }
 
-/* legacy 模式：只會依 grade+semester 呼叫 getUnitOptions */
 async function loadLegacyByGradeSemester(){
   const selStage = document.getElementById("selStage");
   const selGrade = document.getElementById("selGrade");
@@ -860,7 +1017,6 @@ async function loadLegacyByGradeSemester(){
   const selVer = document.getElementById("selPublisher");
   const selUnit = document.getElementById("selUnit");
 
-  // stage / grade / semester 的選單（仍提供，至少全頁一致）
   const stageOptions = [{value:"國小",label:"國小"},{value:"國中",label:"國中"}];
   setOptions(selStage, stageOptions, "（無資料）");
 
@@ -870,7 +1026,6 @@ async function loadLegacyByGradeSemester(){
   const gradeList = (stage === "國中") ? [7,8,9] : [3,4,5,6];
   setOptions(selGrade, gradeList.map(g=>({value:g,label:`${g}年級`})), "（無資料）");
 
-  // semester 固定兩個
   setOptions(selSem, [{value:"上學期",label:"上學期"},{value:"下學期",label:"下學期"}], "（無資料）");
 
   const grade = getSelGrade() || gradeList[0];
@@ -895,7 +1050,6 @@ async function loadLegacyByGradeSemester(){
   const publishers = Meta.publishers || [];
   setOptions(selVer, publishers.map(p=>({value:p,label:p})), "（此條件尚無題庫）");
 
-  // 用 legacy 資料建一個 tree，讓後續連動一致
   const built = buildTreeFromLegacy(publishers, Meta.unitsByPublisher, grade, semester);
   Meta.tree = built.tree;
   Meta.unitIndex = built.unitIndex;
@@ -903,17 +1057,14 @@ async function loadLegacyByGradeSemester(){
   refreshAllDropdowns();
 }
 
-/* 一次載入：真正從試算表欄位建立全連動 */
 async function bootstrapMaterials(){
   document.getElementById("publisherHint").textContent = "載入中…";
   document.getElementById("unitHint").textContent = "";
 
-  // 先清空
   Meta.mode = "tree";
   Meta.tree = {};
   Meta.unitIndex = {};
 
-  // 先試「完整教材樹」
   await loadMaterialTree();
 
   if(Meta.mode === "tree"){
@@ -923,12 +1074,11 @@ async function bootstrapMaterials(){
     return;
   }
 
-  // 若只拿到 legacy（publishers / unitsByPublisher），就改走 legacy 方式
   await loadLegacyByGradeSemester();
 }
 
 /* ===========================
-   7) 測驗流程（固定題數 N；UI 不顯示額外統計）
+   7) 測驗流程（略：保留你原本程式，只改 startTest 取 sid 的方式）
 =========================== */
 function getUnit(){
   const stage = getSelStage();
@@ -940,7 +1090,6 @@ function getUnit(){
   const u = Meta.unitIndex[unit_key] || {};
   const unit_name = (u.unit_name || "").trim();
 
-  // 兼容：也把課別/課名拆開送（後端可用可不用）
   return {
     subject: "自然科學",
     stage,
@@ -1012,110 +1161,6 @@ function selectOption(letter){
   document.getElementById("btnSubmit").disabled = false;
   document.getElementById("hint").textContent = `已選擇 ${letter}，請按「送出答案」。`;
 }
-/* ===== Login Sync (對齊 unitkeyidea.html；只新增不改既有流程) ===== */
-function __normalizeUser(u){
-  if(!u || typeof u !== "object") return null;
-
-  const name =
-    u.name ?? u.Name ?? u.displayName ?? u.nickname ?? u.username ?? "";
-
-  const email =
-    u.email ?? u.Email ?? "";
-
-  const student_id =
-    u.student_id ?? u.StudentID ?? u.studentId ?? u.studentID ?? u.StudentId ??
-    u.sid ?? u.id ?? u.uid ?? u.user_id ?? "";
-
-  // ★關鍵：允許「只有 student_id」也算已登入（你開始測驗只需要 student_id）
-  if(!student_id && !name && !email) return null;
-
-  return { ...u, name, email, student_id: String(student_id || "").trim() };
-}
-
-
-function __loadCurrentUser(){
-  // 完全照 unitkeyidea.html 的策略：sessionStorage || localStorage
-  let raw = sessionStorage.getItem("currentUser") || localStorage.getItem("currentUser");
-  if(raw){
-    try { return __normalizeUser(JSON.parse(raw)); } catch(_) {}
-  }
-
-  // 容錯：如果你的 student.html 用了不同 key，也一起接住
-  const fallbackKeys = ["SLH_USER","SLH_LOGIN","USER","LOGIN","user","auth","profile","me"];
-  for(const k of fallbackKeys){
-    raw = sessionStorage.getItem(k) || localStorage.getItem(k);
-    if(!raw) continue;
-    try{
-      const u = __normalizeUser(JSON.parse(raw));
-      if(u) return u;
-    }catch(_){}
-  }
-  return null;
-}
-
-function __syncLoginAliases(user){
-  if(!user) return null;
-
-  const txt = JSON.stringify(user);
-
-  // 1) 先確保 currentUser 一定存在（讓你 unitkeyidea / 其他頁一致）
-  try { sessionStorage.setItem("currentUser", txt); } catch(_){}
-  try { localStorage.setItem("currentUser", txt); } catch(_){}
-
-  // 2) 再寫入常見 alias key，避免 aievaluation 原碼抓不到
-  const aliasKeys = ["SLH_USER","SLH_LOGIN","USER","LOGIN","user","authUser"];
-  for(const k of aliasKeys){
-    try { sessionStorage.setItem(k, txt); } catch(_){}
-    try { localStorage.setItem(k, txt); } catch(_){}
-  }
-
-    // ★關鍵：把 student_id 也同步成「純字串 key」(localStorage) 讓 getStudentIdFromLogin() 找得到
-  if(user.student_id){
-    const sid = String(user.student_id).trim();
-    try { localStorage.setItem("student_id", sid); } catch(_){}
-    try { localStorage.setItem("StudentID", sid); } catch(_){}
-    // 你的 getStudentIdFromLogin() 也會檢查 slh_user (JSON)，一併補齊
-    try { localStorage.setItem("slh_user", txt); } catch(_){}
-  }
-
-  // 3) 同步到常見全域（不動你原本程式，但讓它「有得抓」）
-  window.currentUser = user;
-  window.USER = user;
-  window.SLH_USER = user;
-  window.Auth = window.Auth || {};
-  window.Auth.user = user;
-
-  return user;
-}
-
-function __appendNameAfterConnected(name){
-  if(!name) return;
-
-  // 先找可能的 id（如果你有）
-  let el =
-    document.getElementById("connBadge") ||
-    document.getElementById("netBadge")  ||
-    document.getElementById("statusConn")||
-    document.getElementById("conn-status");
-
-  // 找不到就用文字比對「已連線」
-  if(!el){
-    const candidates = Array.from(document.querySelectorAll("span,div,button"));
-    el = candidates.find(x => (x.innerText || "").trim() === "已連線");
-  }
-  if(!el) return;
-
-  if(el.querySelector && el.querySelector("#connUserName")) return;
-
-  const sp = document.createElement("span");
-  sp.id = "connUserName";
-  sp.style.marginLeft = "8px";
-  sp.style.fontWeight = "700";
-  sp.textContent = name;
-
-  el.appendChild(sp);
-}
- 
 
 async function startTest(){
   const unit = getUnit();
@@ -1124,12 +1169,13 @@ async function startTest(){
     return;
   }
 
-const sid = ensureStudentId();
-if(!sid){
-  UI.toast("未登入", "找不到可用的學生識別（StudentID / Email）。請回到學習中心重新登入。", "warn");
-  return;
-}
-
+  /* ===== ★必要修改：StudentID 一律由 Users_student!J 取得（若 storage 沒有就用 email 查表） ===== */
+  const sid = await ensureStudentId();
+  if(!sid){
+    UI.toast("未取得學號", "找不到 StudentID。請回到學習中心重新登入（系統會由 Users_student 的 J 欄取得學號）。", "warn");
+    return;
+  }
+  /* ============================================================================================= */
 
   const n = clampNum(Number(document.getElementById("inpN").value), 5, 40, 15);
   CAT.n = n;
@@ -1188,12 +1234,10 @@ async function submitAnswer(){
       item_id: CAT.current.item_id,
       response_option: CAT.selected,
 
-      // 固定題數：送給後端做控制（前端不顯示）
       max_items: CAT.n,
       min_items: CAT.n,
       stop_se: 0,
 
-      // 記錄欄位（若後端有用）
       grade: String(unit.grade || "")
     });
 
@@ -1309,17 +1353,13 @@ document.addEventListener("DOMContentLoaded", async ()=>{
 
   UI.setProgress(0, clampNum(Number(document.getElementById("inpN").value),5,40,15));
 
-  // 連線
   await ping();
 
-  // 載入教材（一次抓試算表欄位→全連動）
   try{
     await bootstrapMaterials();
     UI.toast("載入完成", "教材選單已載入。", "good");
   }catch(e){
     UI.toast("載入失敗", String(e?.message||e), "bad");
-    // 基本回退：至少讓使用者看見 stage/grade
-    // 但不硬塞假資料，避免誤導
     document.getElementById("selStage").innerHTML = `<option value="">（無法載入）</option>`;
     document.getElementById("selGrade").innerHTML = `<option value="">（無法載入）</option>`;
     document.getElementById("selSemester").innerHTML = `<option value="">（無法載入）</option>`;
@@ -1327,17 +1367,13 @@ document.addEventListener("DOMContentLoaded", async ()=>{
     document.getElementById("selUnit").innerHTML = `<option value="">（無法載入）</option>`;
   }
 
-  // ★新增：對齊 unitkeyidea.html 的登入讀取 + 同步 alias，並顯示姓名在「已連線」後
-const __me = __syncLoginAliases(__loadCurrentUser());
-if(__me){
-  __appendNameAfterConnected(__me.name);
-}else{
-  // 不阻擋你載入教材，但先提示；真正開始測驗時就不會再誤判「完全沒有登入」。
-  UI.toast("未登入", "找不到登入資訊，請回到學習中心重新登入。", "warn");
-}
+  const __me = __syncLoginAliases(__loadCurrentUser());
+  if(__me){
+    __appendNameAfterConnected(__me.name);
+  }else{
+    UI.toast("未登入", "找不到登入資訊，請回到學習中心重新登入。", "warn");
+  }
 
-
-  // 事件：重新載入
   document.getElementById("btnReload").addEventListener("click", async ()=>{
     try{
       await bootstrapMaterials();
@@ -1347,7 +1383,6 @@ if(__me){
     }
   });
 
-  // 事件：任一選單變動 → 全連動更新（tree 模式）
   document.getElementById("selStage").addEventListener("change", ()=>{
     if(Meta.mode === "tree") refreshAllDropdowns();
     else loadLegacyByGradeSemester().catch(e=>UI.toast("載入失敗", String(e?.message||e), "bad"));
@@ -1371,11 +1406,11 @@ if(__me){
   });
 
   document.getElementById("btnStart").addEventListener("click", startTest);
-  // ★新增：用 capture 先把登入同步好，再讓 startTest 跑（避免 startTest 先讀到空）
-document.getElementById("btnStart").addEventListener("click", ()=>{
-  const u = __syncLoginAliases(__loadCurrentUser());
-  if(u) __appendNameAfterConnected(u.name);
-}, true);
+
+  document.getElementById("btnStart").addEventListener("click", ()=>{
+    const u = __syncLoginAliases(__loadCurrentUser());
+    if(u) __appendNameAfterConnected(u.name);
+  }, true);
 
   document.getElementById("btnSubmit").addEventListener("click", submitAnswer);
   document.getElementById("btnNext").addEventListener("click", goNext);
@@ -1401,7 +1436,6 @@ ${document.getElementById("resFeedback").textContent}`;
     }
   });
 
-  // 鍵盤 A/B/C/D 直接選，Enter 送出
   document.addEventListener("keydown", (ev)=>{
     if(!CAT.started) return;
     const k = String(ev.key||"").toUpperCase();
