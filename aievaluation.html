@@ -924,17 +924,23 @@ function selectOption(letter){
 /* ===== Login Sync (對齊 unitkeyidea.html；只新增不改既有流程) ===== */
 function __normalizeUser(u){
   if(!u || typeof u !== "object") return null;
+
   const name =
     u.name ?? u.Name ?? u.displayName ?? u.nickname ?? u.username ?? "";
-  const email = u.email ?? u.Email ?? "";
+
+  const email =
+    u.email ?? u.Email ?? "";
+
   const student_id =
-    u.student_id ?? u.StudentID ?? u.studentId ?? u.sid ?? u.id ?? "";
+    u.student_id ?? u.StudentID ?? u.studentId ?? u.studentID ?? u.StudentId ??
+    u.sid ?? u.id ?? u.uid ?? u.user_id ?? "";
 
-  // 至少要有 name 或 email 才算有效登入
-  if(!name && !email) return null;
+  // ★關鍵：允許「只有 student_id」也算已登入（你開始測驗只需要 student_id）
+  if(!student_id && !name && !email) return null;
 
-  return { ...u, name, email, student_id };
+  return { ...u, name, email, student_id: String(student_id || "").trim() };
 }
+
 
 function __loadCurrentUser(){
   // 完全照 unitkeyidea.html 的策略：sessionStorage || localStorage
@@ -970,6 +976,15 @@ function __syncLoginAliases(user){
   for(const k of aliasKeys){
     try { sessionStorage.setItem(k, txt); } catch(_){}
     try { localStorage.setItem(k, txt); } catch(_){}
+  }
+
+    // ★關鍵：把 student_id 也同步成「純字串 key」(localStorage) 讓 getStudentIdFromLogin() 找得到
+  if(user.student_id){
+    const sid = String(user.student_id).trim();
+    try { localStorage.setItem("student_id", sid); } catch(_){}
+    try { localStorage.setItem("StudentID", sid); } catch(_){}
+    // 你的 getStudentIdFromLogin() 也會檢查 slh_user (JSON)，一併補齊
+    try { localStorage.setItem("slh_user", txt); } catch(_){}
   }
 
   // 3) 同步到常見全域（不動你原本程式，但讓它「有得抓」）
