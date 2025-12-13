@@ -528,13 +528,6 @@ async function api(payload){
 }
 
 async function ping(){
-  try{
-    const r = await fetch(GAS_API_, { method:"GET", redirect:"follow" });
-    UI.setConn(!!r.ok, r.ok ? "" : ("HTTP " + r.status));
-  }catch(e){
-    UI.setConn(false, String(e?.message||e));
-  }
-}
 
 /* ===========================
    5) 由試算表建立「學習階段→年級→學期→版本→單元」樹
