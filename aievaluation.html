@@ -398,6 +398,59 @@ function getStudentIdFromLogin(){
   return s || "";
 }
 
+function ensureStudentId(){
+  // 0) 已經有就直接用
+  if (CAT.student_id) return String(CAT.student_id).trim();
+
+  // 1) 原本的取法
+  let sid = getStudentIdFromLogin();
+  sid = String(sid || "").trim();
+
+  // 2) 若沒有學號，但有登入物件：用 email 當替代識別（一次解決最常見情況）
+  if(!sid){
+    try{
+      const u = __loadCurrentUser ? __loadCurrentUser() : null;
+      const email = String(u?.email || u?.Email || "").trim();
+      if(email) sid = email;
+    }catch(_){}
+  }
+
+  // 3) 再不行：看 URL 參數（備援）
+  if(!sid){
+    const sp = new URLSearchParams(location.search);
+    sid = String(
+      sp.get("student_id") || sp.get("StudentID") || sp.get("sid") || sp.get("studentId") || ""
+    ).trim();
+  }
+
+  // 4) 最後保底：只問一次，並永久寫入（避免你每次按開始都跳）
+  if(!sid){
+    sid = String(prompt("找不到學號（StudentID）。請輸入學號以開始測驗（只需一次）：") || "").trim();
+  }
+
+  if(!sid) return "";
+
+  // 寫回 storage（以後就不會再跳未登入）
+  try{ localStorage.setItem("student_id", sid); }catch(_){}
+  try{ localStorage.setItem("StudentID", sid); }catch(_){}
+  try{ sessionStorage.setItem("student_id", sid); }catch(_){}
+  try{ sessionStorage.setItem("StudentID", sid); }catch(_){}
+
+  // 同步回 currentUser（避免其他頁又抓不到）
+  try{
+    const raw = sessionStorage.getItem("currentUser") || localStorage.getItem("currentUser");
+    const obj = raw ? JSON.parse(raw) : {};
+    obj.student_id = sid;
+    obj.StudentID = sid;
+    obj.studentId = sid;
+    const txt = JSON.stringify(obj);
+    sessionStorage.setItem("currentUser", txt);
+    localStorage.setItem("currentUser", txt);
+  }catch(_){}
+
+  CAT.student_id = sid;
+  return sid;
+}
 
 /* ===========================
    4) API 呼叫（GET → form POST → JSON POST 三段式）
@@ -1071,11 +1124,12 @@ async function startTest(){
     return;
   }
 
-  const sid = getStudentIdFromLogin();
-  if(!sid){
-    UI.toast("未登入", "找不到你的登入資訊。請先回到學習中心登入後再進入。", "warn");
-    return;
-  }
+const sid = ensureStudentId();
+if(!sid){
+  UI.toast("未登入", "找不到可用的學生識別（StudentID / Email）。請回到學習中心重新登入。", "warn");
+  return;
+}
+
 
   const n = clampNum(Number(document.getElementById("inpN").value), 5, 40, 15);
   CAT.n = n;
