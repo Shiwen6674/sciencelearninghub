@@ -921,6 +921,96 @@ function selectOption(letter){
   document.getElementById("btnSubmit").disabled = false;
   document.getElementById("hint").textContent = `已選擇 ${letter}，請按「送出答案」。`;
 }
+/* ===== Login Sync (對齊 unitkeyidea.html；只新增不改既有流程) ===== */
+function __normalizeUser(u){
+  if(!u || typeof u !== "object") return null;
+  const name =
+    u.name ?? u.Name ?? u.displayName ?? u.nickname ?? u.username ?? "";
+  const email = u.email ?? u.Email ?? "";
+  const student_id =
+    u.student_id ?? u.StudentID ?? u.studentId ?? u.sid ?? u.id ?? "";
+
+  // 至少要有 name 或 email 才算有效登入
+  if(!name && !email) return null;
+
+  return { ...u, name, email, student_id };
+}
+
+function __loadCurrentUser(){
+  // 完全照 unitkeyidea.html 的策略：sessionStorage || localStorage
+  let raw = sessionStorage.getItem("currentUser") || localStorage.getItem("currentUser");
+  if(raw){
+    try { return __normalizeUser(JSON.parse(raw)); } catch(_) {}
+  }
+
+  // 容錯：如果你的 student.html 用了不同 key，也一起接住
+  const fallbackKeys = ["SLH_USER","SLH_LOGIN","USER","LOGIN","user","auth","profile","me"];
+  for(const k of fallbackKeys){
+    raw = sessionStorage.getItem(k) || localStorage.getItem(k);
+    if(!raw) continue;
+    try{
+      const u = __normalizeUser(JSON.parse(raw));
+      if(u) return u;
+    }catch(_){}
+  }
+  return null;
+}
+
+function __syncLoginAliases(user){
+  if(!user) return null;
+
+  const txt = JSON.stringify(user);
+
+  // 1) 先確保 currentUser 一定存在（讓你 unitkeyidea / 其他頁一致）
+  try { sessionStorage.setItem("currentUser", txt); } catch(_){}
+  try { localStorage.setItem("currentUser", txt); } catch(_){}
+
+  // 2) 再寫入常見 alias key，避免 aievaluation 原碼抓不到
+  const aliasKeys = ["SLH_USER","SLH_LOGIN","USER","LOGIN","user","authUser"];
+  for(const k of aliasKeys){
+    try { sessionStorage.setItem(k, txt); } catch(_){}
+    try { localStorage.setItem(k, txt); } catch(_){}
+  }
+
+  // 3) 同步到常見全域（不動你原本程式，但讓它「有得抓」）
+  window.currentUser = user;
+  window.USER = user;
+  window.SLH_USER = user;
+  window.Auth = window.Auth || {};
+  window.Auth.user = user;
+
+  return user;
+}
+
+function __appendNameAfterConnected(name){
+  if(!name) return;
+
+  // 先找可能的 id（如果你有）
+  let el =
+    document.getElementById("connBadge") ||
+    document.getElementById("netBadge")  ||
+    document.getElementById("statusConn")||
+    document.getElementById("conn-status");
+
+  // 找不到就用文字比對「已連線」
+  if(!el){
+    const candidates = Array.from(document.querySelectorAll("span,div,button"));
+    el = candidates.find(x => (x.innerText || "").trim() === "已連線");
+  }
+  if(!el) return;
+
+  if(el.querySelector && el.querySelector("#connUserName")) return;
+
+  const sp = document.createElement("span");
+  sp.id = "connUserName";
+  sp.style.marginLeft = "8px";
+  sp.style.fontWeight = "700";
+  sp.textContent = name;
+
+  el.appendChild(sp);
+}
+
+  
 
 async function startTest(){
   const unit = getUnit();
@@ -1131,6 +1221,16 @@ document.addEventListener("DOMContentLoaded", async ()=>{
     document.getElementById("selUnit").innerHTML = `<option value="">（無法載入）</option>`;
   }
 
+  // ★新增：對齊 unitkeyidea.html 的登入讀取 + 同步 alias，並顯示姓名在「已連線」後
+const __me = __syncLoginAliases(__loadCurrentUser());
+if(__me){
+  __appendNameAfterConnected(__me.name);
+}else{
+  // 不阻擋你載入教材，但先提示；真正開始測驗時就不會再誤判「完全沒有登入」。
+  UI.toast("未登入", "找不到登入資訊，請回到學習中心重新登入。", "warn");
+}
+
+
   // 事件：重新載入
   document.getElementById("btnReload").addEventListener("click", async ()=>{
     try{
@@ -1165,6 +1265,12 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   });
 
   document.getElementById("btnStart").addEventListener("click", startTest);
+  // ★新增：用 capture 先把登入同步好，再讓 startTest 跑（避免 startTest 先讀到空）
+document.getElementById("btnStart").addEventListener("click", ()=>{
+  const u = __syncLoginAliases(__loadCurrentUser());
+  if(u) __appendNameAfterConnected(u.name);
+}, true);
+
   document.getElementById("btnSubmit").addEventListener("click", submitAnswer);
   document.getElementById("btnNext").addEventListener("click", goNext);
   document.getElementById("btnFinish").addEventListener("click", finishTest);
