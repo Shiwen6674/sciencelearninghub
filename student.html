@@ -240,11 +240,28 @@
         };
 
         // 1. 權限檢查與用戶資料
-        const userJson = sessionStorage.getItem("currentUser");
-        const currentUser = userJson ? JSON.parse(userJson) : { name: "訪客", role: "Student" };
-        
-        document.getElementById("user-name-display").innerText = currentUser.name;
-        document.getElementById("user-avatar").innerText = currentUser.name.charAt(0).toUpperCase();
+       // 1. 權限檢查與用戶資料
+const userJson = sessionStorage.getItem("currentUser");
+const currentUser = userJson ? JSON.parse(userJson) : { name: "訪客", role: "Student" };
+
+// ★最小必要修正：把 student_id 固化到 localStorage（給 aievaluation.html 用）
+(function syncStudentIdToStorage() {
+    const sid = String(currentUser.student_id || currentUser.StudentID || "").trim();
+    if (!sid) return; // 非學生或沒有 StudentID 就不做任何事
+
+    // 1) 統一 key（aievaluation.html 只要讀這個就穩）
+    localStorage.setItem("student_id", sid);
+    localStorage.setItem("StudentID", sid); //（可選）相容舊碼
+
+    // 2) 也把 currentUser 放到 localStorage（跨頁面更穩）
+    const mergedUser = Object.assign({}, currentUser, { student_id: sid, StudentID: sid });
+    localStorage.setItem("currentUser", JSON.stringify(mergedUser));
+    sessionStorage.setItem("currentUser", JSON.stringify(mergedUser)); // 同步回 session，避免不一致
+})();
+
+document.getElementById("user-name-display").innerText = currentUser.name;
+document.getElementById("user-avatar").innerText = currentUser.name.charAt(0).toUpperCase();
+
 
         // 2. 語言邏輯
         function initLanguage() {
