@@ -954,4 +954,242 @@ async function startTest(){
   }catch(e){
     UI.toast("開始失敗", String(e?.message || e), "bad");
   }finally{
-    document.getElemen
+    document.getElementById("btnStart").disabled = false;
+  }
+}
+
+async function submitAnswer(){
+  if(!CAT.started || !CAT.current) return;
+  if(!CAT.selected){
+    UI.toast("尚未選擇", "請先選擇一個選項。", "warn");
+    return;
+  }
+
+  document.getElementById("btnSubmit").disabled = true;
+  document.getElementById("btnNext").disabled = true;
+  document.getElementById("hint").textContent = "送出中…";
+
+  const unit = getUnit();
+
+  try{
+    const json = await api({
+      action: ACTION.SUBMIT_NEXT,
+      test_id: CAT.test_id,
+      student_id: CAT.student_id,
+      item_id: CAT.current.item_id,
+      response_option: CAT.selected,
+
+      // 固定題數：送給後端做控制（前端不顯示）
+      max_items: CAT.n,
+      min_items: CAT.n,
+      stop_se: 0,
+
+      // 記錄欄位（若後端有用）
+      grade: String(unit.grade || "")
+    });
+
+    const prog = json.progress || {};
+    CAT.step = Number(prog.n_admin || (CAT.step + 1));
+    UI.setProgress(CAT.step, CAT.n);
+
+    if(json.done === true || CAT.step >= CAT.n){
+      await finishTest();
+      return;
+    }
+
+    const next = normalizeItem(json.item);
+    if(!next) throw new Error("後端未提供下一題。");
+
+    CAT.next = next;
+    document.getElementById("btnNext").disabled = false;
+    document.getElementById("hint").textContent = "已取得下一題，按「下一題」繼續。";
+  }catch(e){
+    UI.toast("送出失敗", String(e?.message||e), "bad");
+    document.getElementById("btnSubmit").disabled = false;
+    document.getElementById("hint").textContent = "送出失敗，請重試。";
+  }
+}
+
+function goNext(){
+  if(!CAT.next) return;
+  CAT.current = CAT.next;
+  CAT.next = null;
+  renderItem(CAT.current);
+}
+
+async function finishTest(){
+  document.getElementById("btnFinish").disabled = true;
+  document.getElementById("btnSubmit").disabled = true;
+  document.getElementById("btnNext").disabled = true;
+
+  try{
+    const json = await api({
+      action: ACTION.FINISH_CAT,
+      test_id: CAT.test_id,
+      student_id: CAT.student_id
+    });
+
+    UI.showResult(true);
+    document.getElementById("resScore").textContent = json.score ?? "—";
+    document.getElementById("resTestId").textContent = json.test_id ?? "—";
+    document.getElementById("resFeedback").textContent = json.feedback_student ?? "—";
+    document.getElementById("resWrong").innerHTML = renderWrong(json.wrong_items || []);
+
+    UI.toast("完成", "已產生結果。", "good");
+
+    CAT.started = false;
+    document.getElementById("btnFinish").disabled = true;
+  }catch(e){
+    UI.toast("結束失敗", String(e?.message||e), "bad");
+    document.getElementById("btnFinish").disabled = false;
+  }
+}
+
+function resetAll(){
+  CAT.started = false;
+  CAT.test_id = "";
+  CAT.current = null;
+  CAT.next = null;
+  CAT.selected = "";
+  CAT.step = 0;
+
+  UI.setProgress(0, Number(document.getElementById("inpN").value) || 0);
+  UI.showQuestion(false);
+  UI.showResult(false);
+
+  document.getElementById("btnFinish").disabled = true;
+  document.getElementById("btnSubmit").disabled = true;
+  document.getElementById("btnNext").disabled = true;
+}
+
+/* ===========================
+   8) 輔助
+=========================== */
+function escapeHtml(s){
+  return String(s ?? "").replace(/[&<>"']/g, (m)=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
+  }[m]));
+}
+function clampNum(x, lo, hi, fallback){
+  const n = Number(x);
+  if(!Number.isFinite(n)) return fallback;
+  return Math.max(lo, Math.min(hi, n));
+}
+function renderWrong(arr){
+  const xs = Array.isArray(arr) ? arr : [];
+  if(xs.length === 0) return `<div class="text-slate-500">沒有錯題</div>`;
+  return xs.map(w=>{
+    const id = escapeHtml(w.item_id || "");
+    const ct = escapeHtml(w.concept_tag || "");
+    const src = escapeHtml(w.textbook_source || "");
+    const meta = [ct, src].filter(Boolean).join("｜");
+    return `
+      <div class="py-2 border-b border-slate-200 last:border-b-0">
+        <div class="font-bold text-slate-800">${id}</div>
+        <div class="text-xs text-slate-500 mt-1">${meta || "—"}</div>
+      </div>
+    `;
+  }).join("");
+}
+
+/* ===========================
+   9) 初始化與事件
+=========================== */
+document.addEventListener("DOMContentLoaded", async ()=>{
+  resetAll();
+
+  UI.setProgress(0, clampNum(Number(document.getElementById("inpN").value),5,40,15));
+
+  // 連線
+  await ping();
+
+  // 載入教材（一次抓試算表欄位→全連動）
+  try{
+    await bootstrapMaterials();
+    UI.toast("載入完成", "教材選單已載入。", "good");
+  }catch(e){
+    UI.toast("載入失敗", String(e?.message||e), "bad");
+    // 基本回退：至少讓使用者看見 stage/grade
+    // 但不硬塞假資料，避免誤導
+    document.getElementById("selStage").innerHTML = `<option value="">（無法載入）</option>`;
+    document.getElementById("selGrade").innerHTML = `<option value="">（無法載入）</option>`;
+    document.getElementById("selSemester").innerHTML = `<option value="">（無法載入）</option>`;
+    document.getElementById("selPublisher").innerHTML = `<option value="">（無法載入）</option>`;
+    document.getElementById("selUnit").innerHTML = `<option value="">（無法載入）</option>`;
+  }
+
+  // 事件：重新載入
+  document.getElementById("btnReload").addEventListener("click", async ()=>{
+    try{
+      await bootstrapMaterials();
+      UI.toast("已更新", "教材選單已重新載入。", "good");
+    }catch(e){
+      UI.toast("載入失敗", String(e?.message||e), "bad");
+    }
+  });
+
+  // 事件：任一選單變動 → 全連動更新（tree 模式）
+  document.getElementById("selStage").addEventListener("change", ()=>{
+    if(Meta.mode === "tree") refreshAllDropdowns();
+    else loadLegacyByGradeSemester().catch(e=>UI.toast("載入失敗", String(e?.message||e), "bad"));
+  });
+  document.getElementById("selGrade").addEventListener("change", ()=>{
+    if(Meta.mode === "tree") refreshAllDropdowns();
+    else loadLegacyByGradeSemester().catch(e=>UI.toast("載入失敗", String(e?.message||e), "bad"));
+  });
+  document.getElementById("selSemester").addEventListener("change", ()=>{
+    if(Meta.mode === "tree") refreshAllDropdowns();
+    else loadLegacyByGradeSemester().catch(e=>UI.toast("載入失敗", String(e?.message||e), "bad"));
+  });
+  document.getElementById("selPublisher").addEventListener("change", ()=>{
+    if(Meta.mode === "tree") refreshAllDropdowns();
+  });
+
+  document.getElementById("inpN").addEventListener("change", ()=>{
+    const n = clampNum(Number(document.getElementById("inpN").value),5,40,15);
+    document.getElementById("inpN").value = n;
+    if(!CAT.started) UI.setProgress(0, n);
+  });
+
+  document.getElementById("btnStart").addEventListener("click", startTest);
+  document.getElementById("btnSubmit").addEventListener("click", submitAnswer);
+  document.getElementById("btnNext").addEventListener("click", goNext);
+  document.getElementById("btnFinish").addEventListener("click", finishTest);
+
+  document.getElementById("btnRestart").addEventListener("click", ()=>{
+    resetAll();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  document.getElementById("btnCopy").addEventListener("click", async ()=>{
+    const text =
+`score: ${document.getElementById("resScore").textContent}
+test_id: ${document.getElementById("resTestId").textContent}
+
+feedback:
+${document.getElementById("resFeedback").textContent}`;
+    try{
+      await navigator.clipboard.writeText(text);
+      UI.toast("已複製", "結果已複製到剪貼簿。", "good");
+    }catch(_){
+      UI.toast("複製失敗", "瀏覽器未授權剪貼簿。", "warn");
+    }
+  });
+
+  // 鍵盤 A/B/C/D 直接選，Enter 送出
+  document.addEventListener("keydown", (ev)=>{
+    if(!CAT.started) return;
+    const k = String(ev.key||"").toUpperCase();
+    if(["A","B","C","D"].includes(k)){
+      selectOption(k);
+      ev.preventDefault();
+    }
+    if(k === "ENTER"){
+      if(!document.getElementById("btnSubmit").disabled) submitAnswer();
+      ev.preventDefault();
+    }
+  });
+});
+</script>
+</body>
+</html>
