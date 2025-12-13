@@ -33,10 +33,33 @@
   <style>
     body { font-family: Inter, system-ui, sans-serif; }
     .serif { font-family: "Noto Serif TC", serif; }
+    /* === 新增 Loading 遮罩樣式 === */
+  #loading-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.75);
+    display: none; /* 預設隱藏 */
+    justify-content: center; align-items: center; flex-direction: column;
+    z-index: 9999; color: white;
+  }
+  .spinner {
+    border: 6px solid #f3f3f3;
+    border-top: 6px solid #3b82f6; /* Blue-500 */
+    border-radius: 50%;
+    width: 50px; height: 50px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+  }
+  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   </style>
 </head>
 
 <body class="bg-slate-50 text-slate-900">
+  <div id="loading-overlay">
+    <div class="spinner"></div>
+    <div class="font-bold text-lg">AI 正在命題中...</div>
+    <div class="text-sm text-white/80 mt-2">若是第一次該單元，約需等待 15-20 秒，請耐心候候。</div>
+  </div>
   <!-- Top bar -->
   <header class="sticky top-0 z-40 bg-white/85 backdrop-blur border-b border-slate-200">
     <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
@@ -1169,18 +1192,19 @@ async function startTest(){
     return;
   }
 
-  /* ===== ★必要修改：StudentID 一律由 Users_student!J 取得（若 storage 沒有就用 email 查表） ===== */
   const sid = await ensureStudentId();
   if(!sid){
-    UI.toast("未取得學號", "找不到 StudentID。請回到學習中心重新登入（系統會由 Users_student 的 J 欄取得學號）。", "warn");
+    UI.toast("未取得學號", "找不到 StudentID。請回到學習中心重新登入。", "warn");
     return;
   }
-  /* ============================================================================================= */
 
   const n = clampNum(Number(document.getElementById("inpN").value), 5, 40, 15);
   CAT.n = n;
 
   document.getElementById("btnStart").disabled = true;
+  
+  // ★★新增：顯示讀取遮罩
+  document.getElementById("loading-overlay").style.display = "flex";
 
   try{
     const json = await api({
@@ -1206,10 +1230,16 @@ async function startTest(){
 
     renderItem(first);
     UI.toast("開始作答", "測驗已開始。", "good");
+
   }catch(e){
+    // 錯誤時顯示訊息
     UI.toast("開始失敗", String(e?.message || e), "bad");
+    console.error(e); // 建議印出錯誤以便除錯
   }finally{
     document.getElementById("btnStart").disabled = false;
+    
+    // ★★新增：無論成功失敗，都隱藏遮罩
+    document.getElementById("loading-overlay").style.display = "none";
   }
 }
 
