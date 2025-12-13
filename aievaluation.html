@@ -503,7 +503,7 @@ async function api(payload){
     lastErr = e;
   }
 
-  // B) POST x-www-form-urlencoded（最相容 e.parameter）
+  // B) POST x-www-form-encoded（最相容 e.parameter）
   try{
     const formBody = buildFormBody(payload);
     const res = await fetch(GAS_API_URL, { method: "POST", body: formBody, redirect: "follow" });
@@ -529,7 +529,7 @@ async function api(payload){
 
 async function ping(){
   try{
-    const r = await fetch(GAS_API_URL, { method:"GET", redirect:"follow" });
+    const r = await fetch(GAS_API_, { method:"GET", redirect:"follow" });
     UI.setConn(!!r.ok, r.ok ? "" : ("HTTP " + r.status));
   }catch(e){
     UI.setConn(false, String(e?.message||e));
