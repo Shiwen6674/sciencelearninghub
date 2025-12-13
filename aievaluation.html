@@ -5,13 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Science Learning Hub | AI測驗與診斷</title>
 
-  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 
-  <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
 
   <script>
@@ -19,7 +16,11 @@
       theme: {
         extend: {
           colors: {
-            student: { DEFAULT: "#3b82f6", dark: "#1d4ed8" }
+            student: { DEFAULT: "#3b82f6", dark: "#1d4ed8" },
+            // 定義柔和分區顏色
+            zone1: { bg: "#eff6ff", border: "#bfdbfe" }, // 藍色系 (選擇)
+            zone2: { bg: "#fff7ed", border: "#fed7aa" }, // 橙色系 (作答)
+            zone3: { bg: "#f0fdf4", border: "#bbf7d0" }  // 綠色系 (結果)
           },
           fontFamily: {
             sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Arial', 'sans-serif'],
@@ -33,224 +34,278 @@
   <style>
     body { font-family: Inter, system-ui, sans-serif; }
     .serif { font-family: "Noto Serif TC", serif; }
-    /* === 新增 Loading 遮罩樣式 === */
-  #loading-overlay {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.75);
-    display: none; /* 預設隱藏 */
-    justify-content: center; align-items: center; flex-direction: column;
-    z-index: 9999; color: white;
-  }
-  .spinner {
-    border: 6px solid #f3f3f3;
-    border-top: 6px solid #3b82f6; /* Blue-500 */
-    border-radius: 50%;
-    width: 50px; height: 50px;
-    animation: spin 1s linear infinite;
-    margin-bottom: 1rem;
-  }
-  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    
+    /* Loading 遮罩 */
+    #loading-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.75);
+      display: none; justify-content: center; align-items: center; flex-direction: column;
+      z-index: 9999; color: white;
+    }
+    .spinner {
+      border: 6px solid #f3f3f3; border-top: 6px solid #3b82f6; border-radius: 50%;
+      width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 1rem;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    /* 烏龜賽跑進度條 */
+    .turtle-track {
+      position: relative;
+      height: 12px;
+      background-color: #e2e8f0;
+      border-radius: 999px;
+      margin-top: 10px;
+      margin-bottom: 20px;
+    }
+    .turtle-bar {
+      height: 100%;
+      background-color: #4ade80; /* Green-400 */
+      border-radius: 999px;
+      transition: width 0.5s ease-in-out;
+      width: 0%;
+    }
+    .turtle-icon {
+      position: absolute;
+      top: -18px; 
+      /* left 會由 JS 動態控制，對應 width */
+      transform: translateX(-50%); 
+      font-size: 1.5rem;
+      color: #166534; /* Green-800 */
+      transition: left 0.5s ease-in-out;
+    }
+    .flag-icon {
+      position: absolute;
+      right: -5px;
+      top: -16px;
+      font-size: 1.2rem;
+      color: #ef4444;
+    }
   </style>
 </head>
 
 <body class="bg-slate-50 text-slate-900">
+
   <div id="loading-overlay">
     <div class="spinner"></div>
     <div class="font-bold text-lg">AI 正在命題中...</div>
-    <div class="text-sm text-white/80 mt-2">若是第一次該單元，約需等待 15-20 秒，請耐心候候。</div>
+    <div class="text-sm text-white/80 mt-2">別急別急，差不多再 15 秒，請耐心候候。</div>
   </div>
-  <!-- Top bar -->
-  <header class="sticky top-0 z-40 bg-white/85 backdrop-blur border-b border-slate-200">
+
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-200 shadow-sm">
     <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-      <!-- Left: Back + Title -->
       <div class="flex items-center gap-3 min-w-0">
-        <a href="./student.html" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50">
-          <i class="fa-solid fa-arrow-left"></i>
-          <span class="text-sm font-semibold">返回學習中心</span>
+        <a href="./student.html" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition">
+          <i class="fa-solid fa-arrow-left text-slate-500"></i>
+          <span class="text-sm font-semibold text-slate-700">返回學習中心</span>
         </a>
 
-        <div class="hidden sm:flex items-center gap-3 min-w-0">
+        <div class="hidden sm:flex items-center gap-3 min-w-0 border-l border-slate-200 pl-3 ml-2">
           <div class="w-10 h-10 rounded-xl bg-student/10 text-student flex items-center justify-center shrink-0">
-            <i class="fa-solid fa-pen-to-square"></i>
+            <i class="fa-solid fa-robot text-xl"></i>
           </div>
           <div class="min-w-0">
-            <div class="font-bold leading-tight truncate">AI測驗與診斷</div>
-            <div class="text-xs text-slate-500 truncate">選擇教材後開始作答</div>
+            <div class="font-bold leading-tight truncate text-lg">AI 測驗與診斷</div>
+            <div class="text-xs text-slate-500 truncate">個別化適性診斷系統</div>
           </div>
         </div>
       </div>
 
-      <!-- Right: Connection -->
-      <span id="connBadge" class="text-xs px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 shrink-0">
+      <span id="connBadge" class="text-xs px-3 py-2 rounded-full border border-slate-200 bg-white text-slate-600 shrink-0 shadow-sm">
         <i class="fa-solid fa-circle-notch fa-spin mr-1"></i>連線中
       </span>
     </div>
   </header>
 
-  <main class="max-w-5xl mx-auto px-4 py-6 space-y-5">
-    <!-- Step 1: 選教材 -->
-    <section class="bg-white border border-slate-200 rounded-2xl p-4 md:p-5 shadow-sm">
-      <div class="flex items-center justify-between gap-3 flex-wrap">
-        <div class="font-bold">
-          1. 選擇教材
-          <span class="ml-2 text-xs font-semibold text-slate-500">（選擇學習階段、年級、學期、版本、單元）</span>
+  <main class="max-w-5xl mx-auto px-4 py-8 space-y-8">
+    
+    <section class="bg-zone1-bg border border-zone1-border rounded-3xl p-5 md:p-6 shadow-sm">
+      <div class="flex items-center justify-between gap-3 flex-wrap border-b border-blue-200/50 pb-4 mb-4">
+        <div class="font-bold text-xl text-blue-900 flex items-center gap-2">
+          <span class="flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white text-sm">1</span>
+          單元選擇區
         </div>
-        <button id="btnReload" class="px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-sm font-semibold">
-          <i class="fa-solid fa-rotate mr-2"></i>重新載入
+        <button id="btnReload" class="px-3 py-1.5 rounded-lg border border-blue-200 bg-white hover:bg-blue-50 text-sm font-medium text-blue-700 transition">
+          <i class="fa-solid fa-rotate mr-1"></i>重整教材
         </button>
       </div>
 
-      <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm font-semibold text-slate-700 mb-1">學習階段</label>
-          <select id="selStage" class="w-full px-3 py-3 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-4 focus:ring-student/15">
+          <label class="block text-sm font-bold text-blue-800 mb-1.5 ml-1">學習階段</label>
+          <select id="selStage" class="w-full px-4 py-3 rounded-xl border border-blue-200 bg-white focus:outline-none focus:ring-4 focus:ring-blue-200 transition">
             <option value="">載入中…</option>
           </select>
         </div>
 
         <div>
-          <label class="block text-sm font-semibold text-slate-700 mb-1">年級</label>
-          <select id="selGrade" class="w-full px-3 py-3 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-4 focus:ring-student/15">
+          <label class="block text-sm font-bold text-blue-800 mb-1.5 ml-1">年級</label>
+          <select id="selGrade" class="w-full px-4 py-3 rounded-xl border border-blue-200 bg-white focus:outline-none focus:ring-4 focus:ring-blue-200 transition">
             <option value="">請先選擇學習階段…</option>
           </select>
         </div>
 
         <div>
-          <label class="block text-sm font-semibold text-slate-700 mb-1">學期</label>
-          <select id="selSemester" class="w-full px-3 py-3 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-4 focus:ring-student/15">
+          <label class="block text-sm font-bold text-blue-800 mb-1.5 ml-1">學期</label>
+          <select id="selSemester" class="w-full px-4 py-3 rounded-xl border border-blue-200 bg-white focus:outline-none focus:ring-4 focus:ring-blue-200 transition">
             <option value="">請先選擇年級…</option>
           </select>
         </div>
 
         <div>
-          <label class="block text-sm font-semibold text-slate-700 mb-1">版本</label>
-          <select id="selPublisher" class="w-full px-3 py-3 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-4 focus:ring-student/15">
-            <option value="">請先載入…</option>
+          <label class="block text-sm font-bold text-blue-800 mb-1.5 ml-1">版本</label>
+          <select id="selPublisher" class="w-full px-4 py-3 rounded-xl border border-blue-200 bg-white focus:outline-none focus:ring-4 focus:ring-blue-200 transition">
+            <option value="">請先載入版本</option>
           </select>
-          <div class="text-xs text-slate-500 mt-1" id="publisherHint"></div>
+          <div class="hidden" id="publisherHint"></div>
         </div>
 
         <div class="md:col-span-2">
-          <label class="block text-sm font-semibold text-slate-700 mb-1">單元</label>
-          <select id="selUnit" class="w-full px-3 py-3 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-4 focus:ring-student/15">
-            <option value="">請先載入…</option>
+          <label class="block text-sm font-bold text-blue-800 mb-1.5 ml-1">單元</label>
+          <select id="selUnit" class="w-full px-4 py-3 rounded-xl border border-blue-200 bg-white focus:outline-none focus:ring-4 focus:ring-blue-200 transition">
+            <option value="">請先載入單元</option>
           </select>
-          <div class="text-xs text-slate-500 mt-1" id="unitHint"></div>
+          <div class="hidden" id="unitHint"></div>
         </div>
       </div>
 
-      <div class="mt-4 flex items-center gap-3 flex-wrap">
+      <div class="mt-6 flex items-center gap-4 flex-wrap bg-white/60 p-3 rounded-xl border border-blue-100">
         <div class="flex items-center gap-2">
-          <span class="text-sm font-semibold text-slate-700">題數</span>
+          <span class="text-sm font-bold text-blue-900">題數設定</span>
           <input id="inpN" type="number" min="5" max="40" step="1"
-                 class="w-28 px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-4 focus:ring-student/15"
+                 class="w-24 text-center px-3 py-2 rounded-lg border border-blue-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 font-bold text-lg"
                  value="15" />
         </div>
 
         <button id="btnStart"
-                class="ml-auto inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-student text-white font-bold hover:bg-student-dark disabled:opacity-60 disabled:cursor-not-allowed">
-          <i class="fa-solid fa-play"></i>開始測驗
+                class="ml-auto inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold shadow-md hover:shadow-lg hover:from-blue-700 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition transform active:scale-95">
+          <i class="fa-solid fa-rocket"></i> 開始測驗
         </button>
       </div>
     </section>
 
-    <!-- Step 2: 作答 -->
-    <section class="bg-white border border-slate-200 rounded-2xl p-4 md:p-5 shadow-sm">
-      <div class="flex items-center justify-between gap-3 flex-wrap">
-        <div class="font-bold">2. 作答</div>
+    <section class="bg-zone2-bg border border-zone2-border rounded-3xl p-5 md:p-6 shadow-sm">
+      <div class="flex items-center justify-between gap-3 flex-wrap border-b border-orange-200/50 pb-4 mb-2">
+        <div class="font-bold text-xl text-orange-900 flex items-center gap-2">
+          <span class="flex items-center justify-center w-8 h-8 rounded-full bg-orange-500 text-white text-sm">2</span>
+          試題作答區
+        </div>
+        
         <div class="flex items-center gap-2">
-          <span class="text-xs px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-700">
-            進度：<span id="progText" class="font-bold">0/0</span>
+          <span class="text-xs font-bold text-orange-700 bg-orange-100 px-3 py-1 rounded-full">
+            目前題數：<span id="progText">0/0</span>
           </span>
-          <button id="btnFinish"
-                  class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-sm font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
-                  disabled>
-            <i class="fa-solid fa-flag-checkered"></i>結束
-          </button>
+          <button id="btnFinish" class="hidden" disabled></button>
         </div>
       </div>
 
-      <div class="mt-3 h-2 rounded-full bg-slate-100 overflow-hidden">
-        <div id="progBar" class="h-full bg-student rounded-full" style="width:0%"></div>
+      <div class="px-2">
+        <div class="turtle-track">
+          <div id="progBar" class="turtle-bar"></div>
+          <div id="turtleIcon" class="turtle-icon" style="left: 0%;">
+            <i class="fa-solid fa-turtle"></i>
+          </div>
+          <div class="flag-icon"><i class="fa-solid fa-flag-checkered"></i></div>
+        </div>
       </div>
 
-      <!-- Question -->
-      <div class="mt-5" id="qArea">
-        <div id="qEmpty" class="text-slate-500 text-sm">
-          尚未開始測驗。請先在上方選擇教材後按「開始測驗」。
+      <div class="mt-6" id="qArea">
+        <div id="qEmpty" class="text-center py-10 text-slate-400 bg-white/50 rounded-2xl border border-dashed border-orange-200">
+          <i class="fa-solid fa-paper-plane text-4xl mb-3 text-orange-200"></i>
+          <p>尚未開始測驗，請先在上方選擇單元並按下「開始測驗」。</p>
         </div>
 
         <div id="qWrap" class="hidden">
-          <div class="text-xs text-slate-500">題目</div>
-          <div id="qStem" class="serif text-[1.05rem] leading-relaxed mt-2 whitespace-pre-wrap"></div>
+          <div class="bg-white rounded-2xl p-6 shadow-sm border border-orange-100">
+            <div class="inline-block px-3 py-1 rounded-md bg-orange-100 text-orange-800 text-xs font-bold mb-3">題目</div>
+            <div id="qStem" class="serif text-lg leading-relaxed text-slate-800 whitespace-pre-wrap"></div>
+          </div>
 
-          <div class="mt-4 grid grid-cols-1 gap-3" id="optWrap"></div>
+          <div class="mt-5 grid grid-cols-1 gap-3" id="optWrap"></div>
 
-          <div class="mt-5 flex flex-col md:flex-row gap-3">
-            <button id="btnSubmit"
-                    class="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-student text-white font-bold hover:bg-student-dark disabled:opacity-60 disabled:cursor-not-allowed"
-                    disabled>
-              <i class="fa-solid fa-paper-plane"></i>送出答案
-            </button>
-            <button id="btnNext"
-                    class="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 font-bold disabled:opacity-60 disabled:cursor-not-allowed"
-                    disabled>
-              <i class="fa-solid fa-forward"></i>下一題
-            </button>
-            <div class="flex-1 text-sm text-slate-500 flex items-center" id="hint">
-              選擇一個選項後再送出。
+          <div class="mt-6 flex flex-col md:flex-row gap-3 items-center">
+            <div class="flex-1 text-sm text-slate-500 order-2 md:order-1 bg-white/60 px-4 py-2 rounded-lg" id="hint">
+              <i class="fa-solid fa-circle-info mr-1"></i> 請選擇一個選項。
+            </div>
+            <div class="flex gap-3 order-1 md:order-2 w-full md:w-auto">
+              <button id="btnSubmit"
+                      class="flex-1 md:flex-none inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-orange-500 text-white font-bold hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm transition">
+                <i class="fa-solid fa-check"></i> 送出答案
+              </button>
+              <button id="btnNext"
+                      class="flex-1 md:flex-none inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm transition"
+                      disabled>
+                下一題 <i class="fa-solid fa-arrow-right"></i>
+              </button>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Result -->
-    <section id="resultSec" class="hidden bg-white border border-slate-200 rounded-2xl p-4 md:p-5 shadow-sm">
-      <div class="flex items-center justify-between gap-3 flex-wrap">
-        <div class="font-bold">測驗結果</div>
+    <section id="resultSec" class="hidden bg-zone3-bg border border-zone3-border rounded-3xl p-5 md:p-6 shadow-sm">
+      <div class="flex items-center justify-between gap-3 flex-wrap border-b border-green-200/50 pb-4 mb-4">
+        <div class="font-bold text-xl text-green-900 flex items-center gap-2">
+          <span class="flex items-center justify-center w-8 h-8 rounded-full bg-green-600 text-white text-sm">3</span>
+          測驗診斷區
+        </div>
         <div class="flex items-center gap-2">
           <button id="btnCopy"
-                  class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-sm font-semibold">
-            <i class="fa-solid fa-copy"></i>複製結果
+                  class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-green-200 bg-white hover:bg-green-50 text-sm font-medium text-green-700 transition">
+            <i class="fa-regular fa-copy"></i> 複製報告
           </button>
           <button id="btnRestart"
-                  class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-student text-white font-bold hover:bg-student-dark">
-            <i class="fa-solid fa-rotate-left"></i>再做一次
+                  class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 shadow-sm transition">
+            <i class="fa-solid fa-rotate-left"></i> 再做一次
           </button>
         </div>
       </div>
 
-      <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
-        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-          <div class="text-xs text-slate-500">分數</div>
-          <div id="resScore" class="text-3xl font-extrabold mt-1">—</div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div class="bg-white rounded-2xl p-5 border border-green-100 shadow-sm flex items-center justify-between">
+          <div>
+            <div class="text-sm text-green-600 font-bold mb-1">答對題數 / 總題數</div>
+            <div id="resScore" class="text-3xl font-black text-slate-800 tracking-tight">—</div>
+          </div>
+          <div class="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center text-green-500 text-2xl">
+            <i class="fa-solid fa-list-check"></i>
+          </div>
         </div>
-        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-          <div class="text-xs text-slate-500">測驗代碼</div>
-          <div id="resTestId" class="mt-2 text-sm font-bold text-slate-800 break-all">—</div>
+        <div class="bg-white rounded-2xl p-5 border border-green-100 shadow-sm flex items-center justify-between">
+          <div>
+            <div class="text-sm text-green-600 font-bold mb-1">總分 (100分)</div>
+            <div id="resScore100" class="text-4xl font-black text-green-600 tracking-tight">—</div>
+          </div>
+          <div class="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center text-green-500 text-2xl">
+            <i class="fa-solid fa-trophy"></i>
+          </div>
         </div>
-        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-          <div class="text-xs text-slate-500">回饋</div>
-          <div id="resFeedback" class="mt-2 text-sm text-slate-700 whitespace-pre-wrap">—</div>
-        </div>
+        <div class="hidden" id="resTestId"></div>
       </div>
 
-      <div class="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
-        <div class="text-sm font-bold text-slate-800">錯題清單</div>
-        <div id="resWrong" class="mt-2 text-sm text-slate-700"></div>
+      <div class="bg-white rounded-2xl border border-green-100 shadow-sm p-6 mb-6">
+        <div class="flex items-center gap-2 mb-4 border-b border-slate-100 pb-2">
+          <i class="fa-solid fa-user-doctor text-green-600 text-xl"></i>
+          <h3 class="font-bold text-lg text-slate-800">診斷回饋</h3>
+        </div>
+        <div id="resFeedback" class="text-slate-700 leading-relaxed whitespace-pre-wrap pl-1"></div>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-green-100 shadow-sm p-6">
+        <div class="flex items-center gap-2 mb-4 border-b border-slate-100 pb-2">
+          <i class="fa-solid fa-clipboard-question text-red-500 text-xl"></i>
+          <h3 class="font-bold text-lg text-slate-800">概念診斷 (錯題分析)</h3>
+        </div>
+        <div id="resWrong" class="space-y-4"></div>
       </div>
     </section>
 
-    <!-- Simple toast -->
-    <div id="toast" class="fixed bottom-4 right-4 hidden">
-      <div class="max-w-sm bg-slate-900 text-white rounded-2xl px-4 py-3 shadow-lg">
+    <div id="toast" class="fixed bottom-6 right-6 hidden z-50 transform transition-all duration-300">
+      <div class="max-w-sm bg-slate-800/90 backdrop-blur text-white rounded-xl px-5 py-4 shadow-2xl border border-slate-700">
         <div class="flex items-start gap-3">
-          <div id="toastIcon" class="mt-0.5"><i class="fa-solid fa-circle-info"></i></div>
+          <div id="toastIcon" class="mt-1 text-lg"></div>
           <div class="flex-1">
-            <div id="toastTitle" class="font-bold">提示</div>
-            <div id="toastMsg" class="text-sm text-white/80 mt-1">—</div>
+            <div id="toastTitle" class="font-bold text-base"></div>
+            <div id="toastMsg" class="text-sm text-slate-300 mt-1 leading-snug"></div>
           </div>
         </div>
       </div>
@@ -259,81 +314,45 @@
 
 <script>
 /* ===========================
-   0) 只要改這個：你的 GAS /exec
+   0) 你的 GAS URL (維持不變)
 =========================== */
 const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxvAOgRDBE6T-2R37UeTzo0RSQukgGOlEYyBrTw8zUSOlIKNIzLdJXozjNx4Hn6brc2/exec";
 
-/* 你要抓的內容試算表（提供給後端用；後端若已內建可忽略） */
 const CONTENT_DB_ID = "1cEfMEy3bvDa1tET3xmh7ShGeJy8KLUMa_JuULGBD-mk";
 const CONTENT_SHEET_NAME = "Sheet1";
-
-/* ====== ★必要新增：StudentID 來源（USER_DB → Users_student → J 欄）====== */
 const USER_DB_ID = "1cDOsaa7E0EwD1R9CeCWoGf8_9ZMcFv8fxQ5d-LWUKu8";
 const USER_SHEET_NAME = "Users_student";
 const USER_STUDENTID_COL = "J";
-/* ===================================================================== */
 
-/* 你的後端 action（不改後端就必須對齊） */
 const ACTION = {
-  /* 既有：題庫選單/測驗流程 */
   GET_UNIT_OPTIONS: "getUnitOptions",
   START_CAT: "startCAT",
   SUBMIT_NEXT: "submitAndNext",
   FINISH_CAT: "finishCAT"
 };
 
-/* 可能存在於「單元重點整理」後端的教材選單 action（前端自動嘗試，不需要你改 UI） */
 const META_ACTION_CANDIDATES = [
-  "get_metadata",
-  "getMaterialTree",
-  "getTextbookMeta",
-  "getContentMeta",
-  "getContentOptions",
-  "getTextbookOptions",
-  "getLessonOptions",
-  ACTION.GET_UNIT_OPTIONS
+  "get_metadata", "getMaterialTree", "getTextbookMeta", "getContentMeta",
+  "getContentOptions", "getTextbookOptions", "getLessonOptions", ACTION.GET_UNIT_OPTIONS
 ];
 
-/* ====== ★必要新增：嘗試用 email 查回 StudentID 的 action 候選 ======
-   你的後端只要有其中任何一個，就能成功把 Users_student!J 的 StudentID 回傳給前端
-====================================================================== */
 const STUDENTID_ACTION_CANDIDATES = [
-  "getStudentIdByEmail",
-  "getStudentIDByEmail",
-  "resolveStudentIdByEmail",
-  "resolveStudentIDByEmail",
-  "resolveStudentId",
-  "resolveStudentID",
-  "getStudentId",
-  "get_student_id",
-  "getUserByEmail",
-  "get_user_by_email",
-  "getUser",
-  "get_user",
-  "getProfile",
-  "get_profile"
+  "getStudentIdByEmail", "getStudentIDByEmail", "resolveStudentIdByEmail",
+  "resolveStudentIDByEmail", "resolveStudentId", "resolveStudentID", "getStudentId",
+  "get_student_id", "getUserByEmail", "get_user_by_email", "getUser", "get_user",
+  "getProfile", "get_profile"
 ];
 
 /* ===========================
-   1) 全域狀態（精簡）
+   1) 全域狀態
 =========================== */
 const Meta = {
-  mode: "tree",
-  tree: {},
-  unitIndex: {},
-  publishers: [],
-  unitsByPublisher: {}
+  mode: "tree", tree: {}, unitIndex: {}, publishers: [], unitsByPublisher: {}
 };
 
 const CAT = {
-  started: false,
-  test_id: "",
-  student_id: "",
-  current: null,
-  next: null,
-  selected: "",
-  n: 15,
-  step: 0
+  started: false, test_id: "", student_id: "", current: null, next: null,
+  selected: "", n: 15, step: 0
 };
 
 /* ===========================
@@ -343,11 +362,11 @@ const UI = {
   setConn(ok, msg){
     const b = document.getElementById("connBadge");
     if(ok){
-      b.innerHTML = `<i class="fa-solid fa-circle-check mr-1"></i>已連線`;
-      b.className = "text-xs px-3 py-2 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 shrink-0";
+      b.innerHTML = `<i class="fa-solid fa-wifi mr-1"></i>已連線`;
+      b.className = "text-xs px-3 py-1.5 rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 shrink-0 font-medium";
     }else{
-      b.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i>連線失敗`;
-      b.className = "text-xs px-3 py-2 rounded-xl border border-amber-200 bg-amber-50 text-amber-800 shrink-0";
+      b.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i>連線中斷`;
+      b.className = "text-xs px-3 py-1.5 rounded-full border border-red-200 bg-red-50 text-red-700 shrink-0 font-medium";
       if(msg) UI.toast("連線失敗", msg, "warn");
     }
   },
@@ -358,24 +377,32 @@ const UI = {
     const tm = document.getElementById("toastMsg");
 
     let icon = "fa-circle-info";
-    if(type==="good") icon="fa-circle-check";
-    if(type==="warn") icon="fa-triangle-exclamation";
-    if(type==="bad") icon="fa-circle-xmark";
-    ic.innerHTML = `<i class="fa-solid ${icon}"></i>`;
-
+    let colorClass = "text-blue-400";
+    if(type==="good") { icon="fa-circle-check"; colorClass="text-emerald-400"; }
+    if(type==="warn") { icon="fa-triangle-exclamation"; colorClass="text-amber-400"; }
+    if(type==="bad")  { icon="fa-circle-xmark"; colorClass="text-red-400"; }
+    
+    ic.innerHTML = `<i class="fa-solid ${icon} ${colorClass}"></i>`;
     tt.textContent = title || "提示";
     tm.textContent = msg || "";
 
-    t.classList.remove("hidden");
+    t.classList.remove("hidden", "translate-y-10", "opacity-0");
     clearTimeout(UI._timer);
-    UI._timer = setTimeout(()=>t.classList.add("hidden"), 4200);
+    UI._timer = setTimeout(()=>{
+      t.classList.add("translate-y-10", "opacity-0");
+      setTimeout(()=>t.classList.add("hidden"), 300);
+    }, 4000);
   },
   setProgress(step, total){
     const txt = document.getElementById("progText");
     const bar = document.getElementById("progBar");
+    const turtle = document.getElementById("turtleIcon");
+    
     txt.textContent = `${step}/${total}`;
-    const pct = total ? Math.min(100, Math.round((step/total)*100)) : 0;
+    const pct = total ? Math.min(100, (step/total)*100) : 0;
+    
     bar.style.width = pct + "%";
+    turtle.style.left = pct + "%";
   },
   showQuestion(show){
     document.getElementById("qEmpty").classList.toggle("hidden", show);
@@ -383,23 +410,21 @@ const UI = {
   },
   showResult(show){
     document.getElementById("resultSec").classList.toggle("hidden", !show);
+    if(show) {
+        // 滾動到結果區
+        setTimeout(() => {
+            document.getElementById("resultSec").scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+    }
   }
 };
 
 /* ===========================
    3) 取得 student_id
-   ★必要修改：studentID 必須來自 Users_student!J；不可用 email / prompt 代替
 =========================== */
 function getStudentIdFromLogin(){
   const storages = [sessionStorage, localStorage];
-
-  const directKeys = [
-    "student_id","StudentID",
-    "SLH_student_id","slh_student_id",
-    "user_student_id","login_student_id",
-    "current_student_id"
-  ];
-
+  const directKeys = ["student_id","StudentID","SLH_student_id","slh_student_id","user_student_id","login_student_id","current_student_id"];
   for (const S of storages){
     for (const k of directKeys){
       const v = S.getItem(k);
@@ -407,94 +432,58 @@ function getStudentIdFromLogin(){
       if (s) return s;
     }
   }
-
-  const jsonKeys = [
-    "currentUser","slh_user",
-    "SLH_USER","SLH_LOGIN",
-    "USER","LOGIN","user","auth","profile","me"
-  ];
-
+  const jsonKeys = ["currentUser","slh_user","SLH_USER","SLH_LOGIN","USER","LOGIN","user","auth","profile","me"];
   for (const S of storages){
     for (const k of jsonKeys){
       const raw = S.getItem(k);
       if(!raw) continue;
-
       try{
         const obj = JSON.parse(raw);
-
-        let sid =
-          obj?.student_id ?? obj?.StudentID ?? obj?.studentId ?? obj?.studentID ?? obj?.StudentId ??
-          obj?.sid ?? obj?.id ?? obj?.uid ?? obj?.user_id;
-
+        let sid = obj?.student_id ?? obj?.StudentID ?? obj?.studentId ?? obj?.studentID ?? obj?.StudentId ?? obj?.sid ?? obj?.id ?? obj?.uid ?? obj?.user_id;
         if(!sid){
-          sid =
-            obj?.user?.student_id ?? obj?.user?.StudentID ?? obj?.user?.studentId ??
-            obj?.profile?.student_id ?? obj?.profile?.StudentID ?? obj?.profile?.studentId;
+          sid = obj?.user?.student_id ?? obj?.user?.StudentID ?? obj?.user?.studentId ?? obj?.profile?.student_id ?? obj?.profile?.StudentID ?? obj?.profile?.studentId;
         }
-
         const s = String(sid ?? "").trim();
         if(s) return s;
       }catch(_){}
     }
   }
-
   const u = window.currentUser || window.USER || window.SLH_USER || window.Auth?.user;
   const sid = u?.student_id ?? u?.StudentID ?? u?.studentId ?? u?.studentID;
-  const s = String(sid ?? "").trim();
-  return s || "";
+  return String(sid ?? "").trim() || "";
 }
 
-/* ===== Login Sync (對齊 unitkeyidea.html；只新增不改既有流程) ===== */
 function __normalizeUser(u){
   if(!u || typeof u !== "object") return null;
-
-  const name =
-    u.name ?? u.Name ?? u.displayName ?? u.nickname ?? u.username ?? "";
-
-  const email =
-    u.email ?? u.Email ?? "";
-
-  const student_id =
-    u.student_id ?? u.StudentID ?? u.studentId ?? u.studentID ?? u.StudentId ??
-    u.sid ?? u.id ?? u.uid ?? u.user_id ?? "";
-
+  const name = u.name ?? u.Name ?? u.displayName ?? u.nickname ?? u.username ?? "";
+  const email = u.email ?? u.Email ?? "";
+  const student_id = u.student_id ?? u.StudentID ?? u.studentId ?? u.studentID ?? u.StudentId ?? u.sid ?? u.id ?? u.uid ?? u.user_id ?? "";
   if(!student_id && !name && !email) return null;
-
   return { ...u, name, email, student_id: String(student_id || "").trim() };
 }
 
 function __loadCurrentUser(){
   let raw = sessionStorage.getItem("currentUser") || localStorage.getItem("currentUser");
-  if(raw){
-    try { return __normalizeUser(JSON.parse(raw)); } catch(_) {}
-  }
-
+  if(raw){ try { return __normalizeUser(JSON.parse(raw)); } catch(_) {} }
   const fallbackKeys = ["SLH_USER","SLH_LOGIN","USER","LOGIN","user","auth","profile","me"];
   for(const k of fallbackKeys){
     raw = sessionStorage.getItem(k) || localStorage.getItem(k);
     if(!raw) continue;
-    try{
-      const u = __normalizeUser(JSON.parse(raw));
-      if(u) return u;
-    }catch(_){}
+    try{ const u = __normalizeUser(JSON.parse(raw)); if(u) return u; }catch(_){}
   }
   return null;
 }
 
 function __syncLoginAliases(user){
   if(!user) return null;
-
   const txt = JSON.stringify(user);
-
   try { sessionStorage.setItem("currentUser", txt); } catch(_){}
   try { localStorage.setItem("currentUser", txt); } catch(_){}
-
   const aliasKeys = ["SLH_USER","SLH_LOGIN","USER","LOGIN","user","authUser"];
   for(const k of aliasKeys){
     try { sessionStorage.setItem(k, txt); } catch(_){}
     try { localStorage.setItem(k, txt); } catch(_){}
   }
-
   if(user.student_id){
     const sid = String(user.student_id).trim();
     try { localStorage.setItem("student_id", sid); } catch(_){}
@@ -503,48 +492,32 @@ function __syncLoginAliases(user){
     try { sessionStorage.setItem("StudentID", sid); } catch(_){}
     try { localStorage.setItem("slh_user", txt); } catch(_){}
   }
-
-  window.currentUser = user;
-  window.USER = user;
-  window.SLH_USER = user;
-  window.Auth = window.Auth || {};
-  window.Auth.user = user;
-
+  window.currentUser = user; window.USER = user; window.SLH_USER = user;
+  window.Auth = window.Auth || {}; window.Auth.user = user;
   return user;
 }
 
 function __appendNameAfterConnected(name){
   if(!name) return;
-
-  let el =
-    document.getElementById("connBadge") ||
-    document.getElementById("netBadge")  ||
-    document.getElementById("statusConn")||
-    document.getElementById("conn-status");
-
+  let el = document.getElementById("connBadge") || document.getElementById("netBadge") || document.getElementById("statusConn")|| document.getElementById("conn-status");
   if(!el){
     const candidates = Array.from(document.querySelectorAll("span,div,button"));
     el = candidates.find(x => (x.innerText || "").trim() === "已連線");
   }
   if(!el) return;
-
   if(el.querySelector && el.querySelector("#connUserName")) return;
-
   const sp = document.createElement("span");
   sp.id = "connUserName";
   sp.style.marginLeft = "8px";
   sp.style.fontWeight = "700";
   sp.textContent = name;
-
   el.appendChild(sp);
 }
 
-/* ===== ★必要新增：用 email 從 Users_student!J 查回 StudentID ===== */
 function __getEmailForLookup(){
   const u = __loadCurrentUser ? __loadCurrentUser() : null;
   let email = String(u?.email || u?.Email || "").trim();
   if(email) return email;
-
   const storages = [sessionStorage, localStorage];
   const emailKeys = ["email","Email","user_email","login_email","SLH_email","SLH_Email"];
   for(const S of storages){
@@ -553,7 +526,6 @@ function __getEmailForLookup(){
       if(v && v.includes("@")) return v;
     }
   }
-
   const sp = new URLSearchParams(location.search);
   email = String(sp.get("email") || sp.get("Email") || "").trim();
   return email;
@@ -562,105 +534,56 @@ function __getEmailForLookup(){
 async function __resolveStudentIdByEmail(email){
   const e = String(email || "").trim();
   if(!e) return "";
-
   let lastErr = null;
-
   for(const act of STUDENTID_ACTION_CANDIDATES){
     try{
       const json = await api({
-        action: act,
-        email: e,
-
-        // 告訴後端：要查哪份 User DB、哪個 sheet、哪一欄（J）
-        user_db_id: USER_DB_ID,
-        user_sheet_name: USER_SHEET_NAME,
-        student_id_col: USER_STUDENTID_COL
+        action: act, email: e,
+        user_db_id: USER_DB_ID, user_sheet_name: USER_SHEET_NAME, student_id_col: USER_STUDENTID_COL
       });
-
-      const sid =
-        json?.student_id ?? json?.StudentID ?? json?.studentId ?? json?.studentID ??
-        json?.data?.student_id ?? json?.data?.StudentID ?? json?.data?.studentId ??
-        json?.user?.student_id ?? json?.user?.StudentID ?? json?.user?.studentId ??
-        json?.profile?.student_id ?? json?.profile?.StudentID ?? json?.profile?.studentId ??
-        json?.row?.student_id ?? json?.row?.StudentID ?? json?.row?.studentId ??
-        json?.result?.student_id ?? json?.result?.StudentID ?? json?.result?.studentId ??
-        "";
-
+      const sid = json?.student_id ?? json?.StudentID ?? json?.studentId ?? json?.studentID ?? json?.data?.student_id ?? json?.user?.student_id ?? json?.profile?.student_id ?? json?.row?.student_id ?? json?.result?.student_id ?? "";
       const s = String(sid || "").trim();
       if(s) return s;
-
       lastErr = new Error("回傳成功但未包含 StudentID。");
-    }catch(err){
-      lastErr = err;
-    }
+    }catch(err){ lastErr = err; }
   }
-
   if(lastErr) throw lastErr;
   return "";
 }
 
-/* ★必要修改：ensureStudentId 改為 async，且不再用 email / prompt 代替 */
 async function ensureStudentId(){
   if (CAT.student_id) return String(CAT.student_id).trim();
-
-  // 1) 先用既有 storage/currentUser
   let sid = String(getStudentIdFromLogin() || "").trim();
-  if(sid){
-    CAT.student_id = sid;
-    return sid;
-  }
-
-  // 2) 用 email 查回 Users_student!J
+  if(sid){ CAT.student_id = sid; return sid; }
   const email = __getEmailForLookup();
   if(!email) return "";
-
-  try{
-    sid = await __resolveStudentIdByEmail(email);
-  }catch(_){
-    sid = "";
-  }
-
+  try{ sid = await __resolveStudentIdByEmail(email); }catch(_){ sid = ""; }
   sid = String(sid || "").trim();
   if(!sid) return "";
-
-  // 寫回 storage + currentUser（讓後續頁面都能抓到）
   try{ localStorage.setItem("student_id", sid); }catch(_){}
   try{ localStorage.setItem("StudentID", sid); }catch(_){}
   try{ sessionStorage.setItem("student_id", sid); }catch(_){}
   try{ sessionStorage.setItem("StudentID", sid); }catch(_){}
-
-  try{
-    const u = __loadCurrentUser() || {};
-    const merged = { ...u, student_id: sid, StudentID: sid, studentId: sid };
-    __syncLoginAliases(merged);
-  }catch(_){}
-
+  try{ const u = __loadCurrentUser() || {}; const merged = { ...u, student_id: sid, StudentID: sid, studentId: sid }; __syncLoginAliases(merged); }catch(_){}
   CAT.student_id = sid;
   return sid;
 }
 
 /* ===========================
-   4) API 呼叫（GET → form POST → JSON POST 三段式）
+   4) API 呼叫
 =========================== */
 function buildFormBody(payload){
   const p = new URLSearchParams();
   const action = payload?.action ?? "";
   if(action) p.set("action", action);
-
-  // 讓後端能知道你要抓哪份試算表（若後端已內建，可忽略）
   if(payload?.content_db_id) p.set("content_db_id", String(payload.content_db_id));
   if(payload?.sheet_name)    p.set("sheet_name", String(payload.sheet_name));
-
-  /* ===== ★必要新增：讓後端收到 user_db / Users_student / col J / email ===== */
   if(payload?.email != null)          p.set("email", String(payload.email));
   if(payload?.user_db_id)             p.set("user_db_id", String(payload.user_db_id));
   if(payload?.user_sheet_name)        p.set("user_sheet_name", String(payload.user_sheet_name));
   if(payload?.student_id_col)         p.set("student_id_col", String(payload.student_id_col));
-  /* ===================================================================== */
-
-  // 兼容：有些後端用 payload 參數整包 JSON.parse
   p.set("payload", JSON.stringify(payload ?? {}));
-
+  
   if(payload?.subject != null)  p.set("subject", String(payload.subject));
   if(payload?.stage != null)    p.set("stage", String(payload.stage));
   if(payload?.grade != null)    p.set("grade", String(payload.grade));
@@ -678,22 +601,16 @@ function buildFormBody(payload){
     if(unit.lesson_name != null)      p.set("lesson_name", String(unit.lesson_name));
     if(unit.unit_key != null)         p.set("unit_key", String(unit.unit_key));
   }
-
   const sid = payload?.student_id ?? payload?.student?.student_id;
   if(sid != null) p.set("student_id", String(sid));
-
   const keys = ["test_id","item_id","response_option","max_items","min_items","stop_se","grade"];
-  for(const k of keys){
-    if(payload?.[k] != null) p.set(k, String(payload[k]));
-  }
-
+  for(const k of keys){ if(payload?.[k] != null) p.set(k, String(payload[k])); }
   const settings = payload?.settings;
   if(settings){
     if(settings.max_items != null && !p.has("max_items")) p.set("max_items", String(settings.max_items));
     if(settings.min_items != null && !p.has("min_items")) p.set("min_items", String(settings.min_items));
     if(settings.stop_se  != null && !p.has("stop_se"))   p.set("stop_se",  String(settings.stop_se));
   }
-
   return p;
 }
 
@@ -704,57 +621,40 @@ function safeParseJSON(text){
 
 function normalizeOk(obj){
   if(!obj || typeof obj !== "object") throw new Error("後端未回傳 JSON。");
-
   const st = String(obj.status ?? "").toLowerCase();
-  if(st === "error" || st === "fail" || st === "failed"){
-    throw new Error(obj.message || obj.error || "後端回傳失敗（status=error）。");
-  }
-  if(st === "success"){
-    return { ...obj, ok: true };
-  }
-
-  if(obj.ok === false) throw new Error(obj.error || obj.message || "後端回傳失敗（ok=false）。");
-  if(obj.success === false) throw new Error(obj.error || obj.message || "後端回傳失敗（success=false）。");
+  if(st === "error" || st === "fail" || st === "failed") throw new Error(obj.message || obj.error || "後端回傳失敗（status=error）。");
+  if(st === "success") return { ...obj, ok: true };
+  if(obj.ok === false) throw new Error(obj.error || obj.message || "後端回傳失敗。");
+  if(obj.success === false) throw new Error(obj.error || obj.message || "後端回傳失敗。");
   if(obj.ok === true) return obj;
   if(obj.success === true) return { ...obj, ok: true };
   if(obj.error) throw new Error(obj.error);
   if(obj.message && st) throw new Error(obj.message);
-
   return { ...obj, ok: true };
 }
 
 async function api(payload){
   let lastErr = null;
-
-  // A) GET
   try{
     const url = new URL(GAS_API_URL);
     if(payload?.action) url.searchParams.set("action", payload.action);
-
     if(payload?.content_db_id) url.searchParams.set("content_db_id", String(payload.content_db_id));
     if(payload?.sheet_name)    url.searchParams.set("sheet_name", String(payload.sheet_name));
-
-    // ★必要新增：studentID lookup 也可能用 GET
     if(payload?.email != null)          url.searchParams.set("email", String(payload.email));
     if(payload?.user_db_id)             url.searchParams.set("user_db_id", String(payload.user_db_id));
     if(payload?.user_sheet_name)        url.searchParams.set("user_sheet_name", String(payload.user_sheet_name));
     if(payload?.student_id_col)         url.searchParams.set("student_id_col", String(payload.student_id_col));
-
     if(payload?.subject != null)  url.searchParams.set("subject", String(payload.subject));
     if(payload?.stage != null)    url.searchParams.set("stage", String(payload.stage));
     if(payload?.grade != null)    url.searchParams.set("grade", String(payload.grade));
     if(payload?.semester != null) url.searchParams.set("semester", String(payload.semester));
-
     const res = await fetch(url.toString(), { method: "GET", redirect: "follow" });
     const text = await res.text();
     const json = safeParseJSON(text);
     if(json) return normalizeOk(json);
     throw new Error("後端未回傳 JSON（GET）。");
-  }catch(e){
-    lastErr = e;
-  }
+  }catch(e){ lastErr = e; }
 
-  // B) POST x-www-form-encoded
   try{
     const formBody = buildFormBody(payload);
     const res = await fetch(GAS_API_URL, { method: "POST", body: formBody, redirect: "follow" });
@@ -762,27 +662,21 @@ async function api(payload){
     const json = safeParseJSON(text);
     if(json) return normalizeOk(json);
     throw new Error("後端未回傳 JSON（form POST）。");
-  }catch(e){
-    lastErr = e;
-  }
+  }catch(e){ lastErr = e; }
 
-  // C) JSON POST
   try{
     const res = await fetch(GAS_API_URL, { method: "POST", body: JSON.stringify(payload), redirect: "follow" });
     const text = await res.text();
     const json = safeParseJSON(text);
     if(json) return normalizeOk(json);
     throw new Error("後端未回傳 JSON（JSON POST）。");
-  }catch(e){
-    throw new Error(String(e?.message || lastErr?.message || e));
-  }
+  }catch(e){ throw new Error(String(e?.message || lastErr?.message || e)); }
 }
 
 async function ping(){
   try{
     const res = await fetch(GAS_API_URL, { method: "GET", redirect: "follow" });
     if(!res.ok) throw new Error("HTTP " + res.status);
-
     UI.setConn(true);
     return true;
   }catch(e){
@@ -792,74 +686,43 @@ async function ping(){
 }
 
 /* ===========================
-   5) 建教材樹（略：以下保留你原本程式，不動）
+   5) 建教材樹
 =========================== */
-function normStage(v){
-  const s = String(v ?? "").trim();
-  if(!s) return "";
-  if(s.includes("國小") || s === "小學") return "國小";
-  if(s.includes("國中") || s === "國中部") return "國中";
-  return s;
-}
-function normSemester(v){
-  const s = String(v ?? "").trim();
-  if(!s) return "";
-  if(s.includes("上")) return "上學期";
-  if(s.includes("下")) return "下學期";
-  return s;
-}
-function normVersion(v){
-  return String(v ?? "").trim();
-}
-function normLessonNo(v){
-  return String(v ?? "").trim();
-}
-function normLessonName(v){
-  return String(v ?? "").trim();
-}
-function toIntGrade(v){
-  const n = Number(String(v ?? "").replace(/[^\d]/g, ""));
-  return Number.isFinite(n) ? n : NaN;
-}
+function normStage(v){ const s = String(v ?? "").trim(); if(s.includes("國小")||s==="小學")return "國小"; if(s.includes("國中")||s==="國中部")return "國中"; return s; }
+function normSemester(v){ const s = String(v ?? "").trim(); if(s.includes("上"))return "上學期"; if(s.includes("下"))return "下學期"; return s; }
+function normVersion(v){ return String(v ?? "").trim(); }
+function normLessonNo(v){ return String(v ?? "").trim(); }
+function normLessonName(v){ return String(v ?? "").trim(); }
+function toIntGrade(v){ const n = Number(String(v ?? "").replace(/[^\d]/g, "")); return Number.isFinite(n) ? n : NaN; }
 
 function buildTreeFromRows(rows){
-  const tree = {};
-  const unitIndex = {};
-
+  const tree = {}; const unitIndex = {};
   for(const r of rows){
-    const stage = normStage(r.stage ?? r["中小學"] ?? r["學習階段"] ?? r.level ?? r.school_stage);
-    const grade = toIntGrade(r.grade ?? r["年級"]);
-    const semester = normSemester(r.semester ?? r["學期"]);
-    const version = normVersion(r.textbook_version ?? r.publisher ?? r["版本"] ?? r["出版社"]);
-    const lessonNo = normLessonNo(r.lesson_no ?? r["課別"] ?? r.unit_no ?? r["課序"]);
-    const lessonName = normLessonName(r.lesson_name ?? r["課名"] ?? r.unit_name ?? r["單元"] ?? r["單元名稱"]);
-
+    const stage = normStage(r.stage??r["中小學"]??r["學習階段"]??r.level??r.school_stage);
+    const grade = toIntGrade(r.grade??r["年級"]);
+    const semester = normSemester(r.semester??r["學期"]);
+    const version = normVersion(r.textbook_version??r.publisher??r["版本"]??r["出版社"]);
+    const lessonNo = normLessonNo(r.lesson_no??r["課別"]??r.unit_no??r["課序"]);
+    const lessonName = normLessonName(r.lesson_name??r["課名"]??r.unit_name??r["單元"]??r["單元名稱"]);
     if(!stage || !Number.isFinite(grade) || !semester || !version || !lessonName) continue;
-
     const unitName = (lessonNo ? `${lessonNo} ${lessonName}` : lessonName).trim();
     const unitKey = `${stage}||${grade}||${semester}||${version}||${lessonNo}||${lessonName}`;
-
     if(!tree[stage]) tree[stage] = {};
     if(!tree[stage][grade]) tree[stage][grade] = {};
     if(!tree[stage][grade][semester]) tree[stage][grade][semester] = {};
     if(!tree[stage][grade][semester][version]) tree[stage][grade][semester][version] = [];
-
     tree[stage][grade][semester][version].push({ unit_key: unitKey, lesson_no: lessonNo, lesson_name: lessonName, unit_name: unitName });
-
     unitIndex[unitKey] = { unit_key: unitKey, stage, grade, semester, textbook_version: version, lesson_no: lessonNo, lesson_name: lessonName, unit_name: unitName };
   }
-
   for(const st of Object.keys(tree)){
     for(const g of Object.keys(tree[st])){
       for(const sem of Object.keys(tree[st][g])){
         for(const ver of Object.keys(tree[st][g][sem])){
           const arr = tree[st][g][sem][ver] || [];
-          const seen = new Set();
-          const uniq = [];
+          const seen = new Set(); const uniq = [];
           for(const u of arr){
             if(seen.has(u.unit_key)) continue;
-            seen.add(u.unit_key);
-            uniq.push(u);
+            seen.add(u.unit_key); uniq.push(u);
           }
           uniq.sort((a,b)=>{
             const an = Number(String(a.lesson_no||"").replace(/[^\d]/g,""));
@@ -872,19 +735,14 @@ function buildTreeFromRows(rows){
       }
     }
   }
-
   return { tree, unitIndex };
 }
 
 function buildTreeFromLegacy(publishers, unitsByPublisher, grade, semester){
-  const tree = {};
-  const unitIndex = {};
+  const tree = {}; const unitIndex = {};
   const st = (grade <= 6) ? "國小" : "國中";
   const sem = normSemester(semester);
-  tree[st] = {};
-  tree[st][grade] = {};
-  tree[st][grade][sem] = {};
-
+  tree[st] = {}; tree[st][grade] = {}; tree[st][grade][sem] = {};
   for(const ver of (publishers || [])){
     const units = (unitsByPublisher && unitsByPublisher[ver]) ? unitsByPublisher[ver] : [];
     tree[st][grade][sem][ver] = [];
@@ -896,79 +754,35 @@ function buildTreeFromLegacy(publishers, unitsByPublisher, grade, semester){
       unitIndex[unitKey] = { unit_key: unitKey, stage: st, grade, semester: sem, textbook_version: ver, lesson_no: "", lesson_name: unitName, unit_name: unitName };
     }
   }
-
   return { tree, unitIndex };
 }
 
 async function loadMaterialTree(){
   let lastErr = null;
-
   for(const act of META_ACTION_CANDIDATES){
     try{
-      const json = await api({
-        action: act,
-        content_db_id: CONTENT_DB_ID,
-        sheet_name: CONTENT_SHEET_NAME,
-        subject: "自然科學"
-      });
-
-      if(json.tree && typeof json.tree === "object"){
-        Meta.tree = json.tree;
-        Meta.unitIndex = json.unitIndex || {};
-        Meta.mode = "tree";
-        return true;
-      }
-
+      const json = await api({ action: act, content_db_id: CONTENT_DB_ID, sheet_name: CONTENT_SHEET_NAME, subject: "自然科學" });
+      if(json.tree && typeof json.tree === "object"){ Meta.tree = json.tree; Meta.unitIndex = json.unitIndex || {}; Meta.mode = "tree"; return true; }
       const rows = json.rows || json.data || json.items || json.materials;
-      if(Array.isArray(rows) && rows.length){
-        const built = buildTreeFromRows(rows);
-        Meta.tree = built.tree;
-        Meta.unitIndex = built.unitIndex;
-        Meta.mode = "tree";
-        return true;
-      }
-
-      if(Array.isArray(json.publishers) && json.unitsByPublisher){
-        Meta.publishers = json.publishers;
-        Meta.unitsByPublisher = json.unitsByPublisher;
-        Meta.mode = "legacy";
-        return true;
-      }
-
-      if(Array.isArray(json) && json.length){
-        const built = buildTreeFromRows(json);
-        Meta.tree = built.tree;
-        Meta.unitIndex = built.unitIndex;
-        Meta.mode = "tree";
-        return true;
-      }
-
+      if(Array.isArray(rows) && rows.length){ const built = buildTreeFromRows(rows); Meta.tree = built.tree; Meta.unitIndex = built.unitIndex; Meta.mode = "tree"; return true; }
+      if(Array.isArray(json.publishers) && json.unitsByPublisher){ Meta.publishers = json.publishers; Meta.unitsByPublisher = json.unitsByPublisher; Meta.mode = "legacy"; return true; }
+      if(Array.isArray(json) && json.length){ const built = buildTreeFromRows(json); Meta.tree = built.tree; Meta.unitIndex = built.unitIndex; Meta.mode = "tree"; return true; }
       throw new Error("回傳格式不含教材選單資料。");
-    }catch(e){
-      lastErr = e;
-    }
+    }catch(e){ lastErr = e; }
   }
-
   throw new Error(String(lastErr?.message || lastErr || "無法載入教材選單。"));
 }
 
 /* ===========================
-   6) 下拉選單：全連動（略：保留你原本程式，不動）
+   6) 下拉選單
 =========================== */
 function setOptions(selectEl, options, placeholder){
   selectEl.innerHTML = "";
   if(!options || options.length === 0){
-    const op = document.createElement("option");
-    op.value = "";
-    op.textContent = placeholder || "（無資料）";
-    selectEl.appendChild(op);
-    return;
+    const op = document.createElement("option"); op.value = ""; op.textContent = placeholder || "（無資料）"; selectEl.appendChild(op); return;
   }
   for(const {value, label} of options){
-    const op = document.createElement("option");
-    op.value = String(value);
-    op.textContent = String(label);
-    selectEl.appendChild(op);
+    const op = document.createElement("option"); op.value = String(value); op.textContent = String(label); selectEl.appendChild(op);
   }
 }
 
@@ -985,8 +799,7 @@ function refreshAllDropdowns(){
   const selVer = document.getElementById("selPublisher");
   const selUnit = document.getElementById("selUnit");
 
-  const stageKeys = Object.keys(Meta.tree || {});
-  stageKeys.sort((a,b)=> String(a).localeCompare(String(b), "zh-Hant"));
+  const stageKeys = Object.keys(Meta.tree || {}).sort((a,b)=> String(a).localeCompare(String(b), "zh-Hant"));
   const prevStage = selStage.value;
   setOptions(selStage, stageKeys.map(s=>({value:s, label:s})), "（尚無資料）");
   if(prevStage && stageKeys.includes(prevStage)) selStage.value = prevStage;
@@ -995,7 +808,7 @@ function refreshAllDropdowns(){
   const gradesObj = (Meta.tree && stage && Meta.tree[stage]) ? Meta.tree[stage] : {};
   const gradeKeys = Object.keys(gradesObj).map(x=>Number(x)).filter(n=>Number.isFinite(n)).sort((a,b)=>a-b);
   const prevGrade = selGrade.value;
-  setOptions(selGrade, gradeKeys.map(g=>({value:g, label:`${g}年級`})), "（此學習階段尚無年級）");
+  setOptions(selGrade, gradeKeys.map(g=>({value:g, label:`${g}年級`})), "（無年級）");
   if(prevGrade && gradeKeys.map(String).includes(String(prevGrade))) selGrade.value = prevGrade;
 
   const grade = getSelGrade();
@@ -1004,33 +817,25 @@ function refreshAllDropdowns(){
   const semOrder = ["上學期","下學期"];
   semKeys.sort((a,b)=> semOrder.indexOf(a) - semOrder.indexOf(b));
   const prevSem = selSem.value;
-  setOptions(selSem, semKeys.map(s=>({value:s, label:s})), "（此年級尚無學期資料）");
+  setOptions(selSem, semKeys.map(s=>({value:s, label:s})), "（無學期）");
   if(prevSem && semKeys.includes(prevSem)) selSem.value = prevSem;
 
   const semester = getSelSemester();
   const verObj = (semObj && semester && semObj[semester]) ? semObj[semester] : {};
-  const verKeys = Object.keys(verObj);
-  verKeys.sort((a,b)=> String(a).localeCompare(String(b), "zh-Hant"));
+  const verKeys = Object.keys(verObj).sort((a,b)=> String(a).localeCompare(String(b), "zh-Hant"));
   const prevVer = selVer.value;
-  setOptions(selVer, verKeys.map(v=>({value:v, label:v})), "（此條件尚無題庫）");
+  setOptions(selVer, verKeys.map(v=>({value:v, label:v})), "（無題庫）");
   if(prevVer && verKeys.includes(prevVer)) selVer.value = prevVer;
 
   const version = getSelVersion();
   const unitsArr = (verObj && version && Array.isArray(verObj[version])) ? verObj[version] : [];
   const prevUnit = selUnit.value;
-
-  setOptions(
-    selUnit,
-    unitsArr.map(u=>({ value: u.unit_key, label: u.unit_name })),
-    "（此版本尚無單元）"
-  );
+  setOptions(selUnit, unitsArr.map(u=>({ value: u.unit_key, label: u.unit_name })), "（無單元）");
   if(prevUnit && unitsArr.some(u=>u.unit_key===prevUnit)) selUnit.value = prevUnit;
 
-  const hasVer = verKeys.length > 0;
-  document.getElementById("publisherHint").textContent = hasVer ? "已載入版本，請選擇。" : "請先確認此條件是否已有題庫。";
-
-  const hasUnit = unitsArr.length > 0;
-  document.getElementById("unitHint").textContent = hasUnit ? "已載入單元，請選擇。" : "請先確認此版本是否已建立單元題庫。";
+  // 移除提示文字
+  document.getElementById("publisherHint").textContent = "";
+  document.getElementById("unitHint").textContent = "";
 }
 
 async function loadLegacyByGradeSemester(){
@@ -1042,66 +847,44 @@ async function loadLegacyByGradeSemester(){
 
   const stageOptions = [{value:"國小",label:"國小"},{value:"國中",label:"國中"}];
   setOptions(selStage, stageOptions, "（無資料）");
-
-  const stage = getSelStage() || "國小";
-  selStage.value = stage;
+  const stage = getSelStage() || "國小"; selStage.value = stage;
 
   const gradeList = (stage === "國中") ? [7,8,9] : [3,4,5,6];
   setOptions(selGrade, gradeList.map(g=>({value:g,label:`${g}年級`})), "（無資料）");
-
   setOptions(selSem, [{value:"上學期",label:"上學期"},{value:"下學期",label:"下學期"}], "（無資料）");
 
   const grade = getSelGrade() || gradeList[0];
   const semester = getSelSemester() || "上學期";
 
-  document.getElementById("publisherHint").textContent = "載入中…";
+  // 移除提示文字
+  document.getElementById("publisherHint").textContent = "";
   document.getElementById("unitHint").textContent = "";
 
   const json = await api({
-    action: ACTION.GET_UNIT_OPTIONS,
-    content_db_id: CONTENT_DB_ID,
-    sheet_name: CONTENT_SHEET_NAME,
-    subject: "自然科學",
-    stage,
-    grade,
-    semester
+    action: ACTION.GET_UNIT_OPTIONS, content_db_id: CONTENT_DB_ID, sheet_name: CONTENT_SHEET_NAME,
+    subject: "自然科學", stage, grade, semester
   });
 
   Meta.publishers = Array.isArray(json.publishers) ? json.publishers : [];
   Meta.unitsByPublisher = json.unitsByPublisher || {};
-
   const publishers = Meta.publishers || [];
-  setOptions(selVer, publishers.map(p=>({value:p,label:p})), "（此條件尚無題庫）");
-
+  setOptions(selVer, publishers.map(p=>({value:p,label:p})), "（無題庫）");
   const built = buildTreeFromLegacy(publishers, Meta.unitsByPublisher, grade, semester);
-  Meta.tree = built.tree;
-  Meta.unitIndex = built.unitIndex;
-
+  Meta.tree = built.tree; Meta.unitIndex = built.unitIndex;
   refreshAllDropdowns();
 }
 
 async function bootstrapMaterials(){
-  document.getElementById("publisherHint").textContent = "載入中…";
+  document.getElementById("publisherHint").textContent = "";
   document.getElementById("unitHint").textContent = "";
-
-  Meta.mode = "tree";
-  Meta.tree = {};
-  Meta.unitIndex = {};
-
+  Meta.mode = "tree"; Meta.tree = {}; Meta.unitIndex = {};
   await loadMaterialTree();
-
-  if(Meta.mode === "tree"){
-    refreshAllDropdowns();
-    document.getElementById("publisherHint").textContent = "已載入版本，請選擇。";
-    document.getElementById("unitHint").textContent = "已載入單元，請選擇。";
-    return;
-  }
-
+  if(Meta.mode === "tree"){ refreshAllDropdowns(); return; }
   await loadLegacyByGradeSemester();
 }
 
 /* ===========================
-   7) 測驗流程（略：保留你原本程式，只改 startTest 取 sid 的方式）
+   7) 測驗流程
 =========================== */
 function getUnit(){
   const stage = getSelStage();
@@ -1109,21 +892,9 @@ function getUnit(){
   const semester = getSelSemester();
   const textbook_version = getSelVersion();
   const unit_key = getSelUnitKey();
-
   const u = Meta.unitIndex[unit_key] || {};
   const unit_name = (u.unit_name || "").trim();
-
-  return {
-    subject: "自然科學",
-    stage,
-    grade,
-    semester,
-    textbook_version,
-    unit_name,
-    unit_key,
-    lesson_no: u.lesson_no || "",
-    lesson_name: u.lesson_name || ""
-  };
+  return { subject: "自然科學", stage, grade, semester, textbook_version, unit_name, unit_key, lesson_no: u.lesson_no || "", lesson_name: u.lesson_name || "" };
 }
 
 function normalizeItem(raw){
@@ -1132,6 +903,8 @@ function normalizeItem(raw){
   return {
     item_id: String(raw.item_id || "").trim(),
     stem: String(raw.stem || "").trim(),
+    textbook_source: String(raw.textbook_source || "").trim(),
+    concept_tag: String(raw.concept_tag || "").trim(),
     options: {
       A: String(raw.option_A ?? optObj.A ?? ""),
       B: String(raw.option_B ?? optObj.B ?? ""),
@@ -1140,101 +913,70 @@ function normalizeItem(raw){
     }
   };
 }
-/* =========================================
-   1. 把這個新工具貼在 renderItem 上面
-   ========================================= */
+
+// === 表格解析工具 ===
 function parseAndRenderStimulus(rawStem) {
   const marker = "[STIMULUS_JSON]";
   const idx = rawStem.indexOf(marker);
-
-  if (idx < 0) {
-    return { text: rawStem, html: "" };
-  }
-
+  if (idx < 0) { return { text: rawStem, html: "" }; }
   const textPart = rawStem.substring(0, idx).trim();
   const jsonPart = rawStem.substring(idx + marker.length).trim();
-  
   let htmlPart = "";
-
   try {
     const data = JSON.parse(jsonPart);
     if (data.kind === "table" && data.table) {
       const cols = data.table.columns || [];
       const rows = data.table.rows || [];
       htmlPart = `
-        <div class="my-4 overflow-x-auto border border-slate-200 rounded-xl shadow-sm">
-          <table class="min-w-full divide-y divide-slate-200 text-sm">
-            <thead class="bg-slate-50">
-              <tr>
-                ${cols.map(c => `<th class="px-4 py-3 text-left font-bold text-slate-700 whitespace-nowrap">${c}</th>`).join('')}
-              </tr>
+        <div class="my-4 overflow-x-auto border border-orange-200 rounded-xl shadow-sm bg-white">
+          <table class="min-w-full divide-y divide-orange-100 text-sm">
+            <thead class="bg-orange-50">
+              <tr>${cols.map(c => `<th class="px-4 py-3 text-left font-bold text-orange-900 whitespace-nowrap">${c}</th>`).join('')}</tr>
             </thead>
-            <tbody class="divide-y divide-slate-200 bg-white">
-              ${rows.map(r => `
-                <tr class="hover:bg-slate-50">
-                  ${r.map(cell => `<td class="px-4 py-3 text-slate-600 whitespace-nowrap">${cell}</td>`).join('')}
-                </tr>
-              `).join('')}
+            <tbody class="divide-y divide-orange-100 bg-white">
+              ${rows.map(r => `<tr class="hover:bg-orange-50/50">${r.map(cell => `<td class="px-4 py-3 text-slate-700 whitespace-nowrap">${cell}</td>`).join('')}</tr>`).join('')}
             </tbody>
           </table>
-        </div>
-      `;
+        </div>`;
     }
-  } catch (e) {
-    console.error("表格解析失敗:", e);
-  }
+  } catch (e) { console.error("表格解析失敗:", e); }
   return { text: textPart, html: htmlPart };
 }
 
-/* =========================================
-   2. 這是升級版的 renderItem (請覆蓋掉舊的)
-   ========================================= */
+// === 題目渲染 (Render) ===
 function renderItem(item){
   UI.showQuestion(true);
-
-  // ★ 這裡改了：呼叫上面的工具來處理表格
   const content = parseAndRenderStimulus(item.stem || "");
   const stemDiv = document.getElementById("qStem");
-  
-  stemDiv.innerHTML = ""; // 清空舊內容
-  
-  // 放入文字
+  stemDiv.innerHTML = "";
   const textNode = document.createElement("div");
   textNode.textContent = content.text;
   stemDiv.appendChild(textNode);
-
-  // 放入表格 (如果有)
   if (content.html) {
     const tableWrapper = document.createElement("div");
     tableWrapper.innerHTML = content.html;
     stemDiv.appendChild(tableWrapper);
   }
 
-  // --- 以下是原本產生選項按鈕的程式碼 (不需要改) ---
   const wrap = document.getElementById("optWrap");
   wrap.innerHTML = "";
-
   CAT.selected = "";
   document.getElementById("btnSubmit").disabled = true;
   document.getElementById("btnNext").disabled = true;
-  document.getElementById("hint").textContent = "選擇一個選項後再送出。";
+  document.getElementById("hint").innerHTML = `<i class="fa-solid fa-circle-info mr-1"></i> 請選擇一個選項。`;
 
   const letters = ["A","B","C","D"];
   for(const L of letters){
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className =
-      "text-left w-full px-4 py-4 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 " +
-      "focus:outline-none focus:ring-4 focus:ring-student/15";
-
+    btn.className = "text-left w-full px-5 py-4 rounded-2xl border border-slate-200 bg-white hover:bg-orange-50 hover:border-orange-200 transition focus:outline-none focus:ring-4 focus:ring-orange-100 shadow-sm mb-2 group";
     btn.setAttribute("data-letter", L);
     btn.innerHTML = `
-      <div class="flex items-start gap-3">
-        <div class="w-10 h-10 rounded-xl bg-student/10 text-student flex items-center justify-center font-extrabold">${L}</div>
-        <div class="flex-1 text-slate-800 leading-relaxed">${escapeHtml(item.options[L] || "")}</div>
+      <div class="flex items-start gap-4">
+        <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 font-extrabold flex items-center justify-center group-hover:bg-orange-100 group-hover:text-orange-600 transition">${L}</div>
+        <div class="flex-1 text-slate-700 leading-relaxed font-medium pt-1">${escapeHtml(item.options[L] || "")}</div>
       </div>
     `;
-
     btn.onclick = () => selectOption(L);
     wrap.appendChild(btn);
   }
@@ -1244,114 +986,79 @@ function selectOption(letter){
   CAT.selected = letter;
   document.querySelectorAll("#optWrap button").forEach(b=>{
     const isSel = b.getAttribute("data-letter") === letter;
-    b.classList.toggle("border-student", isSel);
-    b.classList.toggle("bg-student/5", isSel);
+    if(isSel){
+        b.className = "text-left w-full px-5 py-4 rounded-2xl border-2 border-orange-500 bg-orange-50 transition focus:outline-none shadow-md mb-2";
+        b.querySelector("div > div:first-child").className = "w-10 h-10 rounded-xl bg-orange-500 text-white font-extrabold flex items-center justify-center shadow-sm";
+    }else{
+        b.className = "text-left w-full px-5 py-4 rounded-2xl border border-slate-200 bg-white hover:bg-orange-50 hover:border-orange-200 transition focus:outline-none focus:ring-4 focus:ring-orange-100 shadow-sm mb-2 group";
+        b.querySelector("div > div:first-child").className = "w-10 h-10 rounded-xl bg-slate-100 text-slate-500 font-extrabold flex items-center justify-center group-hover:bg-orange-100 group-hover:text-orange-600 transition";
+    }
   });
   document.getElementById("btnSubmit").disabled = false;
-  document.getElementById("hint").textContent = `已選擇 ${letter}，請按「送出答案」。`;
+  document.getElementById("hint").innerHTML = `<i class="fa-solid fa-circle-check text-orange-500 mr-1"></i> 已選擇 <b>${letter}</b>，請按「送出答案」。`;
 }
 
 async function startTest(){
   const unit = getUnit();
   if(!unit.stage || !unit.grade || !unit.semester || !unit.textbook_version || !unit.unit_name){
-    UI.toast("資料不足", "請先完成：學習階段、年級、學期、版本、單元。", "warn");
-    return;
+    UI.toast("資料不足", "請先完成單元選擇。", "warn"); return;
   }
-
   const sid = await ensureStudentId();
-  if(!sid){
-    UI.toast("未取得學號", "找不到 StudentID。請回到學習中心重新登入。", "warn");
-    return;
-  }
-
+  if(!sid){ UI.toast("未取得學號", "找不到 StudentID，請重新登入。", "warn"); return; }
   const n = clampNum(Number(document.getElementById("inpN").value), 5, 40, 15);
   CAT.n = n;
-
   document.getElementById("btnStart").disabled = true;
-  
-  // ★★新增：顯示讀取遮罩
   document.getElementById("loading-overlay").style.display = "flex";
 
   try{
     const json = await api({
-      action: ACTION.START_CAT,
-      student: { student_id: sid },
-      unit,
-      settings: { max_items: n }
+      action: ACTION.START_CAT, student: { student_id: sid }, unit, settings: { max_items: n }
     });
-
     CAT.started = true;
     CAT.student_id = sid;
     CAT.test_id = json.test_id || "";
     CAT.step = 0;
-
     const first = normalizeItem(json.item);
     if(!first) throw new Error("後端未提供第一題。");
-
     CAT.current = first;
     CAT.next = null;
-
     UI.setProgress(0, CAT.n);
     document.getElementById("btnFinish").disabled = false;
-
     renderItem(first);
-    UI.toast("開始作答", "測驗已開始。", "good");
-
+    UI.toast("開始作答", "測驗已開始，請加油！", "good");
+    // 自動捲動到作答區
+    document.querySelector(".bg-zone2-bg").scrollIntoView({ behavior: 'smooth', block: 'start' });
   }catch(e){
-    // 錯誤時顯示訊息
     UI.toast("開始失敗", String(e?.message || e), "bad");
-    console.error(e); // 建議印出錯誤以便除錯
+    console.error(e);
   }finally{
     document.getElementById("btnStart").disabled = false;
-    
-    // ★★新增：無論成功失敗，都隱藏遮罩
     document.getElementById("loading-overlay").style.display = "none";
   }
 }
 
 async function submitAnswer(){
   if(!CAT.started || !CAT.current) return;
-  if(!CAT.selected){
-    UI.toast("尚未選擇", "請先選擇一個選項。", "warn");
-    return;
-  }
-
+  if(!CAT.selected){ UI.toast("尚未選擇", "請先選擇一個選項。", "warn"); return; }
   document.getElementById("btnSubmit").disabled = true;
   document.getElementById("btnNext").disabled = true;
-  document.getElementById("hint").textContent = "送出中…";
-
+  document.getElementById("hint").innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> 送出中…`;
   const unit = getUnit();
-
   try{
     const json = await api({
-      action: ACTION.SUBMIT_NEXT,
-      test_id: CAT.test_id,
-      student_id: CAT.student_id,
-      item_id: CAT.current.item_id,
-      response_option: CAT.selected,
-
-      max_items: CAT.n,
-      min_items: CAT.n,
-      stop_se: 0,
-
-      grade: String(unit.grade || "")
+      action: ACTION.SUBMIT_NEXT, test_id: CAT.test_id, student_id: CAT.student_id,
+      item_id: CAT.current.item_id, response_option: CAT.selected,
+      max_items: CAT.n, min_items: CAT.n, stop_se: 0, grade: String(unit.grade || "")
     });
-
     const prog = json.progress || {};
     CAT.step = Number(prog.n_admin || (CAT.step + 1));
     UI.setProgress(CAT.step, CAT.n);
-
-    if(json.done === true || CAT.step >= CAT.n){
-      await finishTest();
-      return;
-    }
-
+    if(json.done === true || CAT.step >= CAT.n){ await finishTest(); return; }
     const next = normalizeItem(json.item);
     if(!next) throw new Error("後端未提供下一題。");
-
     CAT.next = next;
     document.getElementById("btnNext").disabled = false;
-    document.getElementById("hint").textContent = "已取得下一題，按「下一題」繼續。";
+    document.getElementById("hint").innerHTML = `<span class="text-emerald-600 font-bold"><i class="fa-solid fa-circle-check mr-1"></i> 作答成功！</span> 請按「下一題」。`;
   }catch(e){
     UI.toast("送出失敗", String(e?.message||e), "bad");
     document.getElementById("btnSubmit").disabled = false;
@@ -1370,72 +1077,86 @@ async function finishTest(){
   document.getElementById("btnFinish").disabled = true;
   document.getElementById("btnSubmit").disabled = true;
   document.getElementById("btnNext").disabled = true;
+  document.getElementById("loading-overlay").style.display = "flex";
 
   try{
-    const json = await api({
-      action: ACTION.FINISH_CAT,
-      test_id: CAT.test_id,
-      student_id: CAT.student_id
-    });
-
+    const json = await api({ action: ACTION.FINISH_CAT, test_id: CAT.test_id, student_id: CAT.student_id });
     UI.showResult(true);
+    document.getElementById("loading-overlay").style.display = "none";
+
+    // 1. 題數分數
     document.getElementById("resScore").textContent = json.score ?? "—";
-    document.getElementById("resTestId").textContent = json.test_id ?? "—";
-    document.getElementById("resFeedback").textContent = json.feedback_student ?? "—";
-    document.getElementById("resWrong").innerHTML = renderWrong(json.wrong_items || []);
+    
+    // 2. 100分制計算
+    const scoreStr = json.score || "0/0"; 
+    const [correct, total] = scoreStr.split('/').map(Number);
+    const finalScore = total ? Math.round((correct / total) * 100) : 0;
+    document.getElementById("resScore100").textContent = finalScore + " 分";
 
-    UI.toast("完成", "已產生結果。", "good");
+    // 隱藏 Test ID (保留在 DOM 但不顯示)
+    document.getElementById("resTestId").textContent = json.test_id ?? "";
 
+    // 3. 診斷回饋優化
+    let fb = json.feedback_student || "尚無回饋";
+    // 去除 IRT 技術文字
+    fb = fb.replace(/你的能力估計.*?測量精度.*?。/g, "");
+    // 柔和化語氣
+    fb = fb.replace(/相對優勢概念：/g, "👍 你已經掌握得很好的概念：");
+    fb = fb.replace(/建議優先補強概念：/g, "💪 建議再多加練習的概念：");
+    fb = fb.replace(/錯題建議回看：/g, "📖 老師建議複習重點：");
+    document.getElementById("resFeedback").textContent = fb.trim();
+
+    // 4. 錯題清單優化 (概念診斷)
+    document.getElementById("resWrong").innerHTML = renderWrongEnhanced(json.wrong_items || []);
+
+    UI.toast("完成", "測驗結束，請查看診斷結果。", "good");
     CAT.started = false;
-    document.getElementById("btnFinish").disabled = true;
   }catch(e){
+    document.getElementById("loading-overlay").style.display = "none";
     UI.toast("結束失敗", String(e?.message||e), "bad");
-    document.getElementById("btnFinish").disabled = false;
   }
 }
 
 function resetAll(){
-  CAT.started = false;
-  CAT.test_id = "";
-  CAT.current = null;
-  CAT.next = null;
-  CAT.selected = "";
-  CAT.step = 0;
-
+  CAT.started = false; CAT.test_id = ""; CAT.current = null; CAT.next = null; CAT.selected = ""; CAT.step = 0;
   UI.setProgress(0, Number(document.getElementById("inpN").value) || 0);
-  UI.showQuestion(false);
-  UI.showResult(false);
-
+  UI.showQuestion(false); UI.showResult(false);
   document.getElementById("btnFinish").disabled = true;
   document.getElementById("btnSubmit").disabled = true;
   document.getElementById("btnNext").disabled = true;
 }
 
 /* ===========================
-   8) 輔助
+   8) 輔助 & 錯題優化
 =========================== */
 function escapeHtml(s){
-  return String(s ?? "").replace(/[&<>"']/g, (m)=>({
-    "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
-  }[m]));
+  return String(s ?? "").replace(/[&<>"']/g, (m)=>({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[m]));
 }
 function clampNum(x, lo, hi, fallback){
-  const n = Number(x);
-  if(!Number.isFinite(n)) return fallback;
-  return Math.max(lo, Math.min(hi, n));
+  const n = Number(x); return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : fallback;
 }
-function renderWrong(arr){
+
+// 新版錯題顯示 (不顯示 raw ID，改顯示課本出處)
+function renderWrongEnhanced(arr){
   const xs = Array.isArray(arr) ? arr : [];
-  if(xs.length === 0) return `<div class="text-slate-500">沒有錯題</div>`;
-  return xs.map(w=>{
-    const id = escapeHtml(w.item_id || "");
-    const ct = escapeHtml(w.concept_tag || "");
-    const src = escapeHtml(w.textbook_source || "");
-    const meta = [ct, src].filter(Boolean).join("｜");
+  if(xs.length === 0) return `<div class="text-green-600 bg-green-50 p-4 rounded-xl text-center border border-green-200"><i class="fa-solid fa-star mr-2"></i>太棒了！這次測驗沒有答錯的題目。</div>`;
+  
+  return xs.map((w, i) => {
+    // 隱藏原始 item_id，只取後面的資訊
+    const concept = w.concept_tag ? `<span class="font-bold text-red-600">${escapeHtml(w.concept_tag)}</span>` : "此概念";
+    const source = w.textbook_source ? `<br><span class="text-slate-500 text-sm mt-1 block"><i class="fa-solid fa-book-open mr-1"></i> 建議複習：${escapeHtml(w.textbook_source)}</span>` : "";
+    
     return `
-      <div class="py-2 border-b border-slate-200 last:border-b-0">
-        <div class="font-bold text-slate-800">${id}</div>
-        <div class="text-xs text-slate-500 mt-1">${meta || "—"}</div>
+      <div class="p-4 bg-red-50/50 border border-red-100 rounded-xl hover:bg-red-50 transition">
+        <div class="flex items-start gap-3">
+          <div class="w-6 h-6 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">${i+1}</div>
+          <div>
+            <div class="text-slate-800 leading-relaxed">
+              這一題關於「${concept}」的觀念還不夠熟悉。
+            </div>
+            ${source}
+          </div>
+        </div>
       </div>
     `;
   }).join("");
@@ -1446,54 +1167,24 @@ function renderWrong(arr){
 =========================== */
 document.addEventListener("DOMContentLoaded", async ()=>{
   resetAll();
-
   UI.setProgress(0, clampNum(Number(document.getElementById("inpN").value),5,40,15));
-
   await ping();
-
-  try{
-    await bootstrapMaterials();
-    UI.toast("載入完成", "教材選單已載入。", "good");
-  }catch(e){
-    UI.toast("載入失敗", String(e?.message||e), "bad");
-    document.getElementById("selStage").innerHTML = `<option value="">（無法載入）</option>`;
-    document.getElementById("selGrade").innerHTML = `<option value="">（無法載入）</option>`;
-    document.getElementById("selSemester").innerHTML = `<option value="">（無法載入）</option>`;
-    document.getElementById("selPublisher").innerHTML = `<option value="">（無法載入）</option>`;
-    document.getElementById("selUnit").innerHTML = `<option value="">（無法載入）</option>`;
-  }
+  try{ await bootstrapMaterials(); UI.toast("準備就緒", "單元選單已更新。", "good"); }
+  catch(e){ UI.toast("載入失敗", String(e?.message||e), "bad"); }
 
   const __me = __syncLoginAliases(__loadCurrentUser());
-  if(__me){
-    __appendNameAfterConnected(__me.name);
-  }else{
-    UI.toast("未登入", "找不到登入資訊，請回到學習中心重新登入。", "warn");
-  }
+  if(__me) __appendNameAfterConnected(__me.name);
+  else UI.toast("未登入", "請先登入。", "warn");
 
   document.getElementById("btnReload").addEventListener("click", async ()=>{
-    try{
-      await bootstrapMaterials();
-      UI.toast("已更新", "教材選單已重新載入。", "good");
-    }catch(e){
-      UI.toast("載入失敗", String(e?.message||e), "bad");
-    }
+    try{ await bootstrapMaterials(); UI.toast("已更新", "選單已重新載入。", "good"); }
+    catch(e){ UI.toast("載入失敗", String(e?.message||e), "bad"); }
   });
 
-  document.getElementById("selStage").addEventListener("change", ()=>{
-    if(Meta.mode === "tree") refreshAllDropdowns();
-    else loadLegacyByGradeSemester().catch(e=>UI.toast("載入失敗", String(e?.message||e), "bad"));
-  });
-  document.getElementById("selGrade").addEventListener("change", ()=>{
-    if(Meta.mode === "tree") refreshAllDropdowns();
-    else loadLegacyByGradeSemester().catch(e=>UI.toast("載入失敗", String(e?.message||e), "bad"));
-  });
-  document.getElementById("selSemester").addEventListener("change", ()=>{
-    if(Meta.mode === "tree") refreshAllDropdowns();
-    else loadLegacyByGradeSemester().catch(e=>UI.toast("載入失敗", String(e?.message||e), "bad"));
-  });
-  document.getElementById("selPublisher").addEventListener("change", ()=>{
-    if(Meta.mode === "tree") refreshAllDropdowns();
-  });
+  document.getElementById("selStage").addEventListener("change", ()=>{ if(Meta.mode==="tree")refreshAllDropdowns(); else loadLegacyByGradeSemester(); });
+  document.getElementById("selGrade").addEventListener("change", ()=>{ if(Meta.mode==="tree")refreshAllDropdowns(); else loadLegacyByGradeSemester(); });
+  document.getElementById("selSemester").addEventListener("change", ()=>{ if(Meta.mode==="tree")refreshAllDropdowns(); else loadLegacyByGradeSemester(); });
+  document.getElementById("selPublisher").addEventListener("change", ()=>{ if(Meta.mode==="tree")refreshAllDropdowns(); });
 
   document.getElementById("inpN").addEventListener("change", ()=>{
     const n = clampNum(Number(document.getElementById("inpN").value),5,40,15);
@@ -1502,47 +1193,29 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   });
 
   document.getElementById("btnStart").addEventListener("click", startTest);
-
-  document.getElementById("btnStart").addEventListener("click", ()=>{
-    const u = __syncLoginAliases(__loadCurrentUser());
-    if(u) __appendNameAfterConnected(u.name);
-  }, true);
-
   document.getElementById("btnSubmit").addEventListener("click", submitAnswer);
   document.getElementById("btnNext").addEventListener("click", goNext);
   document.getElementById("btnFinish").addEventListener("click", finishTest);
-
+  
   document.getElementById("btnRestart").addEventListener("click", ()=>{
     resetAll();
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
 
   document.getElementById("btnCopy").addEventListener("click", async ()=>{
-    const text =
-`score: ${document.getElementById("resScore").textContent}
-test_id: ${document.getElementById("resTestId").textContent}
-
-feedback:
-${document.getElementById("resFeedback").textContent}`;
-    try{
-      await navigator.clipboard.writeText(text);
-      UI.toast("已複製", "結果已複製到剪貼簿。", "good");
-    }catch(_){
-      UI.toast("複製失敗", "瀏覽器未授權剪貼簿。", "warn");
-    }
+    const score = document.getElementById("resScore").textContent;
+    const score100 = document.getElementById("resScore100").textContent;
+    const fb = document.getElementById("resFeedback").textContent;
+    const text = `【測驗結果】\n答對題數：${score}\n總分：${score100}\n\n【診斷回饋】\n${fb}`;
+    try{ await navigator.clipboard.writeText(text); UI.toast("已複製", "報告已複製到剪貼簿。", "good"); }
+    catch(_){ UI.toast("複製失敗", "無法存取剪貼簿。", "warn"); }
   });
 
   document.addEventListener("keydown", (ev)=>{
     if(!CAT.started) return;
     const k = String(ev.key||"").toUpperCase();
-    if(["A","B","C","D"].includes(k)){
-      selectOption(k);
-      ev.preventDefault();
-    }
-    if(k === "ENTER"){
-      if(!document.getElementById("btnSubmit").disabled) submitAnswer();
-      ev.preventDefault();
-    }
+    if(["A","B","C","D"].includes(k)){ selectOption(k); ev.preventDefault(); }
+    if(k === "ENTER"){ if(!document.getElementById("btnSubmit").disabled) submitAnswer(); ev.preventDefault(); }
   });
 });
 </script>
