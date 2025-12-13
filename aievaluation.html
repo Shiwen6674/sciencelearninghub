@@ -17,10 +17,10 @@
         extend: {
           colors: {
             student: { DEFAULT: "#3b82f6", dark: "#1d4ed8" },
-            // 定義柔和分區顏色
-            zone1: { bg: "#eff6ff", border: "#bfdbfe" }, // 藍色系 (選擇)
-            zone2: { bg: "#fff7ed", border: "#fed7aa" }, // 橙色系 (作答)
-            zone3: { bg: "#f0fdf4", border: "#bbf7d0" }  // 綠色系 (結果)
+            // 修改：加深顏色以區分區塊
+            zone1: { bg: "#e0f2fe", border: "#7dd3fc" }, // Sky-100 / 300
+            zone2: { bg: "#ffedd5", border: "#fdba74" }, // Orange-100 / 300
+            zone3: { bg: "#dcfce7", border: "#86efac" }  // Green-100 / 300
           },
           fontFamily: {
             sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Arial', 'sans-serif'],
@@ -38,79 +38,82 @@
     /* Loading 遮罩 */
     #loading-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.75);
+      background: rgba(0, 0, 0, 0.8); /*稍微調深一點*/
       display: none; justify-content: center; align-items: center; flex-direction: column;
       z-index: 9999; color: white;
     }
     .spinner {
       border: 6px solid #f3f3f3; border-top: 6px solid #3b82f6; border-radius: 50%;
-      width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 1rem;
+      width: 60px; height: 60px; animation: spin 1s linear infinite; margin-bottom: 1.5rem;
     }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    /* 烏龜賽跑進度條 */
-    .turtle-track {
+    /* 跑車進度條 */
+    .car-track {
       position: relative;
-      height: 12px;
-      background-color: #e2e8f0;
+      height: 14px;
+      background-color: #cbd5e1; /* Slate-300 */
       border-radius: 999px;
-      margin-top: 10px;
-      margin-bottom: 20px;
+      margin-top: 15px;
+      margin-bottom: 25px;
+      border: 2px solid #94a3b8;
     }
-    .turtle-bar {
+    .car-bar {
       height: 100%;
-      background-color: #4ade80; /* Green-400 */
+      background: linear-gradient(90deg, #4ade80, #22c55e); /* Green Gradient */
       border-radius: 999px;
-      transition: width 0.5s ease-in-out;
+      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
       width: 0%;
     }
-    .turtle-icon {
+    .car-icon {
       position: absolute;
-      top: -18px; 
-      /* left 會由 JS 動態控制，對應 width */
+      top: -24px; 
       transform: translateX(-50%); 
-      font-size: 1.5rem;
-      color: #166534; /* Green-800 */
-      transition: left 0.5s ease-in-out;
+      font-size: 1.8rem;
+      color: #ef4444; /* Red-500 Sports Car */
+      transition: left 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.3));
+      z-index: 10;
     }
     .flag-icon {
       position: absolute;
-      right: -5px;
-      top: -16px;
-      font-size: 1.2rem;
-      color: #ef4444;
+      right: -8px;
+      top: -20px;
+      font-size: 1.5rem;
+      color: #1e293b;
+      z-index: 5;
     }
   </style>
 </head>
 
-<body class="bg-slate-50 text-slate-900">
+<body class="bg-slate-100 text-slate-900">
 
   <div id="loading-overlay">
     <div class="spinner"></div>
-    <div class="font-bold text-lg">AI 正在命題中...</div>
-    <div class="text-sm text-white/80 mt-2">別急別急，差不多再 15 秒，請耐心候候。</div>
+    <div id="loading-title" class="font-bold text-2xl mb-2">AI 正在命題中...</div>
+    <div id="loading-desc" class="text-base text-white/90">若是第一次該單元，約需等待 15-20 秒，請耐心候候。</div>
   </div>
 
-  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-200 shadow-sm">
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-slate-300 shadow-md">
     <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
       <div class="flex items-center gap-3 min-w-0">
-        <a href="./student.html" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition">
-          <i class="fa-solid fa-arrow-left text-slate-500"></i>
-          <span class="text-sm font-semibold text-slate-700">返回學習中心</span>
+        <a href="./student.html" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 transition shadow-sm">
+          <i class="fa-solid fa-arrow-left text-slate-600"></i>
+          <span class="text-sm font-bold text-slate-700">返回學習中心</span>
         </a>
 
-        <div class="hidden sm:flex items-center gap-3 min-w-0 border-l border-slate-200 pl-3 ml-2">
-          <div class="w-10 h-10 rounded-xl bg-student/10 text-student flex items-center justify-center shrink-0">
+        <div class="hidden sm:flex items-center gap-3 min-w-0 border-l-2 border-slate-300 pl-4 ml-2">
+          <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm">
             <i class="fa-solid fa-robot text-xl"></i>
           </div>
           <div class="min-w-0">
-            <div class="font-bold leading-tight truncate text-lg">AI 測驗與診斷</div>
-            <div class="text-xs text-slate-500 truncate">個別化適性診斷系統</div>
+            <div class="font-black leading-tight truncate text-lg text-slate-800">AI 測驗與診斷</div>
+            <div class="text-xs text-slate-500 truncate font-medium">個別化適性診斷系統</div>
           </div>
         </div>
       </div>
 
-      <span id="connBadge" class="text-xs px-3 py-2 rounded-full border border-slate-200 bg-white text-slate-600 shrink-0 shadow-sm">
+      <span id="connBadge" class="text-xs px-3 py-1.5 rounded-full border border-slate-300 bg-slate-50 text-slate-500 shrink-0 font-bold shadow-inner">
         <i class="fa-solid fa-circle-notch fa-spin mr-1"></i>連線中
       </span>
     </div>
@@ -118,121 +121,128 @@
 
   <main class="max-w-5xl mx-auto px-4 py-8 space-y-8">
     
-    <section class="bg-zone1-bg border border-zone1-border rounded-3xl p-5 md:p-6 shadow-sm">
-      <div class="flex items-center justify-between gap-3 flex-wrap border-b border-blue-200/50 pb-4 mb-4">
-        <div class="font-bold text-xl text-blue-900 flex items-center gap-2">
-          <span class="flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white text-sm">1</span>
+    <section class="bg-zone1-bg border-2 border-zone1-border rounded-3xl p-6 shadow-md relative overflow-hidden">
+      <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-blue-200 rounded-full opacity-50 blur-xl pointer-events-none"></div>
+
+      <div class="flex items-center justify-between gap-3 flex-wrap border-b-2 border-blue-200 pb-4 mb-5 relative z-10">
+        <div class="font-black text-2xl text-blue-900 flex items-center gap-3">
+          <span class="flex items-center justify-center w-9 h-9 rounded-xl bg-blue-600 text-white text-lg shadow-md">1</span>
           單元選擇區
         </div>
-        <button id="btnReload" class="px-3 py-1.5 rounded-lg border border-blue-200 bg-white hover:bg-blue-50 text-sm font-medium text-blue-700 transition">
+        <button id="btnReload" class="px-4 py-2 rounded-xl border-2 border-blue-300 bg-white hover:bg-blue-50 text-sm font-bold text-blue-700 transition shadow-sm">
           <i class="fa-solid fa-rotate mr-1"></i>重整教材
         </button>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 relative z-10">
         <div>
-          <label class="block text-sm font-bold text-blue-800 mb-1.5 ml-1">學習階段</label>
-          <select id="selStage" class="w-full px-4 py-3 rounded-xl border border-blue-200 bg-white focus:outline-none focus:ring-4 focus:ring-blue-200 transition">
+          <label class="block text-sm font-bold text-blue-900 mb-2 ml-1">學習階段</label>
+          <select id="selStage" class="w-full px-4 py-3 rounded-xl border-2 border-blue-300 bg-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-200 transition font-medium text-slate-700">
             <option value="">載入中…</option>
           </select>
         </div>
 
         <div>
-          <label class="block text-sm font-bold text-blue-800 mb-1.5 ml-1">年級</label>
-          <select id="selGrade" class="w-full px-4 py-3 rounded-xl border border-blue-200 bg-white focus:outline-none focus:ring-4 focus:ring-blue-200 transition">
+          <label class="block text-sm font-bold text-blue-900 mb-2 ml-1">年級</label>
+          <select id="selGrade" class="w-full px-4 py-3 rounded-xl border-2 border-blue-300 bg-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-200 transition font-medium text-slate-700">
             <option value="">請先選擇學習階段…</option>
           </select>
         </div>
 
         <div>
-          <label class="block text-sm font-bold text-blue-800 mb-1.5 ml-1">學期</label>
-          <select id="selSemester" class="w-full px-4 py-3 rounded-xl border border-blue-200 bg-white focus:outline-none focus:ring-4 focus:ring-blue-200 transition">
+          <label class="block text-sm font-bold text-blue-900 mb-2 ml-1">學期</label>
+          <select id="selSemester" class="w-full px-4 py-3 rounded-xl border-2 border-blue-300 bg-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-200 transition font-medium text-slate-700">
             <option value="">請先選擇年級…</option>
           </select>
         </div>
 
         <div>
-          <label class="block text-sm font-bold text-blue-800 mb-1.5 ml-1">版本</label>
-          <select id="selPublisher" class="w-full px-4 py-3 rounded-xl border border-blue-200 bg-white focus:outline-none focus:ring-4 focus:ring-blue-200 transition">
+          <label class="block text-sm font-bold text-blue-900 mb-2 ml-1">版本</label>
+          <select id="selPublisher" class="w-full px-4 py-3 rounded-xl border-2 border-blue-300 bg-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-200 transition font-medium text-slate-700">
             <option value="">請先載入版本</option>
           </select>
           <div class="hidden" id="publisherHint"></div>
         </div>
 
         <div class="md:col-span-2">
-          <label class="block text-sm font-bold text-blue-800 mb-1.5 ml-1">單元</label>
-          <select id="selUnit" class="w-full px-4 py-3 rounded-xl border border-blue-200 bg-white focus:outline-none focus:ring-4 focus:ring-blue-200 transition">
+          <label class="block text-sm font-bold text-blue-900 mb-2 ml-1">單元</label>
+          <select id="selUnit" class="w-full px-4 py-3 rounded-xl border-2 border-blue-300 bg-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-200 transition font-medium text-slate-700">
             <option value="">請先載入單元</option>
           </select>
           <div class="hidden" id="unitHint"></div>
         </div>
       </div>
 
-      <div class="mt-6 flex items-center gap-4 flex-wrap bg-white/60 p-3 rounded-xl border border-blue-100">
-        <div class="flex items-center gap-2">
-          <span class="text-sm font-bold text-blue-900">題數設定</span>
+      <div class="mt-8 flex items-center gap-5 flex-wrap bg-white/70 p-4 rounded-2xl border-2 border-blue-200 shadow-inner">
+        <div class="flex items-center gap-3">
+          <span class="text-base font-bold text-blue-900"><i class="fa-solid fa-list-ol mr-1"></i> 題數設定</span>
           <input id="inpN" type="number" min="5" max="40" step="1"
-                 class="w-24 text-center px-3 py-2 rounded-lg border border-blue-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 font-bold text-lg"
+                 class="w-24 text-center px-3 py-2 rounded-xl border-2 border-blue-300 bg-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 font-black text-xl text-blue-700"
                  value="15" />
         </div>
 
         <button id="btnStart"
-                class="ml-auto inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold shadow-md hover:shadow-lg hover:from-blue-700 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition transform active:scale-95">
+                class="ml-auto inline-flex items-center gap-2 px-8 py-3 rounded-xl bg-blue-600 text-white font-bold text-lg shadow-lg hover:bg-blue-700 hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95">
           <i class="fa-solid fa-rocket"></i> 開始測驗
         </button>
       </div>
     </section>
 
-    <section class="bg-zone2-bg border border-zone2-border rounded-3xl p-5 md:p-6 shadow-sm">
-      <div class="flex items-center justify-between gap-3 flex-wrap border-b border-orange-200/50 pb-4 mb-2">
-        <div class="font-bold text-xl text-orange-900 flex items-center gap-2">
-          <span class="flex items-center justify-center w-8 h-8 rounded-full bg-orange-500 text-white text-sm">2</span>
-          試題作答區
+    <section class="bg-zone2-bg border-2 border-zone2-border rounded-3xl p-6 shadow-md relative overflow-hidden">
+      <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-orange-200 rounded-full opacity-50 blur-xl pointer-events-none"></div>
+
+      <div class="flex items-center justify-between gap-3 flex-wrap border-b-2 border-orange-200 pb-4 mb-4 relative z-10">
+        <div class="font-black text-2xl text-orange-900 flex items-center gap-3">
+          <span class="flex items-center justify-center w-9 h-9 rounded-xl bg-orange-500 text-white text-lg shadow-md">2</span>
+          題目作答區
         </div>
         
         <div class="flex items-center gap-2">
-          <span class="text-xs font-bold text-orange-700 bg-orange-100 px-3 py-1 rounded-full">
-            目前題數：<span id="progText">0/0</span>
+          <span class="text-sm font-bold text-orange-800 bg-orange-200/60 border border-orange-300 px-4 py-1.5 rounded-full shadow-sm">
+            目前進度：<span id="progText" class="font-black text-orange-900">0/0</span>
           </span>
           <button id="btnFinish" class="hidden" disabled></button>
         </div>
       </div>
 
-      <div class="px-2">
-        <div class="turtle-track">
-          <div id="progBar" class="turtle-bar"></div>
-          <div id="turtleIcon" class="turtle-icon" style="left: 0%;">
-            <i class="fa-solid fa-turtle"></i>
+      <div class="px-3 relative z-10">
+        <div class="car-track shadow-inner bg-slate-200">
+          <div id="progBar" class="car-bar"></div>
+          <div id="turtleIcon" class="car-icon" style="left: 0%;">
+            <i class="fa-solid fa-car-side"></i>
           </div>
-          <div class="flag-icon"><i class="fa-solid fa-flag-checkered"></i></div>
+          <div class="flag-icon"><i class="fa-solid fa-flag-checkered text-red-600 drop-shadow-md"></i></div>
         </div>
       </div>
 
-      <div class="mt-6" id="qArea">
-        <div id="qEmpty" class="text-center py-10 text-slate-400 bg-white/50 rounded-2xl border border-dashed border-orange-200">
-          <i class="fa-solid fa-paper-plane text-4xl mb-3 text-orange-200"></i>
-          <p>尚未開始測驗，請先在上方選擇單元並按下「開始測驗」。</p>
+      <div class="mt-8 relative z-10" id="qArea">
+        <div id="qEmpty" class="text-center py-12 text-slate-400 bg-white/60 rounded-3xl border-2 border-dashed border-orange-300">
+          <i class="fa-solid fa-paper-plane text-5xl mb-4 text-orange-300"></i>
+          <p class="font-bold text-lg">尚未開始測驗</p>
+          <p class="text-sm mt-1">請先在上方選擇單元並按下「開始測驗」</p>
         </div>
 
         <div id="qWrap" class="hidden">
-          <div class="bg-white rounded-2xl p-6 shadow-sm border border-orange-100">
-            <div class="inline-block px-3 py-1 rounded-md bg-orange-100 text-orange-800 text-xs font-bold mb-3">題目</div>
-            <div id="qStem" class="serif text-lg leading-relaxed text-slate-800 whitespace-pre-wrap"></div>
+          <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-orange-200 mb-6">
+            <div class="inline-block px-3 py-1 rounded-lg bg-orange-500 text-white text-sm font-bold mb-3 shadow-sm">題目</div>
+            <div id="qStem" class="serif text-xl leading-relaxed text-slate-800 whitespace-pre-wrap font-medium"></div>
           </div>
 
-          <div class="mt-5 grid grid-cols-1 gap-3" id="optWrap"></div>
+          <div class="grid grid-cols-1 gap-3" id="optWrap"></div>
 
-          <div class="mt-6 flex flex-col md:flex-row gap-3 items-center">
-            <div class="flex-1 text-sm text-slate-500 order-2 md:order-1 bg-white/60 px-4 py-2 rounded-lg" id="hint">
-              <i class="fa-solid fa-circle-info mr-1"></i> 請選擇一個選項。
+          <div class="mt-8 flex flex-col md:flex-row gap-4 items-center">
+            <div class="flex-1 text-base text-slate-600 font-medium order-2 md:order-1 bg-white/80 px-5 py-3 rounded-xl border border-orange-200 shadow-sm w-full" id="hint">
+              <i class="fa-solid fa-circle-info mr-1 text-blue-500"></i> 請選擇一個選項。
             </div>
-            <div class="flex gap-3 order-1 md:order-2 w-full md:w-auto">
+            
+            <div class="flex gap-4 order-1 md:order-2 w-full md:w-auto">
               <button id="btnSubmit"
-                      class="flex-1 md:flex-none inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-orange-500 text-white font-bold hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm transition">
+                      class="flex-1 md:flex-none inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl bg-orange-500 text-white font-bold text-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-md transition-all active:scale-95">
                 <i class="fa-solid fa-check"></i> 送出答案
               </button>
+              
               <button id="btnNext"
-                      class="flex-1 md:flex-none inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm transition"
+                      class="flex-1 md:flex-none inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl bg-slate-100 border-2 border-slate-200 text-slate-400 font-bold text-lg disabled:cursor-not-allowed shadow-none transition-all"
                       disabled>
                 下一題 <i class="fa-solid fa-arrow-right"></i>
               </button>
@@ -242,71 +252,75 @@
       </div>
     </section>
 
-    <section id="resultSec" class="hidden bg-zone3-bg border border-zone3-border rounded-3xl p-5 md:p-6 shadow-sm">
-      <div class="flex items-center justify-between gap-3 flex-wrap border-b border-green-200/50 pb-4 mb-4">
-        <div class="font-bold text-xl text-green-900 flex items-center gap-2">
-          <span class="flex items-center justify-center w-8 h-8 rounded-full bg-green-600 text-white text-sm">3</span>
+    <section id="resultSec" class="hidden bg-zone3-bg border-2 border-zone3-border rounded-3xl p-6 shadow-md relative overflow-hidden">
+      <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-green-200 rounded-full opacity-50 blur-xl pointer-events-none"></div>
+
+      <div class="flex items-center justify-between gap-3 flex-wrap border-b-2 border-green-200 pb-4 mb-5 relative z-10">
+        <div class="font-black text-2xl text-green-900 flex items-center gap-3">
+          <span class="flex items-center justify-center w-9 h-9 rounded-xl bg-green-600 text-white text-lg shadow-md">3</span>
           測驗診斷區
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-3">
           <button id="btnCopy"
-                  class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-green-200 bg-white hover:bg-green-50 text-sm font-medium text-green-700 transition">
+                  class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-green-300 bg-white hover:bg-green-50 text-sm font-bold text-green-700 transition shadow-sm">
             <i class="fa-regular fa-copy"></i> 複製報告
           </button>
           <button id="btnRestart"
-                  class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 shadow-sm transition">
+                  class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-green-600 text-white font-bold hover:bg-green-700 shadow-md transition hover:-translate-y-0.5">
             <i class="fa-solid fa-rotate-left"></i> 再做一次
           </button>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div class="bg-white rounded-2xl p-5 border border-green-100 shadow-sm flex items-center justify-between">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8 relative z-10">
+        <div class="bg-white rounded-2xl p-6 border-2 border-green-200 shadow-sm flex items-center justify-between">
           <div>
-            <div class="text-sm text-green-600 font-bold mb-1">答對題數 / 總題數</div>
-            <div id="resScore" class="text-3xl font-black text-slate-800 tracking-tight">—</div>
+            <div class="text-sm text-green-700 font-bold mb-1 uppercase tracking-wide">答對題數 / 總題數</div>
+            <div id="resScore" class="text-4xl font-black text-slate-800 tracking-tight">—</div>
           </div>
-          <div class="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center text-green-500 text-2xl">
+          <div class="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-2xl shadow-inner">
             <i class="fa-solid fa-list-check"></i>
           </div>
         </div>
-        <div class="bg-white rounded-2xl p-5 border border-green-100 shadow-sm flex items-center justify-between">
+        <div class="bg-white rounded-2xl p-6 border-2 border-green-200 shadow-sm flex items-center justify-between">
           <div>
-            <div class="text-sm text-green-600 font-bold mb-1">總分 (100分)</div>
-            <div id="resScore100" class="text-4xl font-black text-green-600 tracking-tight">—</div>
+            <div class="text-sm text-green-700 font-bold mb-1 uppercase tracking-wide">總分 (100分制)</div>
+            <div id="resScore100" class="text-5xl font-black text-green-600 tracking-tight drop-shadow-sm">—</div>
           </div>
-          <div class="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center text-green-500 text-2xl">
+          <div class="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-2xl shadow-inner">
             <i class="fa-solid fa-trophy"></i>
           </div>
         </div>
         <div class="hidden" id="resTestId"></div>
       </div>
 
-      <div class="bg-white rounded-2xl border border-green-100 shadow-sm p-6 mb-6">
-        <div class="flex items-center gap-2 mb-4 border-b border-slate-100 pb-2">
-          <i class="fa-solid fa-user-doctor text-green-600 text-xl"></i>
-          <h3 class="font-bold text-lg text-slate-800">診斷回饋</h3>
-        </div>
-        <div id="resFeedback" class="text-slate-700 leading-relaxed whitespace-pre-wrap pl-1"></div>
-      </div>
-
-      <div class="bg-white rounded-2xl border border-green-100 shadow-sm p-6">
-        <div class="flex items-center gap-2 mb-4 border-b border-slate-100 pb-2">
-          <i class="fa-solid fa-clipboard-question text-red-500 text-xl"></i>
-          <h3 class="font-bold text-lg text-slate-800">概念診斷 (錯題分析)</h3>
+      <div class="bg-white rounded-2xl border-2 border-red-100 shadow-sm p-6 mb-6 relative z-10">
+        <div class="flex items-center gap-2 mb-5 border-b border-slate-100 pb-3">
+          <div class="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center text-red-500">
+            <i class="fa-solid fa-clipboard-question text-lg"></i>
+          </div>
+          <h3 class="font-bold text-xl text-slate-800">概念診斷 (錯題分析)</h3>
         </div>
         <div id="resWrong" class="space-y-4"></div>
+      </div>
+
+      <div class="bg-white rounded-2xl border-2 border-green-200 shadow-sm p-6 relative z-10">
+        <div class="flex items-center gap-2 mb-5 border-b border-slate-100 pb-3">
+          <div class="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center text-green-600">
+            <i class="fa-solid fa-user-doctor text-lg"></i>
+          </div>
+          <h3 class="font-bold text-xl text-slate-800">學習回饋</h3>
+        </div>
+        <div id="resFeedback" class="text-slate-700 text-lg leading-relaxed whitespace-pre-wrap pl-1 font-medium"></div>
       </div>
     </section>
 
     <div id="toast" class="fixed bottom-6 right-6 hidden z-50 transform transition-all duration-300">
-      <div class="max-w-sm bg-slate-800/90 backdrop-blur text-white rounded-xl px-5 py-4 shadow-2xl border border-slate-700">
-        <div class="flex items-start gap-3">
-          <div id="toastIcon" class="mt-1 text-lg"></div>
-          <div class="flex-1">
-            <div id="toastTitle" class="font-bold text-base"></div>
-            <div id="toastMsg" class="text-sm text-slate-300 mt-1 leading-snug"></div>
-          </div>
+      <div class="max-w-sm bg-slate-800/95 backdrop-blur text-white rounded-2xl px-6 py-4 shadow-2xl border border-slate-600 flex gap-4 items-start">
+        <div id="toastIcon" class="mt-1 text-xl shrink-0"></div>
+        <div class="flex-1">
+          <div id="toastTitle" class="font-bold text-lg"></div>
+          <div id="toastMsg" class="text-sm text-slate-300 mt-1 leading-relaxed"></div>
         </div>
       </div>
     </div>
@@ -314,7 +328,7 @@
 
 <script>
 /* ===========================
-   0) 你的 GAS URL (維持不變)
+   0) GAS URL
 =========================== */
 const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxvAOgRDBE6T-2R37UeTzo0RSQukgGOlEYyBrTw8zUSOlIKNIzLdJXozjNx4Hn6brc2/exec";
 
@@ -346,14 +360,8 @@ const STUDENTID_ACTION_CANDIDATES = [
 /* ===========================
    1) 全域狀態
 =========================== */
-const Meta = {
-  mode: "tree", tree: {}, unitIndex: {}, publishers: [], unitsByPublisher: {}
-};
-
-const CAT = {
-  started: false, test_id: "", student_id: "", current: null, next: null,
-  selected: "", n: 15, step: 0
-};
+const Meta = { mode: "tree", tree: {}, unitIndex: {}, publishers: [], unitsByPublisher: {} };
+const CAT = { started: false, test_id: "", student_id: "", current: null, next: null, selected: "", n: 15, step: 0 };
 
 /* ===========================
    2) UI 小工具
@@ -363,10 +371,10 @@ const UI = {
     const b = document.getElementById("connBadge");
     if(ok){
       b.innerHTML = `<i class="fa-solid fa-wifi mr-1"></i>已連線`;
-      b.className = "text-xs px-3 py-1.5 rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 shrink-0 font-medium";
+      b.className = "text-xs px-3 py-1.5 rounded-full border border-emerald-300 bg-emerald-50 text-emerald-700 shrink-0 font-bold shadow-sm";
     }else{
       b.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i>連線中斷`;
-      b.className = "text-xs px-3 py-1.5 rounded-full border border-red-200 bg-red-50 text-red-700 shrink-0 font-medium";
+      b.className = "text-xs px-3 py-1.5 rounded-full border border-red-300 bg-red-50 text-red-700 shrink-0 font-bold shadow-sm";
       if(msg) UI.toast("連線失敗", msg, "warn");
     }
   },
@@ -396,7 +404,7 @@ const UI = {
   setProgress(step, total){
     const txt = document.getElementById("progText");
     const bar = document.getElementById("progBar");
-    const turtle = document.getElementById("turtleIcon");
+    const turtle = document.getElementById("turtleIcon"); // Actually Car now
     
     txt.textContent = `${step}/${total}`;
     const pct = total ? Math.min(100, (step/total)*100) : 0;
@@ -411,7 +419,6 @@ const UI = {
   showResult(show){
     document.getElementById("resultSec").classList.toggle("hidden", !show);
     if(show) {
-        // 滾動到結果區
         setTimeout(() => {
             document.getElementById("resultSec").scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
@@ -961,9 +968,19 @@ function renderItem(item){
   const wrap = document.getElementById("optWrap");
   wrap.innerHTML = "";
   CAT.selected = "";
-  document.getElementById("btnSubmit").disabled = true;
-  document.getElementById("btnNext").disabled = true;
-  document.getElementById("hint").innerHTML = `<i class="fa-solid fa-circle-info mr-1"></i> 請選擇一個選項。`;
+  
+  // 重置按鈕狀態
+  const btnSubmit = document.getElementById("btnSubmit");
+  const btnNext = document.getElementById("btnNext");
+  
+  btnSubmit.disabled = true;
+  btnSubmit.className = "flex-1 md:flex-none inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl bg-orange-500 text-white font-bold text-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-md transition-all active:scale-95";
+  btnSubmit.innerHTML = `<i class="fa-solid fa-check"></i> 送出答案`;
+
+  btnNext.disabled = true;
+  btnNext.className = "flex-1 md:flex-none inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl bg-slate-100 border-2 border-slate-200 text-slate-400 font-bold text-lg disabled:cursor-not-allowed shadow-none transition-all";
+
+  document.getElementById("hint").innerHTML = `<i class="fa-solid fa-circle-info mr-1 text-blue-500"></i> 請選擇一個選項。`;
 
   const letters = ["A","B","C","D"];
   for(const L of letters){
@@ -1008,6 +1025,10 @@ async function startTest(){
   const n = clampNum(Number(document.getElementById("inpN").value), 5, 40, 15);
   CAT.n = n;
   document.getElementById("btnStart").disabled = true;
+  
+  // 設定開始時的文字
+  document.getElementById("loading-title").textContent = "AI 正在命題中...";
+  document.getElementById("loading-desc").textContent = "若是第一次該單元，約需等待 15-20 秒，請耐心候候。";
   document.getElementById("loading-overlay").style.display = "flex";
 
   try{
@@ -1026,7 +1047,6 @@ async function startTest(){
     document.getElementById("btnFinish").disabled = false;
     renderItem(first);
     UI.toast("開始作答", "測驗已開始，請加油！", "good");
-    // 自動捲動到作答區
     document.querySelector(".bg-zone2-bg").scrollIntoView({ behavior: 'smooth', block: 'start' });
   }catch(e){
     UI.toast("開始失敗", String(e?.message || e), "bad");
@@ -1040,9 +1060,14 @@ async function startTest(){
 async function submitAnswer(){
   if(!CAT.started || !CAT.current) return;
   if(!CAT.selected){ UI.toast("尚未選擇", "請先選擇一個選項。", "warn"); return; }
-  document.getElementById("btnSubmit").disabled = true;
-  document.getElementById("btnNext").disabled = true;
+  
+  const btnSubmit = document.getElementById("btnSubmit");
+  const btnNext = document.getElementById("btnNext");
+
+  btnSubmit.disabled = true;
+  btnNext.disabled = true; // 暫時鎖住防止連按
   document.getElementById("hint").innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> 送出中…`;
+  
   const unit = getUnit();
   try{
     const json = await api({
@@ -1057,11 +1082,17 @@ async function submitAnswer(){
     const next = normalizeItem(json.item);
     if(!next) throw new Error("後端未提供下一題。");
     CAT.next = next;
-    document.getElementById("btnNext").disabled = false;
+    
+    // ★ 變色邏輯：送出變灰，下一題變亮綠跳動
+    btnSubmit.className = "flex-1 md:flex-none inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl bg-slate-100 border-2 border-slate-200 text-slate-400 font-bold text-lg cursor-not-allowed shadow-none";
+    
+    btnNext.disabled = false;
+    btnNext.className = "flex-1 md:flex-none inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl bg-green-500 text-white font-bold text-lg hover:bg-green-600 shadow-lg transition-all animate-bounce";
+    
     document.getElementById("hint").innerHTML = `<span class="text-emerald-600 font-bold"><i class="fa-solid fa-circle-check mr-1"></i> 作答成功！</span> 請按「下一題」。`;
   }catch(e){
     UI.toast("送出失敗", String(e?.message||e), "bad");
-    document.getElementById("btnSubmit").disabled = false;
+    btnSubmit.disabled = false; // 失敗時恢復可送出
     document.getElementById("hint").textContent = "送出失敗，請重試。";
   }
 }
@@ -1077,6 +1108,10 @@ async function finishTest(){
   document.getElementById("btnFinish").disabled = true;
   document.getElementById("btnSubmit").disabled = true;
   document.getElementById("btnNext").disabled = true;
+  
+  // 設定結束時的文字
+  document.getElementById("loading-title").textContent = "AI測驗結果分析中...";
+  document.getElementById("loading-desc").textContent = "很想知道你考幾分吧？快好了快好了！";
   document.getElementById("loading-overlay").style.display = "flex";
 
   try{
@@ -1084,29 +1119,27 @@ async function finishTest(){
     UI.showResult(true);
     document.getElementById("loading-overlay").style.display = "none";
 
-    // 1. 題數分數
     document.getElementById("resScore").textContent = json.score ?? "—";
     
-    // 2. 100分制計算
     const scoreStr = json.score || "0/0"; 
     const [correct, total] = scoreStr.split('/').map(Number);
     const finalScore = total ? Math.round((correct / total) * 100) : 0;
     document.getElementById("resScore100").textContent = finalScore + " 分";
 
-    // 隱藏 Test ID (保留在 DOM 但不顯示)
     document.getElementById("resTestId").textContent = json.test_id ?? "";
 
-    // 3. 診斷回饋優化
     let fb = json.feedback_student || "尚無回饋";
-    // 去除 IRT 技術文字
     fb = fb.replace(/你的能力估計.*?測量精度.*?。/g, "");
-    // 柔和化語氣
     fb = fb.replace(/相對優勢概念：/g, "👍 你已經掌握得很好的概念：");
     fb = fb.replace(/建議優先補強概念：/g, "💪 建議再多加練習的概念：");
     fb = fb.replace(/錯題建議回看：/g, "📖 老師建議複習重點：");
+    
+    // ★ 滿分彩蛋
+    if (finalScore === 100) {
+        fb = "🎉 你真是厲害！我出這麼難的題目，你都可以全對，真是不簡單！\n\n" + fb;
+    }
+    
     document.getElementById("resFeedback").textContent = fb.trim();
-
-    // 4. 錯題清單優化 (概念診斷)
     document.getElementById("resWrong").innerHTML = renderWrongEnhanced(json.wrong_items || []);
 
     UI.toast("完成", "測驗結束，請查看診斷結果。", "good");
@@ -1136,13 +1169,11 @@ function clampNum(x, lo, hi, fallback){
   const n = Number(x); return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : fallback;
 }
 
-// 新版錯題顯示 (不顯示 raw ID，改顯示課本出處)
 function renderWrongEnhanced(arr){
   const xs = Array.isArray(arr) ? arr : [];
   if(xs.length === 0) return `<div class="text-green-600 bg-green-50 p-4 rounded-xl text-center border border-green-200"><i class="fa-solid fa-star mr-2"></i>太棒了！這次測驗沒有答錯的題目。</div>`;
   
   return xs.map((w, i) => {
-    // 隱藏原始 item_id，只取後面的資訊
     const concept = w.concept_tag ? `<span class="font-bold text-red-600">${escapeHtml(w.concept_tag)}</span>` : "此概念";
     const source = w.textbook_source ? `<br><span class="text-slate-500 text-sm mt-1 block"><i class="fa-solid fa-book-open mr-1"></i> 建議複習：${escapeHtml(w.textbook_source)}</span>` : "";
     
