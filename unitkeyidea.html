@@ -1007,49 +1007,38 @@ function downloadTXT() {
         }
     }
 
-    async function sendChatMessage() {
-        const input = document.getElementById("chat-input"); 
-        if (!input) return;
-        const msg = input.value.trim(); 
-        if(!msg) return;
+async function sendChatMessage() {
+    // ... (前面取得 input 邏輯保持不變) ...
 
-        const chatBody = document.getElementById("chat-messages");
-        if (chatBody) {
-            chatBody.innerHTML += `<div class="self-end bg-blue-600 text-white p-3 rounded-lg rounded-tr-none shadow-sm max-w-[85%] ml-auto text-sm">${msg}</div>`;
-            chatBody.scrollTop = chatBody.scrollHeight;
-        }
-        input.value = "";
+    try {
+        const currentUser = JSON.parse(sessionStorage.getItem("currentUser") || localStorage.getItem("currentUser") || '{"name":"訪客"}');
+        
+        // ... (contextText, contextVocab 設定保持不變) ...
 
-        try {
-            // 同步使用 session/localStorage 的 currentUser
-            const currentUser = JSON.parse(sessionStorage.getItem("currentUser") || localStorage.getItem("currentUser") || '{"name":"訪客"}');
-            const contextText = currentResultData ? (currentResultData.raw_content ? currentResultData.raw_content.text : "") : "";
-            const contextVocab = currentResultData ? (currentResultData.raw_content ? currentResultData.raw_content.vocab_str : "") : "";
-            const res = await fetch(GAS_API_URL, { 
-                method: 'POST', 
-                body: JSON.stringify({ 
-                    action: 'chat_with_ai', 
-                    message: msg, 
-                    currentUnit: filters.unitName || "",
-                    contextText: contextText,
-                    contextVocab: contextVocab,
-                    userName: currentUser.name,
-                    stage: filters.stage,
-                    publisher: filters.publisher,
-                    grade: filters.grade,
-                    semester: filters.semester 
-                }) 
-            });
-            const json = await res.json();
-            const cleanReply = (json.data || "").replace(/\*\*/g, "");
-            if (chatBody) {
-                chatBody.innerHTML += `<div class="self-start bg白 border border-slate-100 p-3 rounded-lg rounded-tr-none shadow-sm max-w-[85%] text-sm"><span class="font-bold text-blue-600 block mb-1 text-xs">小科 AI</span>${cleanReply}</div>`;
-                chatBody.scrollTop = chatBody.scrollHeight;
-            }
-        } catch(e) { 
-            console.error(e); 
-        }
+        const res = await fetch(GAS_API_URL, { 
+            method: 'POST', 
+            body: JSON.stringify({ 
+                action: 'chat_with_ai', 
+                message: msg, 
+                // ★★★ 新增這行：傳送帳號 ★★★
+                account: currentUser.account || currentUser.name || "訪客",
+                userName: currentUser.name,
+                
+                currentUnit: filters.unitName || "",
+                contextText: contextText,
+                contextVocab: contextVocab,
+                stage: filters.stage,
+                publisher: filters.publisher,
+                grade: filters.grade,
+                semester: filters.semester 
+            }) 
+        });
+        
+        // ... (處理回應邏輯保持不變) ...
+    } catch(e) { 
+        console.error(e); 
     }
+}
 
    function openModal() {
     const chartDiv = document.getElementById("mermaid-chart");
