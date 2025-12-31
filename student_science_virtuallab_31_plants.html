@@ -1,1 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Science Hero: The Evolution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
 
+    <style>
+        /* =========================================
+           1. 全局百萬級視覺設定 (Million-Dollar Visuals)
+           ========================================= */
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+TC:wght@400;700&display=swap');
+
+        body {
+            background-color: #0F172A; /* 深空藍 */
+            color: #fff;
+            font-family: 'Noto Sans TC', sans-serif;
+            overflow: hidden; /* 禁止捲動，打造 App 質感 */
+            touch-action: none;
+        }
+
+        /* 動態星空背景 */
+        #starfield {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -2;
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+        }
+        .star {
+            position: absolute; background: white; border-radius: 50%;
+            animation: twinkle var(--duration) infinite ease-in-out;
+            opacity: var(--opacity);
+        }
+        @keyframes twinkle { 0%, 100% { opacity: 0.2; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
+
+        /* Glassmorphism 2.0 面板 */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            border-left: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            border-radius: 24px;
+        }
+
+        /* 3D Tilt 效果 (模擬高級卡片質感) */
+        .tilt-card {
+            transition: transform 0.1s ease-out;
+            transform-style: preserve-3d;
+        }
+
+        /* 霓虹文字特效 */
+        .neon-text-blue {
+            text-shadow: 0 0 5px #22D3EE, 0 0 10px #22D3EE, 0 0 20px #22D3EE;
+        }
+        .neon-text-gold {
+            text-shadow: 0 0 5px #F59E0B, 0 0 10px #F59E0B;
+        }
+
+        /* =========================================
+           2. 角色進化特效 (Avatar Evolution)
+           ========================================= */
+        .avatar-container {
+            position: relative;
+            width: 280px; height: 380px;
+            margin: 0 auto;
+            display: flex; justify-content: center; align-items: center;
+        }
+        /* 角色背後的光環 */
+        .aura-ring {
+            position: absolute; border-radius: 50%;
+            border: 2px solid transparent;
+        }
+        /* Tier 4+ 才會有的懸浮特效 */
+        .floating { animation: float 3s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+
+        /* =========================================
+           3. 戰鬥系統特效 (Battle FX)
+           ========================================= */
+        .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake { 10%, 90% { transform: translate3d(-2px, 0, 0); } 20%, 80% { transform: translate3d(4px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-6px, 0, 0); } 40%, 60% { transform: translate3d(6px, 0, 0); } }
+
+        .boss-hit { filter: brightness(5) sepia(1) hue-rotate(-50deg) saturate(5); transition: filter 0.1s; }
+        
+        /* 隱藏/顯示轉場 */
+        .screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: none; flex-direction: column;
+            opacity: 0; transition: opacity 0.5s ease;
+        }
+        .screen.active { display: flex; opacity: 1; }
+
+        /* 進度條特效 */
+        .progress-bar-fill {
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(90deg, #3b82f6, #06b6d4, #3b82f6);
+            background-size: 200% 100%;
+            animation: gradientMove 2s linear infinite;
+        }
+        @keyframes gradientMove { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+
+    </style>
+</head>
+<body>
+
+    <div id="starfield"></div>
+
+    <div id="dashboard-screen" class="screen active p-6 overflow-y-auto">
+        <div class="flex justify-between items-center mb-6 z-10">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-full border-2 border-cyan-400 bg-slate-800 flex items-center justify-center overflow-hidden relative shadow-[0_0_15px_rgba(34,211,238,0.5)]">
+                    <i class="fa-solid fa-user-astronaut text-2xl text-cyan-200"></i>
+                </div>
+                <div>
+                    <div id="user-title" class="text-xs text-cyan-400 font-bold tracking-widest uppercase">菜鳥實習生</div>
+                    <div id="user-name" class="font-black text-white text-lg font-['Orbitron']">PLAYER 1</div>
+                </div>
+            </div>
+            <div class="glass-panel px-4 py-2 flex items-center gap-2">
+                <i class="fa-solid fa-coins text-yellow-400 animate-pulse"></i>
+                <span id="user-coins" class="font-bold font-mono text-yellow-200">0</span>
+            </div>
+        </div>
+
+        <div class="relative w-full flex flex-col items-center justify-center mb-8">
+            <div class="avatar-container floating tilt-card">
+                <div id="avatar-aura" class="absolute inset-0 bg-cyan-500/20 blur-[60px] rounded-full scale-75 opacity-0 transition duration-1000"></div>
+                
+                <div class="z-10 text-center">
+                    <i id="avatar-icon" class="fa-solid fa-user text-[150px] text-slate-300 drop-shadow-2xl transition-all duration-500"></i>
+                    <div id="avatar-equipment" class="mt-4 text-sm bg-black/40 px-3 py-1 rounded-full border border-white/10 backdrop-blur-sm">
+                        ✋ 手持：生鏽的澆花器
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full max-w-xs mt-4">
+                <div class="flex justify-between text-xs text-slate-400 mb-1 font-bold">
+                    <span>LV. <span id="current-lvl">1</span></span>
+                    <span>NEXT: <span id="next-xp">100</span> XP</span>
+                </div>
+                <div class="h-3 w-full bg-slate-700/50 rounded-full overflow-hidden border border-white/5">
+                    <div id="xp-bar" class="progress-bar-fill h-full w-0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 pb-20">
+            <h3 class="text-slate-400 text-sm font-bold uppercase tracking-widest mb-2 ml-1">選擇任務星系</h3>
+            
+            <div onclick="startBattle('plant')" class="glass-panel p-5 flex items-center justify-between cursor-pointer group hover:bg-white/5 transition active:scale-95 border-l-4 border-l-emerald-500">
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition">
+                        <i class="fa-solid fa-leaf text-2xl"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-lg text-emerald-100 group-hover:text-white">植物森林</h4>
+                        <div class="text-xs text-emerald-400/70">進度：0% | Boss: 軸根蘿蔔怪</div>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-right text-emerald-500/50"></i>
+            </div>
+
+            <div class="glass-panel p-5 flex items-center justify-between opacity-50 grayscale cursor-not-allowed border-l-4 border-l-purple-500">
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 rounded-2xl bg-purple-500/20 flex items-center justify-center text-purple-400">
+                        <i class="fa-solid fa-magnet text-2xl"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-lg text-purple-100">磁力要塞</h4>
+                        <div class="text-xs text-purple-400/70">LV.10 解鎖</div>
+                    </div>
+                </div>
+                <i class="fa-solid fa-lock text-slate-500"></i>
+            </div>
+        </div>
+    </div>
+
+    <div id="battle-screen" class="screen bg-slate-900/95 z-50 p-6 items-center justify-center">
+        <div class="absolute top-6 left-6 right-6 flex justify-between items-center">
+            <button onclick="exitBattle()" class="w-10 h-10 rounded-full bg-slate-800 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            <div class="text-xs font-bold text-red-400 animate-pulse">BOSS BATTLE</div>
+        </div>
+
+        <div class="text-center mb-10 relative">
+            <div id="boss-hp-bar" class="w-64 h-2 bg-slate-700 rounded-full mx-auto mb-4 overflow-hidden">
+                <div class="h-full bg-red-500 w-full transition-all duration-300"></div>
+            </div>
+            <div id="boss-avatar" class="text-[120px] text-red-500 drop-shadow-[0_0_30px_rgba(239,68,68,0.6)] transition">
+                <i class="fa-solid fa-carrot"></i> </div>
+            <h2 id="boss-name" class="text-2xl font-black text-red-100 mt-4">軸根蘿蔔巨像</h2>
+            <div id="boss-dialog" class="mt-2 text-red-300 text-sm bg-red-900/30 px-4 py-2 rounded-lg border border-red-500/30">
+                「只有真正的科學家才能拔起我！」
+            </div>
+        </div>
+
+        <div class="mb-6 flex justify-center">
+            <div class="glass-panel px-6 py-3 flex items-center gap-3 border-emerald-500/50">
+                <i class="fa-solid fa-robot text-emerald-400"></i>
+                <span class="text-sm font-bold text-emerald-100">裝備：軸根機械爪</span>
+            </div>
+        </div>
+
+        <div id="quiz-container" class="w-full max-w-md">
+            <div class="glass-panel p-6 mb-4">
+                <p id="question-text" class="text-lg font-bold text-center leading-relaxed">軸根的主要特徵是什麼？</p>
+            </div>
+            <div id="options-grid" class="grid grid-cols-1 gap-3">
+                </div>
+        </div>
+
+        <div id="battle-feedback" class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 transition-opacity duration-300 bg-emerald-500/20 z-10">
+            <h1 class="text-6xl font-black text-white italic drop-shadow-lg scale-0 transition-transform duration-300" id="feedback-text">CRITICAL!</h1>
+        </div>
+    </div>
+
+    <div id="levelup-screen" class="screen bg-black/90 z-[100] items-center justify-center text-center p-8 backdrop-blur-md">
+        <div class="relative">
+            <div class="absolute inset-0 bg-yellow-500/20 blur-[80px] rounded-full animate-pulse"></div>
+            <i class="fa-solid fa-crown text-8xl text-yellow-400 mb-6 drop-shadow-[0_0_30px_rgba(250,204,21,0.8)] animate-bounce"></i>
+        </div>
+        <h2 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 to-yellow-600 mb-2 font-['Orbitron']">LEVEL UP!</h2>
+        <p class="text-slate-300 text-lg mb-8">你進化了！科學能量突破極限！</p>
+        
+        <div class="glass-panel p-6 w-full max-w-sm mb-8 text-left">
+            <div class="flex justify-between mb-2">
+                <span class="text-slate-400">等級</span>
+                <span class="font-bold text-white"><span id="old-lvl">1</span> <i class="fa-solid fa-arrow-right text-xs text-slate-500 mx-2"></i> <span id="new-lvl" class="text-yellow-400 text-xl">2</span></span>
+            </div>
+            <div class="flex justify-between mb-2">
+                <span class="text-slate-400">稱號</span>
+                <span id="new-title" class="font-bold text-cyan-400">實習生</span>
+            </div>
+            <div class="mt-4 pt-4 border-t border-white/10 text-center">
+                <div class="text-xs text-slate-500 uppercase tracking-wider mb-2">解鎖新外觀</div>
+                <div id="unlock-item" class="font-bold text-white flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-vest"></i> 實驗室助理制服
+                </div>
+            </div>
+        </div>
+
+        <button onclick="closeLevelUp()" class="bg-gradient-to-r from-yellow-500 to-orange-600 text-white font-bold py-4 px-12 rounded-full shadow-[0_0_20px_rgba(234,179,8,0.4)] hover:scale-105 active:scale-95 transition text-lg">
+            太棒了！
+        </button>
+    </div>
+
+    <script>
+        // =========================================
+        //  遊戲邏輯核心 (Game Engine)
+        // =========================================
+
+        // 1. 遊戲資料設定 (Game Config)
+        const TIERS = [
+            { lvl: 1,  title: "菜鳥實習生", icon: "fa-user", equip: "生鏽的澆花器", color: "text-slate-300" },
+            { lvl: 5,  title: "實驗室助理", icon: "fa-user-nurse", equip: "數位分析儀", color: "text-blue-300" },
+            { lvl: 10, title: "探索特派員", icon: "fa-person-hiking", equip: "軸根挖掘鑽頭", color: "text-emerald-300" },
+            { lvl: 20, title: "首席科學家", icon: "fa-user-astronaut", equip: "浮游炮無人機", color: "text-cyan-300" },
+            { lvl: 50, title: "傳奇賢者",   icon: "fa-hat-wizard", equip: "真理之書", color: "text-yellow-300" }
+        ];
+
+        // 模擬植物單元的 Boss 戰題庫 (Content as Weaponry)
+        const BOSS_QUESTIONS = [
+            { q: "我要把軸根拔起來！請問軸根長什麼樣子？", options: ["有一條粗粗的主根", "都是細細的鬚根", "像球一樣圓圓的"], ans: 0 },
+            { q: "蘿蔔怪的弱點是它的莖！它的莖屬於哪一種？", options: ["高大的木本莖", "矮小的草本莖", "會攀爬的藤本莖"], ans: 1 },
+            { q: "防禦！哪一種葉序可以讓葉子照到最多陽光？", options: ["重疊生長", "互生 (錯開生長)", "躲在陰暗處"], ans: 1 },
+            { q: "最後一擊！花朵凋謝後會變成什麼？", options: ["變成葉子", "變成根", "結成果實"], ans: 2 }
+        ];
+
+        // 2. 玩家狀態管理 (State Management)
+        let player = {
+            level: 1,
+            xp: 0,
+            xpToNext: 100,
+            coins: 0
+        };
+
+        // 讀取存檔
+        function loadGame() {
+            const saved = localStorage.getItem('scienceHeroSave');
+            if (saved) player = JSON.parse(saved);
+            updateDashboard();
+        }
+
+        // 儲存存檔
+        function saveGame() {
+            localStorage.setItem('scienceHeroSave', JSON.stringify(player));
+        }
+
+        // 3. UI 更新邏輯 (UI Controller)
+        function updateDashboard() {
+            // 計算當前 Tier
+            let currentTier = TIERS[0];
+            for (let t of TIERS) {
+                if (player.level >= t.lvl) currentTier = t;
+            }
+
+            // 更新文字與數值
+            document.getElementById('user-title').innerText = currentTier.title;
+            document.getElementById('user-name').className = `font-black text-lg font-['Orbitron'] ${currentTier.color}`;
+            document.getElementById('user-coins').innerText = player.coins;
+            document.getElementById('current-lvl').innerText = player.level;
+            document.getElementById('next-xp').innerText = player.xpToNext - player.xp;
+
+            // 更新 XP 條
+            const pct = (player.xp / player.xpToNext) * 100;
+            document.getElementById('xp-bar').style.width = `${pct}%`;
+
+            // 更新角色外觀 (Avatar)
+            const iconEl = document.getElementById('avatar-icon');
+            iconEl.className = `fa-solid ${currentTier.icon} text-[150px] drop-shadow-2xl transition-all duration-500 ${currentTier.color}`;
+            document.getElementById('avatar-equipment').innerText = `✋ 手持：${currentTier.equip}`;
+
+            // 高等級特效
+            const aura = document.getElementById('avatar-aura');
+            if (player.level >= 10) aura.classList.remove('opacity-0');
+        }
+
+        // 4. 戰鬥系統 (Battle System)
+        let currentBossHp = 100;
+        let currentQuestionIdx = 0;
+
+        function startBattle(type) {
+            document.getElementById('dashboard-screen').classList.remove('active');
+            document.getElementById('battle-screen').classList.add('active');
+            
+            // 重置 Boss
+            currentBossHp = 100;
+            currentQuestionIdx = 0;
+            updateBossUI();
+            loadNextQuestion();
+        }
+
+        function exitBattle() {
+            document.getElementById('battle-screen').classList.remove('active');
+            document.getElementById('dashboard-screen').classList.add('active');
+            updateDashboard();
+        }
+
+        function updateBossUI() {
+            document.querySelector('#boss-hp-bar div').style.width = `${currentBossHp}%`;
+        }
+
+        function loadNextQuestion() {
+            if (currentQuestionIdx >= BOSS_QUESTIONS.length) {
+                winBattle();
+                return;
+            }
+            
+            const qData = BOSS_QUESTIONS[currentQuestionIdx];
+            document.getElementById('question-text').innerText = qData.q;
+            
+            const grid = document.getElementById('options-grid');
+            grid.innerHTML = '';
+            
+            qData.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-4 rounded-xl bg-slate-800 border border-slate-600 hover:bg-slate-700 hover:border-cyan-400 transition active:scale-95 text-slate-200 font-bold";
+                btn.innerText = opt;
+                btn.onclick = () => handleAnswer(idx === qData.ans);
+                grid.appendChild(btn);
+            });
+        }
+
+        function handleAnswer(isCorrect) {
+            if (isCorrect) {
+                // 1. 視覺回饋：震動與特效
+                if (navigator.vibrate) navigator.vibrate(50); // Haptic Feedback
+                
+                // Boss 受傷動畫
+                const bossAvatar = document.getElementById('boss-avatar');
+                bossAvatar.classList.add('boss-hit');
+                anime({
+                    targets: '#boss-avatar',
+                    translateX: [
+                        { value: -10, duration: 50 },
+                        { value: 10, duration: 50 },
+                        { value: 0, duration: 50 }
+                    ],
+                    easing: 'linear'
+                });
+                setTimeout(() => bossAvatar.classList.remove('boss-hit'), 200);
+
+                // 顯示 Critical 文字
+                const fb = document.getElementById('battle-feedback');
+                const fbText = document.getElementById('feedback-text');
+                fb.style.opacity = '1';
+                fbText.innerText = "CRITICAL HIT!";
+                fbText.style.transform = 'scale(1.5) rotate(-5deg)';
+                setTimeout(() => {
+                    fb.style.opacity = '0';
+                    fbText.style.transform = 'scale(0)';
+                }, 800);
+
+                // 扣血
+                currentBossHp -= 25;
+                updateBossUI();
+                currentQuestionIdx++;
+                setTimeout(loadNextQuestion, 1000);
+
+            } else {
+                // 防挫折設計：角色提示
+                if (navigator.vibrate) navigator.vibrate([100, 50, 100]); // Heavy Thud
+                
+                const dialog = document.getElementById('boss-dialog');
+                dialog.innerText = "哎呀！機械爪滑了一下... 再試一次看看？";
+                dialog.className = "mt-2 text-yellow-300 text-sm bg-yellow-900/30 px-4 py-2 rounded-lg border border-yellow-500/30 animate-pulse";
+            }
+        }
+
+        function winBattle() {
+            // 勝利結算
+            const oldLvl = player.level;
+            const xpGain = 50;
+            const coinGain = 100;
+            
+            player.xp += xpGain;
+            player.coins += coinGain;
+
+            // 檢查升級
+            if (player.xp >= player.xpToNext) {
+                player.level++;
+                player.xp -= player.xpToNext;
+                player.xpToNext = Math.floor(player.xpToNext * 1.2);
+                saveGame();
+                showLevelUp(oldLvl, player.level);
+            } else {
+                saveGame();
+                alert(`戰鬥勝利！獲得 ${xpGain} XP 與 ${coinGain} 金幣！`);
+                exitBattle();
+            }
+        }
+
+        function showLevelUp(oldLvl, newLvl) {
+            document.getElementById('battle-screen').classList.remove('active');
+            document.getElementById('levelup-screen').classList.add('active');
+            
+            document.getElementById('old-lvl').innerText = oldLvl;
+            document.getElementById('new-lvl').innerText = newLvl;
+            
+            // 找出新解鎖的 Title
+            let newTitle = "更強的自己";
+            let newItem = "更多知識";
+            for (let t of TIERS) {
+                if (newLvl === t.lvl) {
+                    newTitle = t.title;
+                    newItem = t.equip;
+                }
+            }
+            document.getElementById('new-title').innerText = newTitle;
+            document.getElementById('unlock-item').innerHTML = `<i class="fa-solid fa-gift text-yellow-400"></i> ${newItem}`;
+        }
+
+        function closeLevelUp() {
+            document.getElementById('levelup-screen').classList.remove('active');
+            document.getElementById('dashboard-screen').classList.add('active');
+            updateDashboard();
+        }
+
+        // =========================================
+        //  背景星空特效 (Visual Polish)
+        // =========================================
+        function initStars() {
+            const container = document.getElementById('starfield');
+            for(let i=0; i<50; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                const size = Math.random() * 2 + 1;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.setProperty('--duration', `${Math.random() * 3 + 2}s`);
+                star.style.setProperty('--opacity', `${Math.random() * 0.7 + 0.3}`);
+                container.appendChild(star);
+            }
+        }
+
+        // 啟動遊戲
+        window.onload = () => {
+            initStars();
+            loadGame();
+        };
+
+    </script>
+</body>
+</html>
